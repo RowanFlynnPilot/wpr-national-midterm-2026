@@ -1,0 +1,48 @@
+import type { CountyResults, HexCell, Race, Results } from "./types";
+
+export interface Data {
+  results: Results;
+  counties: { S: CountyResults; G: CountyResults };
+  hexes: HexCell[];
+}
+
+async function getJson<T>(file: string): Promise<T> {
+  const res = await fetch(`./data/${file}`);
+  if (!res.ok) throw new Error(`Could not load ${file} (HTTP ${res.status})`);
+  return (await res.json()) as T;
+}
+
+export async function loadData(): Promise<Data> {
+  const [results, S, G, hexes] = await Promise.all([
+    getJson<Results>("results.json"),
+    getJson<CountyResults>("counties-S.json"),
+    getJson<CountyResults>("counties-G.json"),
+    getJson<HexCell[]>("house-hex.json"),
+  ]);
+  return { results, counties: { S, G }, hexes };
+}
+
+/** The party code of each candidate column in a county row (race.cands minus the "Others" bucket). */
+export function countyColumns(race: Race) {
+  return race.cands.filter((c) => c.party !== "O").slice(0, 3);
+}
+
+export interface CountyReading {
+  pctIn: number;
+  total: number;
+  leaderIndex: number; // index into countyColumns(race)
+  margin: number; // points between the county's top two
+  shares: number[]; // percent for each county column
+}
+
+export function readCounty(row: number[]): CountyReading | null {
+  const [pctIn = 0, ...rest] = row;
+  const main = rest.slice(0, -1);
+  const total = rest.reduce((s, v) => s + v, 0);
+  if (!total) return null;
+  const order = main.map((v, i) => [v, i] as const).sort((a, b) => b[0] - a[0]);
+  const shares = main.map((v) => (100 * v) / total);
+  const first = order[0] as readonly [number, number];
+  const second = order[1]?.[0] ?? 0;
+  return { pctIn, total, leaderIndex: first[1], margin: (100 * (first[0] - second)) / total, shares };
+}

@@ -1,0 +1,28 @@
+{
+  "_note": "Pre-election party control. Senate/governor seat holders as of Election Day 2026; House baseline is the 2024 election result (the figure the 'net gain of three' benchmark is measured from). Independents King (ME) and Sanders (VT) are counted with the Democrats they caucus with.",
+  "senate": {
+    "before": {"D": 47, "R": 53},
+    "not_up": {"D": 34, "R": 31},
+    "seat_holder": {
+      "AK": "R", "AL": "R", "AR": "R", "CO": "D", "DE": "D", "FL": "R", "GA": "D", "IA": "R",
+      "ID": "R", "IL": "D", "KS": "R", "KY": "R", "LA": "R", "MA": "D", "ME": "R", "MI": "D",
+      "MN": "D", "MS": "R", "MT": "R", "NC": "R", "NE": "R", "NH": "D", "NJ": "D", "NM": "D",
+      "OH": "R", "OK": "R", "OR": "D", "RI": "D", "SC": "R", "SD": "R", "TN": "R", "TX": "R",
+      "VA": "D", "WV": "R", "WY": "R"
+    }
+  },
+  "governor": {
+    "before": {"D": 24, "R": 26},
+    "not_up": {"D": 6, "R": 8},
+    "seat_holder": {
+      "AK": "R", "AL": "R", "AR": "R", "AZ": "D", "CA": "D", "CO": "D", "CT": "D", "FL": "R",
+      "GA": "R", "HI": "D", "IA": "R", "ID": "R", "IL": "D", "KS": "D", "MA": "D", "MD": "D",
+      "ME": "D", "MI": "D", "MN": "D", "NE": "R", "NH": "R", "NM": "D", "NV": "R", "NY": "D",
+      "OH": "R", "OK": "R", "OR": "D", "PA": "D", "RI": "D", "SC": "R", "SD": "R", "TN": "R",
+      "TX": "R", "VT": "R", "WI": "D", "WY": "R"
+    }
+  },
+  "house": {
+    "before": {"D": 215, "R": 220}
+  }
+}

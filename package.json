@@ -1,0 +1,31 @@
+{
+  "name": "wpr-national-midterm-2026",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "data": "python pipeline/fetch.py && python pipeline/build.py",
+    "hexmap": "node scripts/hexmap.mjs",
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "d3": "^7.9.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "topojson-client": "^3.1.0",
+    "us-atlas": "^3.0.1"
+  },
+  "devDependencies": {
+    "@types/d3": "^7.4.3",
+    "@types/geojson": "^7946.0.16",
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
+    "@types/topojson-client": "^3.1.5",
+    "@types/topojson-specification": "^1.0.5",
+    "@vitejs/plugin-react": "^6.2.1",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.6"
+  }
+}
