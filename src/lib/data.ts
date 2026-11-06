@@ -7,9 +7,9 @@ export interface Live {
   counties: { S: CountyResults; G: CountyResults };
 }
 
+/** Everything the page needs except the map shapes, which arrive separately (see loadAtlas). */
 export interface Data extends Live {
   hexes: HexCell[];
-  geo: Geo;
 }
 
 async function getJson<T>(file: string): Promise<T> {
@@ -29,8 +29,13 @@ export async function loadLive(): Promise<Live> {
 }
 
 export async function loadData(): Promise<Data> {
-  const [live, hexes, atlas] = await Promise.all([loadLive(), getJson<HexCell[]>("house-hex.json"), getJson<Atlas>("us-albers-10m.json")]);
-  return { ...live, hexes, geo: buildGeo(atlas) };
+  const [live, hexes] = await Promise.all([loadLive(), getJson<HexCell[]>("house-hex.json")]);
+  return { ...live, hexes };
+}
+
+/** The county and state shapes: the largest file, so the page renders before it lands. */
+export async function loadAtlas(): Promise<Geo> {
+  return buildGeo(await getJson<Atlas>("us-albers-10m.json"));
 }
 
 /** The party code of each candidate column in a county row (race.cands minus the "Others" bucket). */

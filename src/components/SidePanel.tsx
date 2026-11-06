@@ -16,7 +16,7 @@ interface Props {
   chamber: Chamber;
   popularVote: PopularVote;
   counties: { S: CountyResults; G: CountyResults };
-  geo: Geo;
+  geo: Geo | null; // null until the map shapes load
   now: number;
   onSelect: (office: Office, state: string | null, district: string | null) => void;
 }
@@ -184,7 +184,7 @@ function StateView({ office, state, races, counties, geo, onSelect }: Props & { 
       {race ? (
         <>
           <RaceCard race={race} heading="h2" />
-          <CountyMap race={race} counties={countyData} geo={geo} />
+          {geo && <CountyMap race={race} counties={countyData} geo={geo} />}
         </>
       ) : (
         <h2 className="panel__title panel__title--state">

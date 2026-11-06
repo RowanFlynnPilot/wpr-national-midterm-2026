@@ -7,8 +7,9 @@ import { NationalMap, type MapMode } from "./components/NationalMap";
 import { RaceTable } from "./components/RaceTable";
 import { SidePanel } from "./components/SidePanel";
 import { Tooltip, type HoverHandler, type HoverTarget } from "./components/Tooltip";
-import { countyColumns, readCounty, type Data } from "./lib/data";
+import { countyColumns, loadAtlas, readCounty, type Data } from "./lib/data";
 import { centralTime } from "./lib/format";
+import type { Geo } from "./lib/geo";
 import { useLive } from "./lib/live";
 import { isStale } from "./lib/share";
 import { stateName } from "./lib/states";
@@ -35,8 +36,31 @@ interface Hover {
   y: number;
 }
 
+/** Holds the map's space while the shapes load, so nothing below it moves. */
+function MapPending({ error }: { error: string | null }) {
+  return (
+    <div className="map-pending" role={error ? "alert" : "status"}>
+      {error ? `The map could not be loaded. ${error}` : "Loading the map…"}
+    </div>
+  );
+}
+
 export function App({ data }: { data: Data }) {
-  const { hexes, geo } = data;
+  const { hexes } = data;
+  // The map shapes are the largest file. Fetching them from an effect, after the first paint,
+  // keeps the headline, tabs, panel and table from ever waiting on them; the maps fill in after.
+  const [geo, setGeo] = useState<Geo | null>(null);
+  const [geoError, setGeoError] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    loadAtlas().then(
+      (g) => !cancelled && setGeo(g),
+      (err: Error) => !cancelled && setGeoError(err.message),
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const { live, refreshing, error } = useLive(data);
   const { results, counties } = live;
   const [sel, setSel] = useState<Selection>(() => parseHash(window.location.hash));
@@ -142,6 +166,7 @@ export function App({ data }: { data: Data }) {
         )
       )}
 
+      <main>
       <section className="hero">
         <h1>{headline(chambers.H, chambers.S)}</h1>
         <p className="hero__dek">{dek(chambers.H, chambers.S, chambers.G)}</p>
@@ -187,7 +212,7 @@ export function App({ data }: { data: Data }) {
                 onHover={onHover}
                 onSelect={onHexSelect}
               />
-            ) : (
+            ) : geo ? (
               <NationalMap
                 geo={geo}
                 mode={mode}
@@ -198,6 +223,8 @@ export function App({ data }: { data: Data }) {
                 onSelect={onStateSelect}
                 onClear={onStateClear}
               />
+            ) : (
+              <MapPending error={geoError} />
             )}
             {hover && frameRef.current && (
               <Tooltip
@@ -233,6 +260,8 @@ export function App({ data }: { data: Data }) {
         races={results.races}
         onSelect={(r) => select({ office: r.office, state: r.state, district: r.office === "H" ? r.district : null })}
       />
+
+      </main>
 
       <footer className="sources">
         <p>

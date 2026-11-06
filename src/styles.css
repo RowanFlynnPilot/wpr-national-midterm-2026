@@ -1,5 +1,33 @@
 /* WPR national midterm 2026 results — WPR design system: teal #3A867C, cream #F6F2E9,
    Fraunces display, Public Sans body, JetBrains Mono for figures in tables. */
+/* The brand faces, self-hosted: the latin subsets of the variable fonts Google Fonts serves,
+   one file per family covering every weight used, refreshed by scripts/fetch_fonts.py and
+   preloaded from index.html. Nothing render-blocking leaves the origin. */
+@font-face {
+  font-family: "Fraunces";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/fonts/fraunces.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Public Sans";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/fonts/public-sans.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400 500;
+  font-display: swap;
+  src: url("/fonts/jetbrains-mono.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 :root {
   --paper: #f6f2e9;
   --paper-raised: #fffdf8;
@@ -64,8 +92,8 @@ a {
 .loading,
 .load-error {
   max-width: 40rem;
-  margin: 4rem auto;
-  padding: 0 1.5rem;
+  margin: 0 auto;
+  padding: 4rem 1.5rem; /* padding, not margin: a margin would collapse through body and shift it when the app replaces this */
   color: var(--ink-2);
 }
 
@@ -410,6 +438,17 @@ a {
 
 .map-frame {
   position: relative;
+}
+
+.map-pending {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 975 / 610;
+  width: 100%;
+  border-radius: 6px;
+  background: var(--wash);
+  font-size: 0.875rem;
+  color: var(--ink-2);
 }
 
 .map-zoom {

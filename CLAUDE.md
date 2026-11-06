@@ -23,7 +23,9 @@ npm run screens   # Playwright screenshots of every view at 390/768/1280/1600 in
 `public/data/us-albers-10m.json` is a committed copy of us-atlas 3.0.1's `counties-albers-10m.json` (Census boundaries
 pre-projected to Albers USA, 975×610). It is the single copy: the front end fetches it in parallel with the results
 (`src/lib/data.ts` → `buildGeo`), `pipeline/build.py` reads it for the county FIPS/name index, and `scripts/hexmap.mjs`
-for county centroids. It is not in the JS bundle (JS is ~62 KB gzipped). `index.html` preloads all five data files.
+for county centroids. It is not in the JS bundle (JS is ~64 KB gzipped). `index.html` preloads the four results files; the atlas is fetched
+from an effect in `App` after the first paint (`loadAtlas`), so the headline, tabs, panel and table never wait on it and
+the maps fill in when it lands (`MapPending` holds the space). Starting it any earlier let Lighthouse tie the LCP to it.
 
 ## Data source: civicAPI only
 
@@ -69,6 +71,8 @@ Each district's target = vote-weighted centroid of the counties it covers (from 
 - Chamber tabs are WAI-ARIA tabs (Left/Right/Home/End). `raceTitle` in `summary.ts` is the one source for race names (cards, tooltips, aria-labels).
 - Colors validated with the dataviz palette checker on cream: D `#2D63A6`, R `#C23A30`, Ind/other `#B88A1E` (below 3:1, always paired with a label). Pale tints = leading, not called. `--muted` is `#6b665a` (5.1:1 on cream, 4.7:1 on the wash); the earlier `#7d776b` was under AA.
 - WPR design system: teal `#3A867C`, cream `#F6F2E9`, Fraunces (headlines), Public Sans (UI, hero numbers), JetBrains Mono (vote counts in tables).
+- Fonts are self-hosted in `public/fonts` (latin subsets of the variable woff2 files Google Fonts serves; `python scripts/fetch_fonts.py` refreshes them), declared at the top of `styles.css` and preloaded from `index.html`. Nothing render-blocking leaves the origin.
+- `.loading` uses padding, not margin: a top margin collapses through `<body>` and shifts the page when the app replaces it (that was a 0.08 CLS).
 
 ## WordPress embed
 
@@ -104,6 +108,12 @@ hash into the iframe so a shared link opens on the right view, and passes the ar
   `dist/share.png` as the last step of `npm run build` and stamps `?v=<fetched>` onto the og:image URL in `dist/index.html`
   so crawlers refetch after each data run. Open Graph and Twitter tags live in `index.html`.
 - `.stale` notice appears when `results.fetched` is more than three hours old (`isStale`, re-checked every minute).
+
+## Quality gates (Nov. 5, 2026)
+
+`node scripts/serve.mjs 4174` serves `dist/` with gzip like Pages does (Vite's preview does not compress, which skews
+Lighthouse's throttling). Lighthouse mobile on `/#senate`, `/#house`, `/#governors`: Performance 95–100 across six runs,
+Accessibility 100, Best Practices 100, CLS 0. `npm run screens` doubles as the zero-console-errors gate. `npm audit` clean.
 
 ## Deploy
 

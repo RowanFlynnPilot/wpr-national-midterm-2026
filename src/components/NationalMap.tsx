@@ -2,6 +2,7 @@ import { memo, useMemo, useState } from "react";
 import { NO_RACE, NO_RESULTS, inkOn, marginColor } from "../lib/colors";
 import { countyColumns, readCounty } from "../lib/data";
 import { LABEL_NUDGE, VIEW, type Geo, type StateShape } from "../lib/geo";
+
 import { SMALL_STATES, STATES } from "../lib/states";
 import { raceFill, statusText } from "../lib/status";
 import { raceTitle } from "../lib/summary";
@@ -25,8 +26,9 @@ function stateFill(race: Race | undefined): string {
   return race ? raceFill(race) : NO_RACE;
 }
 
-function stateLabel(s: StateShape, race: Race | undefined): string {
-  return race ? `${raceTitle(race)}: ${statusText(race)}` : `${s.name}: no race this year`;
+/** Accessible name for a state with a race; states without one are decorative (the tooltip still names them on hover). */
+function stateLabel(race: Race | undefined): string | undefined {
+  return race ? `${raceTitle(race)}: ${statusText(race)}` : undefined;
 }
 
 const CHIP_X = 930;
@@ -123,7 +125,7 @@ export const NationalMap = memo(function NationalMap({ geo, mode, racesByState, 
                   fill={mode === "states" ? stateFill(race) : "transparent"}
                   tabIndex={race ? 0 : -1}
                   role={race ? "button" : undefined}
-                  aria-label={stateLabel(s, race)}
+                  aria-label={stateLabel(race)}
                   aria-pressed={race ? selected === s.code : undefined}
                   onPointerMove={(e) => (mode === "states" ? onHover({ kind: "state", state: s.code }, e) : undefined)}
                   onPointerLeave={() => mode === "states" && onHover(null)}
@@ -172,7 +174,7 @@ export const NationalMap = memo(function NationalMap({ geo, mode, racesByState, 
                   className={race ? "chip has-race" : "chip"}
                   tabIndex={race ? 0 : -1}
                   role={race ? "button" : undefined}
-                  aria-label={stateLabel(s, race)}
+                  aria-label={stateLabel(race)}
                   aria-pressed={race ? selected === code : undefined}
                   onPointerMove={(e) => onHover(race ? { kind: "state", state: code } : null, e)}
                   onPointerLeave={() => onHover(null)}
