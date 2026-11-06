@@ -76,6 +76,10 @@ Touch behavior was checked on the live site under Playwright's Pixel 7 (Chromium
 
 The title placement under the headline follows the tracker model from the brand kit: one config object (`src/sponsors.ts`), a sold lockup (logo or name, tagline split at the em dash, Directions chip, UTM-tagged `sponsored` link), an open-slot upsell with Chris Weber's address and a copy-to-clipboard mailto, a `?demo` preview for sales, and an "Advertise on this page" footer link. The slot ships open.
 
+## Race tables (Nov. 6)
+
+Every office's table now expands a row into the full race card (all candidates with votes and bars, photos, call and update times, the count sparkline, an "Open on the map" button), adds Votes and Called columns, sorts on every column, filters to races within 5 points, shows a called/not-called summary, and downloads the filtered rows as CSV with the top two candidates spelled out.
+
 ## Lighthouse (mobile, gzip-served build, two runs per view)
 
 | View | Performance | Accessibility | Best Practices | LCP | CLS |

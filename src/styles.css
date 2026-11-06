@@ -1595,8 +1595,108 @@ a {
   font-size: 0.875rem;
 }
 
+.table-summary {
+  margin: 0.2rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.csv {
+  padding: 0.38rem 0.8rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: 7px;
+  background: var(--paper-raised);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ink);
+  cursor: pointer;
+}
+
 .table-wrap {
   overflow-x: auto;
+}
+
+/* row expansion */
+.expander-col {
+  width: 28px;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.expander {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.expander svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 160ms ease-out;
+}
+
+.expander[aria-expanded="true"] svg {
+  transform: rotate(90deg);
+}
+
+.races tr.is-expanded td,
+.races tr.is-expanded th {
+  border-bottom: 0;
+  background: var(--paper-raised);
+}
+
+.races .detail-row td {
+  padding: 0 0.6rem 1rem 28px;
+  background: var(--paper-raised);
+}
+
+.races .detail-row:hover {
+  background: none;
+}
+
+.detail {
+  width: min(34rem, calc(100vw - 2.75rem)); /* a colspan cell would otherwise let the card widen the table past a phone */
+}
+
+.detail .race-card__head h3 {
+  font-size: 1.25rem;
+}
+
+.detail__open {
+  margin-top: 0.75rem;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: 7px;
+  background: var(--paper-raised);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--teal-ink);
+  cursor: pointer;
+}
+
+.called-cell {
+  font-size: 0.8125rem;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.table-note {
+  margin: 0.75rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--muted);
 }
 
 table.races {
@@ -1760,6 +1860,13 @@ table.races {
 
 /* Hover only where the input can hover: touch would otherwise keep the first tap's hover state. */
 @media (hover: hover) and (pointer: fine) {
+  .expander:hover,
+  .csv:hover,
+  .detail__open:hover {
+    border-color: var(--ink-2);
+    color: var(--ink);
+  }
+
   .sponsor:hover {
     border-color: var(--rule-strong);
     border-top-color: var(--teal-ink);
@@ -1950,9 +2057,17 @@ table.races {
   }
   .cand-cell {
     grid-template-columns: 12px minmax(0, 1fr);
+    min-width: 8rem; /* room for a long surname before the status column takes it */
   }
   .cand-cell__name {
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word; /* break only a word that cannot fit, never mid-name for convenience */
+    hyphens: auto;
+  }
+  .races .detail-row td {
+    padding-left: 0;
+  }
+  .races th[scope="row"] .row-link {
+    white-space: normal;
   }
   .cand-cell__pct {
     grid-column: 2;

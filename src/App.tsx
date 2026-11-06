@@ -351,6 +351,8 @@ export function App({ data }: { data: Data }) {
       <RaceTable
         office={sel.office}
         races={results.races}
+        history={history}
+        now={now}
         onSelect={(r) => select({ office: r.office, state: r.state, district: r.office === "H" || r.office === "B" ? r.district : null })}
       />
 
