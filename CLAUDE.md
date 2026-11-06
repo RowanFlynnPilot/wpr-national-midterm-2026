@@ -60,9 +60,12 @@ is partial and mixed rows looked uneven. Review every Commons match on a contact
 `public/data/us-albers-10m.json` is a committed copy of us-atlas 3.0.1's `counties-albers-10m.json` (Census boundaries
 pre-projected to Albers USA, 975×610). It is the single copy: the front end fetches it in parallel with the results
 (`src/lib/data.ts` → `buildGeo`), `pipeline/build.py` reads it for the county FIPS/name index, and `scripts/hexmap.mjs`
-for county centroids. It is not in the JS bundle (JS is ~64 KB gzipped). `index.html` preloads the four results files; the atlas is fetched
-from an effect in `App` after the first paint (`loadAtlas`), so the headline, tabs, panel and table never wait on it and
-the maps fill in when it lands (`MapPending` holds the space). Starting it any earlier let Lighthouse tie the LCP to it.
+for county centroids. It is not in the JS bundle (JS is ~64 KB gzipped). Only `results.json` and `house-hex.json` gate the first render
+(`loadData`); the three county files (`loadCounties`, ~120 KB gzipped, in `useLive`), the atlas (`loadAtlas`, in an effect
+in `App`) and `history.json` follow the first paint, so the headline, tabs, panel and table never wait on them and the maps
+fill in as they land (`MapPending` holds the space, naming what it waits for). `buildGeo` is async and builds the 3,200
+county paths in chunks of 400 with a yield between, so no task runs long on a phone. The entry point paints the WPR flag
+before any data arrives.
 
 ## Data source: civicAPI only
 
@@ -107,7 +110,7 @@ Each district's target = vote-weighted centroid of the counties it covers (from 
 - `src/components/NationalMap.tsx` — states/counties map on us-atlas Albers USA (pre-projected; no projection at runtime). Small NE states get callout chips.
 - `src/components/NationalMap.tsx` has a `measures` mode (states shaded by how many statewide measures they have, `measureCountColor`; the tooltip gives passed/failed/not called); the measures tab has no counties toggle, each measure's card carries its own county map. For the other offices it has three modes: states, counties (margin bins) and "Still counting" (`remaining`: share of each county's vote still out, teal ramp from `remainingColor`; the legend names civicAPI's % reporting as the source). Both county modes zoom to the selected state (CSS transform on `.map-zoom`, non-scaling strokes, "All states" button to return; no animation under `prefers-reduced-motion`).
 - `src/components/HexMap.tsx`: roving tabindex, arrow keys walk the grid (skipping gaps), Enter/Space selects, focus shows the tooltip (`focusPoint` in `Tooltip.tsx`; the same `HoverHandler` serves pointer and keyboard). `SidePanel.tsx`, `RaceCard.tsx`, `CountyMap.tsx`, `RaceTable.tsx` (table view = accessible twin of the maps).
-- `src/lib/live.ts` (`useLive`) refetches results and county files every 15 minutes and when the tab becomes visible; the old render stays at reduced opacity while a refresh is in flight, and a failed refresh shows a specific notice while keeping the last good data.
+- `src/lib/live.ts` (`useLive`) loads the county files after the first paint, then refetches results (and counties, once loaded) every 15 minutes and when the tab becomes visible, but never within 5 minutes of the last refresh (a tab flicking in and out of view was re-downloading everything). The old render stays at reduced opacity while a refresh is in flight; a failed refresh shows a specific notice while keeping the last good data. `document.title` names the selected race.
 - `HOME_STATE` (`src/lib/states.ts`, "WI") drives the Wisconsin shortcut: a toolbar chip that selects it on the current tab, a resting teal outline on both maps (replaced by the selected outline once picked), and the "Wisconsin at a glance" block (statewide races plus the House delegation) at the top of every overview panel.
 - Chamber tabs are WAI-ARIA tabs (Left/Right/Home/End). `raceTitle` in `summary.ts` is the one source for race names (cards, tooltips, aria-labels).
 - Colors validated with the dataviz palette checker on cream: D `#2D63A6`, R `#C23A30`, Ind/other `#B88A1E` (below 3:1, always paired with a label). Measures: Yes `#2B7A6F` (brand teal), No `#A0612C` (warm brown), with pale and five-step ramps in `colors.ts`; the tab's hero numbers and the table's Yes/No columns carry those colors beside their labels. Pale tints = leading, not called. `--muted` is `#6b665a` (5.1:1 on cream, 4.7:1 on the wash); the earlier `#7d776b` was under AA.

@@ -16,7 +16,7 @@ interface Props {
   races: Race[];
   chamber: Chamber;
   popularVote: PopularVote;
-  counties: CountySets;
+  counties: CountySets | null; // null until the county files load
   geo: Geo | null; // null until the map shapes load
   history: History;
   now: number;
@@ -247,14 +247,14 @@ function StateView({ office, state, races, counties, geo, history, onSelect }: P
   const race = races.find((r) => r.office === office && r.state === state);
   const others = races.filter((r) => r.state === state && r.office !== office && r.office !== "H");
   const house = races.filter((r) => r.state === state && r.office === "H");
-  const countyData = office === "S" ? counties.S : counties.G;
+  const countyData = counties ? (office === "S" ? counties.S : counties.G) : null;
   return (
     <div className="panel">
       <Back label={`All ${OFFICE_NAME[office].toLowerCase()} races`} onClick={() => onSelect(office, null, null)} />
       {race ? (
         <>
           <RaceCard race={race} heading="h2" points={history[String(race.id)]} />
-          {geo && <CountyMap race={race} counties={countyData} geo={geo} />}
+          {geo && countyData && <CountyMap race={race} counties={countyData} geo={geo} />}
         </>
       ) : (
         <h2 className="panel__title panel__title--state">
@@ -372,7 +372,7 @@ function MeasureView({ races, district, counties, geo, history, onSelect }: Prop
     <div className="panel">
       <Back label={`All ${stateName(race.state)} measures`} onClick={() => onSelect("B", race.state, null)} />
       <RaceCard race={race} heading="h2" points={history[String(race.id)]} />
-      {geo && <CountyMap race={race} counties={counties.B} geo={geo} />}
+      {geo && counties && <CountyMap race={race} counties={counties.B} geo={geo} />}
     </div>
   );
 }

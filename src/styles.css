@@ -438,6 +438,16 @@ a {
   color: var(--ink-2);
 }
 
+.touch-hint {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .touch-hint {
+    display: inline;
+  }
+}
+
 .map-controls {
   display: flex;
   flex: none;

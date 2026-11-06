@@ -119,6 +119,12 @@
   animation: none;
 }
 
+.share__measures {
+  margin: 1.4rem 0 0;
+  font-size: 1.05rem;
+  color: var(--ink-2);
+}
+
 .share__foot {
   display: flex;
   justify-content: space-between;

@@ -35,20 +35,28 @@ export interface Geo {
 }
 
 const path = geoPath(null);
+const CHUNK = 400; // counties per task: 3,200 path strings in one go would block a phone for a quarter second
+const yieldToMain = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
 
-function shapes(topo: Atlas, object: GeometryCollection<{ name: string }>): Shape[] {
-  return feature(topo, object).features.map((f) => ({
-    id: String(f.id),
-    name: f.properties.name,
-    d: path(f) ?? "",
-    centroid: path.centroid(f),
-    bounds: path.bounds(f),
-  }));
+type Feature = GeoJSON.Feature<GeoJSON.Geometry, { name: string }>;
+
+function shape(f: Feature): Shape {
+  return { id: String(f.id), name: f.properties.name, d: path(f) ?? "", centroid: path.centroid(f), bounds: path.bounds(f) };
 }
 
-export function buildGeo(topo: Atlas): Geo {
-  const counties = shapes(topo, topo.objects.counties);
-  const states = shapes(topo, topo.objects.states)
+async function shapes(topo: Atlas, object: GeometryCollection<{ name: string }>): Promise<Shape[]> {
+  const feats = feature(topo, object).features;
+  const out: Shape[] = [];
+  for (let i = 0; i < feats.length; i += CHUNK) {
+    out.push(...feats.slice(i, i + CHUNK).map(shape));
+    if (i + CHUNK < feats.length) await yieldToMain();
+  }
+  return out;
+}
+
+export async function buildGeo(topo: Atlas): Promise<Geo> {
+  const counties = await shapes(topo, topo.objects.counties);
+  const states = (await shapes(topo, topo.objects.states))
     .filter((s) => s.id in STATES && s.id !== "11")
     .map((s) => ({ ...s, code: (STATES[s.id] as { code: string }).code }));
   const countiesByState = new Map<string, Shape[]>();

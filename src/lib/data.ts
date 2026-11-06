@@ -2,14 +2,9 @@ import { buildGeo, type Atlas, type Geo } from "./geo";
 import type { History } from "./history";
 import type { CountyResults, CountySets, HexCell, Race, Results } from "./types";
 
-/** What changes on every data run. */
-export interface Live {
+/** What the first render needs. County breakdowns, the map shapes and the count history follow after the first paint. */
+export interface Data {
   results: Results;
-  counties: CountySets;
-}
-
-/** Everything the page needs except the map shapes, which arrive separately (see loadAtlas). */
-export interface Data extends Live {
   hexes: HexCell[];
 }
 
@@ -19,20 +14,17 @@ async function getJson<T>(file: string): Promise<T> {
   return (await res.json()) as T;
 }
 
-/** The results and county breakdowns; refetched while the page stays open. */
-export async function loadLive(): Promise<Live> {
-  const [results, S, G, B] = await Promise.all([
-    getJson<Results>("results.json"),
-    getJson<CountyResults>("counties-S.json"),
-    getJson<CountyResults>("counties-G.json"),
-    getJson<CountyResults>("counties-B.json"),
-  ]);
-  return { results, counties: { S, G, B } };
+export const loadResults = () => getJson<Results>("results.json");
+
+/** County breakdowns for the Senate, governor and measure maps: a third of the page's data, needed only once a county map shows. */
+export async function loadCounties(): Promise<CountySets> {
+  const [S, G, B] = await Promise.all([getJson<CountyResults>("counties-S.json"), getJson<CountyResults>("counties-G.json"), getJson<CountyResults>("counties-B.json")]);
+  return { S, G, B };
 }
 
 export async function loadData(): Promise<Data> {
-  const [live, hexes] = await Promise.all([loadLive(), getJson<HexCell[]>("house-hex.json")]);
-  return { ...live, hexes };
+  const [results, hexes] = await Promise.all([loadResults(), getJson<HexCell[]>("house-hex.json")]);
+  return { results, hexes };
 }
 
 /** How each uncalled race's margin has moved over the last week (pipeline/history.py). Small; fetched after first paint. */

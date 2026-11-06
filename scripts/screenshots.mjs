@@ -49,7 +49,11 @@ for (const width of WIDTHS) {
     await page.goto(`http://localhost:${server.port}/${view.hash}`, { waitUntil: "networkidle" });
     await page.waitForSelector(".board");
     await page.evaluate(() => document.fonts.ready);
-    if (view.click) await page.click(view.click);
+    if (view.click) {
+      await page.click(view.click);
+      await page.waitForFunction(() => !document.querySelector(".map-pending"), null, { timeout: 15000 });
+    }
+    await page.waitForFunction(() => !document.querySelector(".map-pending"), null, { timeout: 15000 });
     if (view.hover) {
       await page.locator(view.hover).first().hover();
       await page.waitForSelector(".tooltip");

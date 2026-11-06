@@ -8,6 +8,7 @@ const ORDER = ["S", "H", "G"] as const; // the card shows the three sets of offi
 /** The 1200×630 Open Graph image: balance of power in all three sets of races. Rendered by scripts/share-image.mjs. */
 export function ShareCard({ results }: { results: Results }) {
   const chambers = { S: chamber(results, "S"), H: chamber(results, "H"), G: chamber(results, "G") };
+  const measures = chamber(results, "B");
   return (
     <div className="share">
       <header className="share__masthead">
@@ -45,6 +46,11 @@ export function ShareCard({ results }: { results: Results }) {
           })}
         </div>
       </main>
+      {measures.total > 0 && (
+        <p className="share__measures">
+          {measures.total} statewide ballot measures: {measures.won.Y} passed · {measures.won.N} failed · {measures.uncalled.length} not called
+        </p>
+      )}
       <footer className="share__foot">
         <span>Updated {centralTime(results.updated)}</span>
         <span>wausaupilotandreview.com</span>

@@ -1,29 +1,46 @@
 import { useEffect, useState } from "react";
-import { loadLive, type Live } from "./data";
+import { loadCounties, loadResults } from "./data";
+import type { CountySets, Results } from "./types";
 
 /** Refetch the results this often while the tab is open; the data run deploys hourly. */
 export const REFRESH_MS = 15 * 60 * 1000;
+/** A tab that becomes visible again refetches only if its data is at least this old. */
+export const MIN_GAP_MS = 5 * 60 * 1000;
 
 export interface LiveState {
-  live: Live;
+  results: Results;
+  counties: CountySets | null; // null until the county files land, which happens after the first paint
   refreshing: boolean;
-  error: string | null; // the last refresh failed; `live` is still the previous good data
+  error: string | null; // the last refresh failed; the data shown is still the previous good set
 }
 
-/** Keeps the results current: refetches on a timer and whenever the tab becomes visible again. */
-export function useLive(initial: Live): LiveState {
-  const [state, setState] = useState<LiveState>({ live: initial, refreshing: false, error: null });
+/** Keeps the results current: county files follow the first paint; a timer and tab visibility trigger refreshes. */
+export function useLive(initial: Results): LiveState {
+  const [state, setState] = useState<LiveState>({ results: initial, counties: null, refreshing: false, error: null });
 
   useEffect(() => {
     let busy = false;
+    let last = Date.now();
+    let haveCounties = false;
+    loadCounties().then(
+      (counties) => {
+        haveCounties = true;
+        setState((s) => ({ ...s, counties }));
+      },
+      (err: Error) => setState((s) => ({ ...s, error: err.message })),
+    );
     const refresh = () => {
-      if (busy || document.visibilityState !== "visible") return;
+      if (busy || document.visibilityState !== "visible" || Date.now() - last < MIN_GAP_MS) return;
       busy = true;
       setState((s) => ({ ...s, refreshing: true }));
-      loadLive().then(
-        (live) => {
+      Promise.all([loadResults(), haveCounties ? loadCounties() : null]).then(
+        ([results, counties]) => {
           busy = false;
-          setState((s) => ({ live: live.results.fetched === s.live.results.fetched ? s.live : live, refreshing: false, error: null }));
+          last = Date.now();
+          setState((s) => {
+            const same = results.fetched === s.results.fetched;
+            return { results: same ? s.results : results, counties: same ? s.counties : (counties ?? s.counties), refreshing: false, error: null };
+          });
         },
         (err: Error) => {
           busy = false;

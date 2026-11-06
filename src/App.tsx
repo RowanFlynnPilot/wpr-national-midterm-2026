@@ -39,17 +39,18 @@ interface Hover {
   y: number;
 }
 
-/** Holds the map's space while the shapes load, so nothing below it moves. */
-function MapPending({ error }: { error: string | null }) {
+/** Holds the map's space while the shapes or county results load, so nothing below it moves. */
+function MapPending({ error, what }: { error: string | null; what: "map" | "county results" }) {
   return (
     <div className="map-pending" role={error ? "alert" : "status"}>
-      {error ? `The map could not be loaded. ${error}` : "Loading the map…"}
+      {error ? `The ${what} could not be loaded. ${error}` : `Loading the ${what}…`}
     </div>
   );
 }
 
 export function App({ data }: { data: Data }) {
   const { hexes } = data;
+  const { results, counties, refreshing, error } = useLive(data.results);
   // The map shapes are the largest file. Fetching them from an effect, after the first paint,
   // keeps the headline, tabs, panel and table from ever waiting on them; the maps fill in after.
   const [geo, setGeo] = useState<Geo | null>(null);
@@ -64,8 +65,6 @@ export function App({ data }: { data: Data }) {
       cancelled = true;
     };
   }, []);
-  const { live, refreshing, error } = useLive(data);
-  const { results, counties } = live;
   const [sel, setSel] = useState<Selection>(() => parseHash(window.location.hash));
   const [mode, setMode] = useState<MapMode>("states");
   const [hover, setHover] = useState<Hover | null>(null);
@@ -101,7 +100,7 @@ export function App({ data }: { data: Data }) {
     return () => {
       cancelled = true;
     };
-  }, [live.results.fetched]);
+  }, [results.fetched]);
 
   // A tab left open should notice when the hourly data run has stalled.
   const [now, setNow] = useState(() => Date.now());
@@ -140,7 +139,7 @@ export function App({ data }: { data: Data }) {
     return m;
   }, [results]);
   const measureCounts = useMemo(() => new Map([...measuresByState].map(([st, list]) => [st, list.length])), [measuresByState]);
-  const officeCounties = sel.office === "S" ? counties.S : sel.office === "G" ? counties.G : null;
+  const officeCounties = counties ? (sel.office === "S" ? counties.S : sel.office === "G" ? counties.G : null) : null;
 
   const hasIndependent = useMemo(() => {
     if (sel.office === "H" || mode === "states") return officeRaces.some((r) => (r.winner ?? r.leader) === "I");
@@ -203,6 +202,13 @@ export function App({ data }: { data: Data }) {
       : `Democrats have won ${c.won.D}, Republicans ${c.won.R}${c.won.I ? `, independents ${c.won.I}` : ""}; ${c.uncalled.length} not called.`;
   const mapDescription = `${mapCaption}. ${tally}`;
   const hasNoVotes = officeRaces.some(noVotesYet);
+  const needsCounties = sel.office !== "H" && sel.office !== "B" && mode !== "states";
+
+  // The browser tab names the view, so history, bookmarks and shared tabs read as the race.
+  useEffect(() => {
+    const base = "2026 Midterm Election Results — Wausau Pilot & Review";
+    document.title = sel.state ? `${announce} · ${base}` : base;
+  }, [announce, sel.state]);
 
   return (
     <div className={refreshing ? "app is-refreshing" : "app"} aria-busy={refreshing}>
@@ -241,7 +247,10 @@ export function App({ data }: { data: Data }) {
       <section className="board" id="board">
         <div className="board__map">
           <div className="map-toolbar">
-            <p className="map-caption">{mapCaption}</p>
+            <p className="map-caption">
+              {mapCaption}
+              {sel.office === "H" && <span className="touch-hint"> Tap a state for its districts.</span>}
+            </p>
             <div className="map-controls">
             <button
               type="button"
@@ -285,7 +294,7 @@ export function App({ data }: { data: Data }) {
                 onHover={onHover}
                 onSelect={onHexSelect}
               />
-            ) : geo ? (
+            ) : geo && (counties || !needsCounties) ? (
               <NationalMap
                 geo={geo}
                 mode={sel.office === "B" ? "measures" : mode}
@@ -299,7 +308,7 @@ export function App({ data }: { data: Data }) {
                 onClear={onStateClear}
               />
             ) : (
-              <MapPending error={geoError} />
+              <MapPending error={geoError ?? (needsCounties && !counties ? error : null)} what={needsCounties && geo ? "county results" : "map"} />
             )}
             {hover && frameRef.current && (
               <Tooltip
