@@ -168,6 +168,84 @@ for (;;) {
   claim(s, best.q, best.r);
 }
 
+// --- fill interior holes ----------------------------------------------------
+// Growth can leave free hexes enclosed by blobs. Each hole goes to the neighbor that
+// touches it most, and that state releases its worst-placed exterior hex (removal must
+// keep the blob connected) so every state keeps exactly as many hexes as districts.
+function exteriorFree() {
+  const cells = [...owner.keys()].map((k) => k.split(",").map(Number));
+  const lo = [Math.min(...cells.map((c) => c[0])) - 2, Math.min(...cells.map((c) => c[1])) - 2];
+  const hi = [Math.max(...cells.map((c) => c[0])) + 2, Math.max(...cells.map((c) => c[1])) + 2];
+  const seen = new Set();
+  const stack = [lo];
+  while (stack.length) {
+    const [q, r] = stack.pop();
+    const k = key(q, r);
+    if (seen.has(k) || owner.has(k) || q < lo[0] || q > hi[0] || r < lo[1] || r > hi[1]) continue;
+    seen.add(k);
+    for (const [dq, dr] of NEIGHBORS) stack.push([q + dq, r + dr]);
+  }
+  return seen;
+}
+function holes() {
+  const exterior = exteriorFree();
+  const out = new Set();
+  for (const k of owner.keys()) {
+    const [q, r] = k.split(",").map(Number);
+    for (const [dq, dr] of NEIGHBORS) {
+      const nk = key(q + dq, r + dr);
+      if (!owner.has(nk) && !exterior.has(nk)) out.add(nk);
+    }
+  }
+  return out;
+}
+function connectedWithout(st, dropKey) {
+  const cells = blobs.get(st).filter(([q, r]) => key(q, r) !== dropKey);
+  const seen = new Set([key(...cells[0])]);
+  const stack = [cells[0]];
+  while (stack.length) {
+    const [q, r] = stack.pop();
+    for (const [dq, dr] of NEIGHBORS) {
+      const nk = key(q + dq, r + dr);
+      if (owner.get(nk) === st && nk !== dropKey && !seen.has(nk)) {
+        seen.add(nk);
+        stack.push([q + dq, r + dr]);
+      }
+    }
+  }
+  return seen.size === cells.length;
+}
+// A landlocked state has no exterior hex to give up, so it releases an interior one
+// bordering another state instead; that becomes the next hole and the shift ripples
+// outward until a state on the coast absorbs it. A state may not reclaim what it just gave up.
+const gaveUp = new Map(); // hex key -> state that released it
+for (let pass = 0; ; pass++) {
+  const open = holes();
+  if (!open.size) break;
+  if (pass > 2000) throw new Error(`could not fill holes: ${[...open].join(" ")}`);
+  const hk = [...open][0];
+  const [hq, hr] = hk.split(",").map(Number);
+  const touching = new Map();
+  for (const [dq, dr] of NEIGHBORS) {
+    const st = owner.get(key(hq + dq, hr + dr));
+    if (st && gaveUp.get(hk) !== st) touching.set(st, (touching.get(st) ?? 0) + 1);
+  }
+  const st = [...touching.entries()].sort((a, b) => b[1] - a[1])[0][0];
+  const s = states.find((x) => x.st === st);
+  const exterior = exteriorFree();
+  const bordersOther = ([q, r]) => NEIGHBORS.some(([dq, dr]) => owner.has(key(q + dq, r + dr)) && owner.get(key(q + dq, r + dr)) !== st);
+  const releasable = blobs.get(st).filter(([q, r]) => key(q, r) !== hk && connectedWithout(st, key(q, r)));
+  const byCost = (a, b) => cost(s, ...b) - cost(s, ...a);
+  const release =
+    releasable.filter(([q, r]) => NEIGHBORS.some(([dq, dr]) => exterior.has(key(q + dq, r + dr)))).sort(byCost)[0] ??
+    releasable.filter(bordersOther).sort(byCost)[0];
+  if (!release) throw new Error(`${st} cannot release a hex to fill the hole at ${hk}`);
+  owner.delete(key(...release));
+  blobs.set(st, blobs.get(st).filter(([q, r]) => key(q, r) !== key(...release)));
+  gaveUp.set(key(...release), st);
+  claim(s, hq, hr);
+}
+
 // --- assign districts to hexes inside each blob -----------------------------
 function standardize(points) {
   const n = points.length;

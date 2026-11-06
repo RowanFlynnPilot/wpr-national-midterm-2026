@@ -21,6 +21,8 @@ const VIEWS = {
   "governors-counties": { hash: "#governors", click: 'button[role="radio"]:has-text("Counties")' },
   "senate-hover": { hash: "#senate", hover: 'path.state.has-race[aria-label^="Texas"]', clip: "map" },
   "house-hover": { hash: "#house", hover: "polygon.hex >> nth=100", clip: "map" },
+  "senate-counties-tx": { hash: "#senate-tx", click: 'button[role="radio"]:has-text("Counties")', settle: 900, clip: "map" },
+  "house-keyboard": { hash: "#house", focus: 'polygon.hex[tabindex="0"]', keys: ["ArrowRight", "ArrowRight", "ArrowDown"], clip: "map" },
 };
 
 const [outDir = "screens", ...only] = process.argv.slice(2);
@@ -47,7 +49,12 @@ for (const width of WIDTHS) {
       await page.locator(view.hover).first().hover();
       await page.waitForSelector(".tooltip");
     }
-    await page.waitForTimeout(250);
+    if (view.focus) {
+      await page.locator(view.focus).first().focus();
+      for (const key of view.keys ?? []) await page.keyboard.press(key);
+      await page.waitForSelector(".tooltip");
+    }
+    await page.waitForTimeout(view.settle ?? 250);
     const path = join(outDir, `${name}-${width}.png`);
     if (view.clip === "map") await page.locator(".map-frame").screenshot({ path });
     else await page.screenshot({ path, fullPage: true });

@@ -13,8 +13,17 @@ export function SeatBar({ chamber: c }: { chamber: Chamber }) {
     { key: "Rl", n: c.leading.R, color: PALE.R },
     { key: "R", n: secured(c, "R"), color: PARTY.R },
   ].filter((s) => s.n > 0);
+  const label = [
+    `${secured(c, "D")} Democrats`,
+    secured(c, "I") ? `${secured(c, "I")} independents` : "",
+    `${secured(c, "R")} Republicans`,
+    c.uncalled.length ? `${c.uncalled.length} not called` : "all called",
+    c.office === "G" ? "" : `${c.majority} for a majority`,
+  ]
+    .filter(Boolean)
+    .join(", ");
   return (
-    <span className="seatbar" aria-hidden="true">
+    <span className="seatbar" role="img" aria-label={label}>
       {segs.map((s) => (
         <span key={s.key} className="seatbar__seg" style={{ width: `${(100 * s.n) / c.total}%`, background: s.color }} />
       ))}

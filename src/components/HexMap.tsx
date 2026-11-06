@@ -1,8 +1,9 @@
-import { memo, useMemo, useRef } from "react";
+import { memo, useMemo, useRef, useState } from "react";
 import { inkOn } from "../lib/colors";
-import { raceFill } from "../lib/status";
+import { raceFill, statusText } from "../lib/status";
+import { raceTitle } from "../lib/summary";
 import type { HexCell, Race } from "../lib/types";
-import type { HoverTarget } from "./Tooltip";
+import { focusPoint, type HoverHandler } from "./Tooltip";
 
 const R = 10; // hex circumradius in SVG units; must match the layout grid's pointy-top geometry
 const SQ3 = Math.sqrt(3);
@@ -13,21 +14,34 @@ const corner = (cx: number, cy: number, i: number): [number, number] => {
 };
 // neighbor across the edge from corner i to corner i+1
 const EDGE_NEIGHBOR: [number, number][] = [[1, 0], [0, 1], [-1, 1], [-1, 0], [0, -1], [1, -1]];
+// Arrow keys walk the grid; each key tries these axial steps in order, then skips over gaps.
+const ARROWS: Record<string, [number, number][]> = {
+  ArrowRight: [[1, 0]],
+  ArrowLeft: [[-1, 0]],
+  ArrowUp: [[0, -1], [1, -1]],
+  ArrowDown: [[0, 1], [-1, 1]],
+};
 
 interface Props {
   hexes: HexCell[];
   racesByDistrict: Map<string, Race>;
   selectedState: string | null;
   selectedDistrict: string | null;
-  onHover: (target: HoverTarget | null, event?: React.PointerEvent) => void;
+  onHover: HoverHandler;
   onSelect: (state: string, district: string | null) => void;
 }
 
 export const HexMap = memo(function HexMap({ hexes, racesByDistrict, selectedState, selectedDistrict, onHover, onSelect }: Props) {
   // Hexes are too small to hit reliably with a finger: a tap picks the state, then the panel lists its districts.
   const pointerType = useRef("mouse");
+  const svgRef = useRef<SVGSVGElement>(null);
+  // Roving tabindex: one hex is in the tab order, arrow keys move between them.
+  const [focusKey, setFocusKey] = useState<string | null>(null);
+  const [ringKey, setRingKey] = useState<string | null>(null);
+
   const geom = useMemo(() => {
     const owner = new Map(hexes.map((h) => [`${h.q},${h.r}`, h.st]));
+    const byCoord = new Map(hexes.map((h) => [`${h.q},${h.r}`, h.d]));
     const cells = hexes.map((h) => {
       const [cx, cy] = center(h.q, h.r);
       const points = [0, 1, 2, 3, 4, 5].map((i) => corner(cx, cy, i).map((v) => v.toFixed(2)).join(",")).join(" ");
@@ -55,15 +69,36 @@ export const HexMap = memo(function HexMap({ hexes, racesByDistrict, selectedSta
     const xs = cells.map((c) => c.cx), ys = cells.map((c) => c.cy);
     const pad = R * 1.6;
     const box = [Math.min(...xs) - pad, Math.min(...ys) - pad, Math.max(...xs) - Math.min(...xs) + 2 * pad, Math.max(...ys) - Math.min(...ys) + 2 * pad];
-    return { cells, borders, stateEdges, labels, box };
+    return { cells, byCoord, borders, stateEdges, labels, box };
   }, [hexes]);
+
+  const tabStop = focusKey ?? selectedDistrict ?? geom.cells[0]?.d;
+
+  const move = (from: HexCell, key: string) => {
+    const steps = ARROWS[key];
+    if (!steps) return false;
+    for (let dist = 1; dist <= 4; dist++) {
+      for (const [dq, dr] of steps) {
+        const d = geom.byCoord.get(`${from.q + dq * dist},${from.r + dr * dist}`);
+        if (d) {
+          svgRef.current?.querySelector<SVGPolygonElement>(`[data-d="${d}"]`)?.focus();
+          return true;
+        }
+      }
+    }
+    return true;
+  };
+
+  const ring = ringKey ? geom.cells.find((c) => c.d === ringKey) : undefined;
+  const selected = selectedDistrict ? geom.cells.find((c) => c.d === selectedDistrict) : undefined;
 
   return (
     <svg
+      ref={svgRef}
       className="hex-map"
       viewBox={geom.box.map((v) => v.toFixed(1)).join(" ")}
       role="group"
-      aria-label="House results, one hexagon per district"
+      aria-label="House results, one hexagon per district. Arrow keys move between districts."
       onPointerDown={(e) => (pointerType.current = e.pointerType)}
     >
       <g className="hexes">
@@ -74,12 +109,34 @@ export const HexMap = memo(function HexMap({ hexes, racesByDistrict, selectedSta
           return (
             <polygon
               key={c.d}
+              data-d={c.d}
               points={c.points}
               fill={raceFill(race)}
-              className={`hex${dim ? " is-dim" : ""}${selectedDistrict === c.d ? " is-selected" : ""}`}
+              className={`hex${dim ? " is-dim" : ""}`}
+              role="button"
+              tabIndex={c.d === tabStop ? 0 : -1}
+              aria-label={`${raceTitle(race)}: ${statusText(race)}`}
+              aria-pressed={selectedDistrict === c.d}
               onPointerMove={(e) => onHover({ kind: "district", district: c.d }, e)}
               onPointerLeave={() => onHover(null)}
               onClick={() => onSelect(c.st, pointerType.current === "touch" ? null : c.d)}
+              onFocus={(e) => {
+                setFocusKey(c.d);
+                if (e.currentTarget.matches(":focus-visible")) {
+                  setRingKey(c.d);
+                  onHover({ kind: "district", district: c.d }, focusPoint(e.currentTarget));
+                }
+              }}
+              onBlur={() => {
+                setRingKey(null);
+                onHover(null);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onSelect(c.st, c.d);
+                } else if (move(c, e.key)) e.preventDefault();
+              }}
             />
           );
         })}
@@ -96,15 +153,13 @@ export const HexMap = memo(function HexMap({ hexes, racesByDistrict, selectedSta
           );
         })}
       </g>
-      {selectedDistrict && (() => {
-        const c = geom.cells.find((x) => x.d === selectedDistrict);
-        return c ? (
-          <g className="hex-selected">
-            <polygon points={c.points} className="hex-selected__outer" />
-            <polygon points={c.points} className="hex-selected__inner" />
-          </g>
-        ) : null;
-      })()}
+      {selected && (
+        <g className="hex-selected">
+          <polygon points={selected.points} className="hex-selected__outer" />
+          <polygon points={selected.points} className="hex-selected__inner" />
+        </g>
+      )}
+      {ring && <polygon points={ring.points} className="hex-focus" />}
     </svg>
   );
 });

@@ -24,6 +24,12 @@ export const OFFICE_NAME: Record<Office, string> = { S: "Senate", H: "House", G:
 export const OFFICE_SINGULAR: Record<Office, string> = { S: "Senate", H: "House", G: "Governor" };
 export const OFFICE_SLUG: Record<Office, string> = { S: "senate", H: "house", G: "governors" };
 
+/** "Wisconsin District 3", "Texas Senate", "Florida Senate special election". */
+export function raceTitle(race: Race): string {
+  if (race.office === "H") return `${stateName(race.state)} ${race.num === 0 ? "at-large" : `District ${race.num}`}`;
+  return `${stateName(race.state)} ${OFFICE_SINGULAR[race.office]}${race.special ? " special election" : ""}`;
+}
+
 export function chamber(results: Results, office: Office): Chamber {
   const races = results.races.filter((r) => r.office === office);
   const won = zero(), decided = zero(), leading = zero(), notUp = zero();

@@ -1,28 +1,36 @@
 import { buildGeo, type Atlas, type Geo } from "./geo";
 import type { CountyResults, HexCell, Race, Results } from "./types";
 
-export interface Data {
+/** What changes on every data run. */
+export interface Live {
   results: Results;
   counties: { S: CountyResults; G: CountyResults };
+}
+
+export interface Data extends Live {
   hexes: HexCell[];
   geo: Geo;
 }
 
 async function getJson<T>(file: string): Promise<T> {
-  const res = await fetch(`./data/${file}`);
+  const res = await fetch(`./data/${file}`, { cache: "no-cache" });
   if (!res.ok) throw new Error(`Could not load ${file} (HTTP ${res.status})`);
   return (await res.json()) as T;
 }
 
-export async function loadData(): Promise<Data> {
-  const [results, S, G, hexes, atlas] = await Promise.all([
+/** The results and county breakdowns; refetched while the page stays open. */
+export async function loadLive(): Promise<Live> {
+  const [results, S, G] = await Promise.all([
     getJson<Results>("results.json"),
     getJson<CountyResults>("counties-S.json"),
     getJson<CountyResults>("counties-G.json"),
-    getJson<HexCell[]>("house-hex.json"),
-    getJson<Atlas>("us-albers-10m.json"),
   ]);
-  return { results, counties: { S, G }, hexes, geo: buildGeo(atlas) };
+  return { results, counties: { S, G } };
+}
+
+export async function loadData(): Promise<Data> {
+  const [live, hexes, atlas] = await Promise.all([loadLive(), getJson<HexCell[]>("house-hex.json"), getJson<Atlas>("us-albers-10m.json")]);
+  return { ...live, hexes, geo: buildGeo(atlas) };
 }
 
 /** The party code of each candidate column in a county row (race.cands minus the "Others" bucket). */

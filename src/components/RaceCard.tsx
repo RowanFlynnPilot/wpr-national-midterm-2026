@@ -1,14 +1,8 @@
 import { PARTY } from "../lib/colors";
 import { centralTime, pct, votes } from "../lib/format";
-import { stateName } from "../lib/states";
 import { rcvNote, statusText } from "../lib/status";
-import { OFFICE_SINGULAR } from "../lib/summary";
+import { raceTitle } from "../lib/summary";
 import type { Race } from "../lib/types";
-
-export function raceTitle(race: Race): string {
-  if (race.office === "H") return `${stateName(race.state)} ${race.num === 0 ? "at-large" : `District ${race.num}`}`;
-  return `${stateName(race.state)} ${OFFICE_SINGULAR[race.office]}${race.special ? " special election" : ""}`;
-}
 
 export function RaceCard({ race, heading = "h3" }: { race: Race; heading?: "h2" | "h3" }) {
   const H = heading;

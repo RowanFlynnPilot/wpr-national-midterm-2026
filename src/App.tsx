@@ -6,9 +6,10 @@ import { Legend } from "./components/Legend";
 import { NationalMap, type MapMode } from "./components/NationalMap";
 import { RaceTable } from "./components/RaceTable";
 import { SidePanel } from "./components/SidePanel";
-import { Tooltip, type HoverTarget } from "./components/Tooltip";
+import { Tooltip, type HoverHandler, type HoverTarget } from "./components/Tooltip";
 import { countyColumns, readCounty, type Data } from "./lib/data";
 import { centralTime } from "./lib/format";
+import { useLive } from "./lib/live";
 import { isStale } from "./lib/share";
 import { stateName } from "./lib/states";
 import { chamber, dek, headline, housePopularVote, OFFICE_NAME, OFFICE_SLUG } from "./lib/summary";
@@ -35,7 +36,9 @@ interface Hover {
 }
 
 export function App({ data }: { data: Data }) {
-  const { results, counties, hexes, geo } = data;
+  const { hexes, geo } = data;
+  const { live, refreshing, error } = useLive(data);
+  const { results, counties } = live;
   const [sel, setSel] = useState<Selection>(() => parseHash(window.location.hash));
   const [mode, setMode] = useState<MapMode>("states");
   const [hover, setHover] = useState<Hover | null>(null);
@@ -92,11 +95,11 @@ export function App({ data }: { data: Data }) {
     });
   }, [sel.office, mode, officeRaces, racesByState, officeCounties]);
 
-  const onHover = useCallback((target: HoverTarget | null, e?: React.PointerEvent) => {
+  const onHover = useCallback<HoverHandler>((target, at) => {
     // Touch taps select instead; a tooltip left behind by a tap would never get its pointerleave.
-    if (!target || !e || e.pointerType === "touch" || !frameRef.current) return setHover(null);
+    if (!target || !at || at.pointerType === "touch" || !frameRef.current) return setHover(null);
     const rect = frameRef.current.getBoundingClientRect();
-    setHover({ target, x: e.clientX - rect.left, y: e.clientY - rect.top });
+    setHover({ target, x: at.clientX - rect.left, y: at.clientY - rect.top });
   }, []);
 
   const hoverRace: Race | undefined = hover
@@ -106,6 +109,7 @@ export function App({ data }: { data: Data }) {
     : undefined;
 
   const onStateSelect = useCallback((state: string) => select({ office: sel.office, state, district: null }), [select, sel.office]);
+  const onStateClear = useCallback(() => select({ office: sel.office, state: null, district: null }, false), [select, sel.office]);
   const onHexSelect = useCallback((state: string, district: string | null) => select({ office: "H", state, district }), [select]);
   const jumpStates = useMemo(() => [...new Set(officeRaces.map((r) => r.state))].sort((a, b) => stateName(a).localeCompare(stateName(b))), [officeRaces]);
 
@@ -117,7 +121,7 @@ export function App({ data }: { data: Data }) {
         : `County results in the ${racesByState.size} ${sel.office === "S" ? "Senate" : "governor"} races`;
 
   return (
-    <div className="app">
+    <div className={refreshing ? "app is-refreshing" : "app"} aria-busy={refreshing}>
       <header className="masthead">
         <span className="wordmark">Wausau Pilot &amp; Review</span>
         <span className="masthead__section">Midterm results</span>
@@ -126,10 +130,16 @@ export function App({ data }: { data: Data }) {
         </span>
       </header>
 
-      {isStale(results.fetched, now) && (
-        <p className="stale" role="status">
-          These results may be out of date. They were last fetched {centralTime(results.fetched)} and are normally refreshed every hour.
+      {error ? (
+        <p className="stale stale--error" role="alert">
+          The results could not be refreshed ({error}). Showing the results fetched {centralTime(results.fetched)}.
         </p>
+      ) : (
+        isStale(results.fetched, now) && (
+          <p className="stale" role="status">
+            These results may be out of date. They were last fetched {centralTime(results.fetched)} and are normally refreshed every hour.
+          </p>
+        )
       )}
 
       <section className="hero">
@@ -139,7 +149,7 @@ export function App({ data }: { data: Data }) {
 
       <ChamberTabs chambers={chambers} office={sel.office} onChange={(office) => select({ office, state: sel.state, district: null }, false)} />
 
-      <section className="board">
+      <section className="board" id="board">
         <div className="board__map">
           <div className="map-toolbar">
             <p className="map-caption">{mapCaption}</p>
@@ -186,6 +196,7 @@ export function App({ data }: { data: Data }) {
                 selected={sel.state}
                 onHover={onHover}
                 onSelect={onStateSelect}
+                onClear={onStateClear}
               />
             )}
             {hover && frameRef.current && (

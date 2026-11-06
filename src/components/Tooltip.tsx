@@ -3,13 +3,28 @@ import { countyColumns, readCounty } from "../lib/data";
 import { pct, votes } from "../lib/format";
 import { stateName } from "../lib/states";
 import { statusText } from "../lib/status";
-import { OFFICE_SINGULAR } from "../lib/summary";
+import { raceTitle } from "../lib/summary";
 import type { CountyResults, Race } from "../lib/types";
 
 export type HoverTarget =
   | { kind: "state"; state: string }
   | { kind: "county"; state: string; fips: string; name: string }
   | { kind: "district"; district: string };
+
+/** Where a hover or keyboard focus landed, in viewport coordinates. Pointer events satisfy this directly. */
+export interface HoverPoint {
+  clientX: number;
+  clientY: number;
+  pointerType: string; // "mouse" | "touch" | "pen" | "keyboard"
+}
+
+export type HoverHandler = (target: HoverTarget | null, at?: HoverPoint) => void;
+
+/** The center of a focused element, for a tooltip that follows keyboard focus. */
+export function focusPoint(el: Element): HoverPoint {
+  const r = el.getBoundingClientRect();
+  return { clientX: r.left + r.width / 2, clientY: r.top + r.height / 2, pointerType: "keyboard" };
+}
 
 interface Props {
   target: HoverTarget;
@@ -72,10 +87,9 @@ function TipBody({ target, race, counties }: { target: HoverTarget; race: Race; 
       </>
     );
   }
-  const title = race.office === "H" ? `${stateName(race.state)} ${race.num === 0 ? "at-large" : `District ${race.num}`}` : `${stateName(race.state)} ${OFFICE_SINGULAR[race.office]}${race.special ? " (special)" : ""}`;
   return (
     <>
-      <div className="tooltip__title">{title}</div>
+      <div className="tooltip__title">{raceTitle(race)}</div>
       <div className="tooltip__status">
         {statusText(race)}
         {!race.winner && !race.runoff && `, ${Math.round(race.pctIn)}% reporting`}
