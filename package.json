@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "data": "python pipeline/fetch.py && python pipeline/build.py",
+    "data": "python pipeline/fetch.py && python pipeline/build.py && python pipeline/history.py",
     "hexmap": "node scripts/hexmap.mjs",
     "dev": "vite",
     "build": "tsc --noEmit && vite build && node scripts/share-image.mjs",

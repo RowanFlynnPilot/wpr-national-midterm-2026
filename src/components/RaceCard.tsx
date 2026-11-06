@@ -1,10 +1,12 @@
 import { PARTY } from "../lib/colors";
 import { centralTime, pct, votes } from "../lib/format";
+import type { HistoryPoint } from "../lib/history";
 import { rcvNote, statusText } from "../lib/status";
+import { Sparkline } from "./Sparkline";
 import { raceTitle } from "../lib/summary";
 import type { Race } from "../lib/types";
 
-export function RaceCard({ race, heading = "h3" }: { race: Race; heading?: "h2" | "h3" }) {
+export function RaceCard({ race, heading = "h3", points }: { race: Race; heading?: "h2" | "h3"; points?: HistoryPoint[] }) {
   const H = heading;
   const noVotes = race.total === 0;
   const leadVotes = race.cands[0]?.votes ?? 0;
@@ -63,6 +65,7 @@ export function RaceCard({ race, heading = "h3" }: { race: Race; heading?: "h2" 
           <span>Updated {centralTime(race.updated, false)}</span>
         </footer>
       )}
+      {points && points.length >= 2 && <Sparkline race={race} points={points} />}
       {note && <p className="race-card__note">{note}</p>}
     </article>
   );

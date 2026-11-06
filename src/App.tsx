@@ -8,7 +8,8 @@ import { NationalMap, type MapMode } from "./components/NationalMap";
 import { RaceTable } from "./components/RaceTable";
 import { SidePanel } from "./components/SidePanel";
 import { Tooltip, type HoverHandler, type HoverTarget, type MeasureSummary } from "./components/Tooltip";
-import { countyColumns, loadAtlas, readCounty, type Data } from "./lib/data";
+import { countyColumns, loadAtlas, loadHistory, readCounty, type Data } from "./lib/data";
+import type { History } from "./lib/history";
 import { centralTime, relativeAge } from "./lib/format";
 import type { Geo } from "./lib/geo";
 import { useLive } from "./lib/live";
@@ -91,6 +92,16 @@ export function App({ data }: { data: Data }) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  // The count history rides behind the results: fetched after first paint, again after each refresh.
+  const [history, setHistory] = useState<History>({});
+  useEffect(() => {
+    let cancelled = false;
+    loadHistory().then((h) => !cancelled && setHistory(h), () => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [live.results.fetched]);
 
   // A tab left open should notice when the hourly data run has stalled.
   const [now, setNow] = useState(() => Date.now());
@@ -317,6 +328,7 @@ export function App({ data }: { data: Data }) {
             popularVote={popularVote}
             counties={counties}
             geo={geo}
+            history={history}
             now={now}
             onSelect={(office, state, district) => select({ office, state, district })}
           />

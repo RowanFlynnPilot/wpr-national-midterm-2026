@@ -3,6 +3,7 @@ import { apNumber, marginText, pct, timeAgo } from "../lib/format";
 import { HOME_STATE, stateName } from "../lib/states";
 import { RUNOFF, noVotesYet, raceFill, raceStatus } from "../lib/status";
 import type { Geo } from "../lib/geo";
+import { side, trend, type History } from "../lib/history";
 import { measureShortTitle, OFFICE_NAME, OFFICE_SINGULAR, type Chamber, type PopularVote } from "../lib/summary";
 import type { CountySets, Office, Race } from "../lib/types";
 import { CountyMap } from "./CountyMap";
@@ -17,6 +18,7 @@ interface Props {
   popularVote: PopularVote;
   counties: CountySets;
   geo: Geo | null; // null until the map shapes load
+  history: History;
   now: number;
   onSelect: (office: Office, state: string | null, district: string | null) => void;
 }
@@ -47,9 +49,14 @@ interface RowProps {
   onClick: () => void;
   showOffice?: boolean;
   when?: string; // replaces the margin detail, for the latest-calls feed
+  points?: import("../lib/history").HistoryPoint[]; // the race's count history, for a direction arrow
 }
 
-function RaceRow({ race, onClick, showOffice = false, when }: RowProps) {
+const TREND_GLYPH = { widening: "\u25B2", narrowing: "\u25BC", flipped: "\u21C5" } as const;
+const TREND_TEXT = { widening: "lead widening since the last update", narrowing: "lead narrowing since the last update", flipped: "lead changed hands since the last update" } as const;
+
+function RaceRow({ race, onClick, showOffice = false, when, points }: RowProps) {
+  const movement = points && !race.winner ? trend(points, side(race)) : null;
   const lead = race.cands[0];
   if (!lead) return null;
   const status = raceStatus(race);
@@ -81,7 +88,14 @@ function RaceRow({ race, onClick, showOffice = false, when }: RowProps) {
         <span className="race-row__where">{where}</span>
         <span className={measure ? "race-row__who race-row__who--wrap" : "race-row__who"}>{who}</span>
         <span className="race-row__margin">
-          {big}
+          <span>
+            {movement && (
+              <span className={`trend trend--${movement}`} role="img" aria-label={TREND_TEXT[movement]}>
+                {TREND_GLYPH[movement]}
+              </span>
+            )}
+            {big}
+          </span>
           <small>{small}</small>
         </span>
       </button>
@@ -89,7 +103,7 @@ function RaceRow({ race, onClick, showOffice = false, when }: RowProps) {
   );
 }
 
-function Overview({ office, chamber, popularVote, races, now, onSelect }: Props) {
+function Overview({ office, chamber, popularVote, races, history, now, onSelect }: Props) {
   const counting = chamber.uncalled.filter((r) => !r.runoff);
   const pick = (r: Race) => onSelect(office, r.state, routeOf(r));
   const measures = office === "B";
@@ -104,7 +118,7 @@ function Overview({ office, chamber, popularVote, races, now, onSelect }: Props)
           <p className="panel__note">Closest first. Leads are in percentage points.</p>
           <ul className="race-rows">
             {counting.map((r) => (
-              <RaceRow key={r.id} race={r} onClick={() => pick(r)} />
+              <RaceRow key={r.id} race={r} points={history[String(r.id)]} onClick={() => pick(r)} />
             ))}
           </ul>
         </>
@@ -229,7 +243,7 @@ function Back({ label, onClick }: { label: string; onClick: () => void }) {
   );
 }
 
-function StateView({ office, state, races, counties, geo, onSelect }: Props & { state: string }) {
+function StateView({ office, state, races, counties, geo, history, onSelect }: Props & { state: string }) {
   const race = races.find((r) => r.office === office && r.state === state);
   const others = races.filter((r) => r.state === state && r.office !== office && r.office !== "H");
   const house = races.filter((r) => r.state === state && r.office === "H");
@@ -239,7 +253,7 @@ function StateView({ office, state, races, counties, geo, onSelect }: Props & { 
       <Back label={`All ${OFFICE_NAME[office].toLowerCase()} races`} onClick={() => onSelect(office, null, null)} />
       {race ? (
         <>
-          <RaceCard race={race} heading="h2" />
+          <RaceCard race={race} heading="h2" points={history[String(race.id)]} />
           {geo && <CountyMap race={race} counties={countyData} geo={geo} />}
         </>
       ) : (
@@ -351,25 +365,25 @@ function MeasuresStateView({ state, races, onSelect }: Props & { state: string }
   );
 }
 
-function MeasureView({ races, district, counties, geo, onSelect }: Props & { district: string }) {
+function MeasureView({ races, district, counties, geo, history, onSelect }: Props & { district: string }) {
   const race = races.find((r) => r.office === "B" && r.district === district);
   if (!race) throw new Error(`unknown measure ${district}`);
   return (
     <div className="panel">
       <Back label={`All ${stateName(race.state)} measures`} onClick={() => onSelect("B", race.state, null)} />
-      <RaceCard race={race} heading="h2" />
+      <RaceCard race={race} heading="h2" points={history[String(race.id)]} />
       {geo && <CountyMap race={race} counties={counties.B} geo={geo} />}
     </div>
   );
 }
 
-function DistrictView({ races, district, onSelect }: Props & { district: string }) {
+function DistrictView({ races, district, history, onSelect }: Props & { district: string }) {
   const race = races.find((r) => r.office === "H" && r.district === district);
   if (!race) throw new Error(`unknown district ${district}`);
   return (
     <div className="panel">
       <Back label={`All ${stateName(race.state)} districts`} onClick={() => onSelect("H", race.state, null)} />
-      <RaceCard race={race} heading="h2" />
+      <RaceCard race={race} heading="h2" points={history[String(race.id)]} />
       {raceStatus(race) === "leading" && (
         <p className="panel__note">
           {PARTY_LABEL[race.leader]} {race.cands[0]?.name} leads by {race.marginVotes.toLocaleString("en-US")} votes.

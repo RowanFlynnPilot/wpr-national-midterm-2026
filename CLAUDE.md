@@ -10,7 +10,7 @@ No Python dependencies (stdlib only). Node 22.
 
 ```
 npm install
-npm run data      # fetch civicAPI + rebuild public/data/{results,counties-S,counties-G}.json
+npm run data      # fetch civicAPI + rebuild public/data/{results,counties-S,counties-G,counties-B}.json + record the count history
 npm run dev       # local server
 npm run build     # type-check + production build to dist/
 npm test          # Vitest: src/lib/*.test.ts against src/lib/__fixtures__/races.json (19 real races frozen Nov. 5)
@@ -18,6 +18,18 @@ npm run hexmap    # ONLY when district maps change (run `npm run data` first): r
 npm run headshots # by hand only: resolves candidate photos into public/headshots + pipeline/headshots.json (see Candidate photos)
 npm run screens   # Playwright screenshots of every view at 390/768/1280/1600 into screens/ (build first); fails on console errors
 ```
+
+## Count history
+
+`pipeline/history.py` appends one point per data run for every race without a winner (and for called races only while
+their numbers still change) to `pipeline/history.json`: `{"<race id>": [[t, leader, margin, pctIn], ...]}`, t in Unix seconds
+of the fetch, no point repeated for an unchanged reading. It writes `public/data/history.json`, the last 7 days for races with
+two or more points. The workflow runs it after `build.py` and, after the deploy, commits `pipeline/history.json` back to main
+with `[skip ci]` (the push trigger also ignores that path), so the hourly run never retriggers itself. `--backfill` replays
+every `results.json` in git history; it seeded the file on Nov. 5. Front end: `src/lib/history.ts` signs each margin from
+the race's current side (`readings`), `trend` compares the last two points (widening / narrowing / flipped, under 0.1 pt is
+nothing), `Sparkline.tsx` draws the series on the race card, and the "still being counted" rows carry the trend glyph.
+history.json is fetched after first paint and again after each live refresh.
 
 ## Candidate photos
 

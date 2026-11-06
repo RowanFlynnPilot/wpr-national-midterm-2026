@@ -1,4 +1,5 @@
 import { buildGeo, type Atlas, type Geo } from "./geo";
+import type { History } from "./history";
 import type { CountyResults, CountySets, HexCell, Race, Results } from "./types";
 
 /** What changes on every data run. */
@@ -32,6 +33,11 @@ export async function loadLive(): Promise<Live> {
 export async function loadData(): Promise<Data> {
   const [live, hexes] = await Promise.all([loadLive(), getJson<HexCell[]>("house-hex.json")]);
   return { ...live, hexes };
+}
+
+/** How each uncalled race's margin has moved over the last week (pipeline/history.py). Small; fetched after first paint. */
+export async function loadHistory(): Promise<History> {
+  return getJson<History>("history.json");
 }
 
 /** The county and state shapes: the largest file, so the page renders before it lands. */
