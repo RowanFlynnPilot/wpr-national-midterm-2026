@@ -11,14 +11,25 @@
 
 .share__masthead {
   display: flex;
-  align-items: baseline;
-  gap: 1.1rem;
+  align-items: center;
+  gap: 1rem;
   padding-bottom: 0.9rem;
   border-bottom: 1.5px solid var(--ink);
 }
 
-.share .wordmark {
-  font-size: 1.6rem;
+.share__badge,
+.share__wordmark {
+  mix-blend-mode: multiply; /* the assets are black on white; the paper shows through */
+}
+
+.share__badge {
+  width: 56px;
+  height: 56px;
+}
+
+.share__wordmark {
+  width: auto;
+  height: 40px;
 }
 
 .share__section {

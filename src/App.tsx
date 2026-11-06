@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChamberTabs } from "./components/ChamberTabs";
 import { CopyLink } from "./components/CopyLink";
 import { HexMap } from "./components/HexMap";
+import { FooterSeal, Masthead } from "./components/Masthead";
 import { Legend } from "./components/Legend";
 import { NationalMap, type MapMode } from "./components/NationalMap";
 import { RaceTable } from "./components/RaceTable";
@@ -197,14 +198,7 @@ export function App({ data }: { data: Data }) {
       <a className="skip" href="#board">
         Skip to the results
       </a>
-      <header className="masthead">
-        <span className="wordmark">Wausau Pilot &amp; Review</span>
-        <span className="masthead__section">Midterm results</span>
-        <span className="masthead__meta">
-          Updated <time dateTime={results.updated}>{centralTime(results.updated)}</time>
-          {relativeAge(results.updated, now) && <span className="masthead__ago"> · {relativeAge(results.updated, now)}</span>}
-        </span>
-      </header>
+      <Masthead now={now} />
 
       {error ? (
         <p className="stale stale--error" role="alert">
@@ -220,6 +214,13 @@ export function App({ data }: { data: Data }) {
 
       <main>
       <section className="hero">
+        <p className="kicker">
+          <span className="kicker__section">2026 midterm election results</span>
+          <span className="kicker__updated">
+            Updated <time dateTime={results.updated}>{centralTime(results.updated)}</time>
+            {relativeAge(results.updated, now) && <span className="kicker__ago"> · {relativeAge(results.updated, now)}</span>}
+          </span>
+        </p>
         <h1>{headline(chambers.H, chambers.S)}</h1>
         <p className="hero__dek">{dek(chambers.H, chambers.S, chambers.G, chambers.B)}</p>
       </section>
@@ -331,9 +332,12 @@ export function App({ data }: { data: Data }) {
       </main>
 
       <footer className="sources">
+        <FooterSeal />
+        <div className="sources__text">
         <p>
-          Results and race calls from <a href="https://civicapi.org">civicAPI</a>, which may call races at different times than
-          the Associated Press and other decision desks. Results are unofficial until states certify them.
+          Results and race calls from <a href="https://civicapi.org">civicAPI</a>, refreshed hourly, which may call races at
+          different times than the Associated Press and other decision desks. Results are unofficial until states certify them.
+          Not affiliated with or endorsed by civicAPI, the Associated Press or any election authority.
         </p>
         <p>
           “Before” counts are the parties’ seats going into Election Day; for the House, the 2024 election result. Independents
@@ -343,6 +347,10 @@ export function App({ data }: { data: Data }) {
           Census Bureau via us-atlas. Candidate photos are official congressional portraits or come from Wikimedia Commons
           contributors (<a href="./credits.html">photo credits</a>).
         </p>
+        <p className="sources__paper">
+          <a href="https://wausaupilotandreview.com/">Wausau Pilot &amp; Review</a> · 715-301-5539
+        </p>
+        </div>
       </footer>
     </div>
   );

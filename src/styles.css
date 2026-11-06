@@ -39,6 +39,7 @@
   --rule-strong: #b9b09e;
   --teal: #3a867c;
   --teal-ink: #2b6b62;
+  --slate: #32373c; /* WPR's masthead rule color */
   --d: #2d63a6;
   --r: #c23a30;
   --display: "Fraunces", Georgia, serif;
@@ -153,36 +154,88 @@ a {
   opacity: 0.55;
 }
 
-/* ---------- masthead + hero ---------- */
+/* ---------- WPR flag + hero ---------- */
 
-.masthead {
+/* The flag: seal and wordmark lockup linking home, tagline, dateline, inside a thick-over-thin newspaper rule. */
+.flag {
+  padding: 1rem 0 0.75rem;
+  border-top: 4px solid var(--slate);
+  border-bottom: 1px solid var(--slate);
+  text-align: center;
+}
+
+.flag__lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  max-width: 100%;
+  text-decoration: none;
+}
+
+.flag__badge,
+.flag__wordmark,
+.sources__badge {
+  mix-blend-mode: multiply; /* the assets are black on white; the paper shows through */
+}
+
+.flag__badge {
+  flex: none;
+  width: 62px;
+  height: 62px;
+}
+
+.flag__wordmark {
+  width: auto;
+  height: auto;
+  max-height: 58px;
+  max-width: calc(100% - 76px);
+  object-fit: contain;
+}
+
+.flag__tagline {
+  margin: 0.5rem 0 0;
+  font: 500 10px/1.4 var(--sans);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--slate);
+}
+
+.flag__dateline {
   display: flex;
-  align-items: baseline;
-  gap: 0.9rem;
-  padding: 1rem 0 0.85rem;
-  border-bottom: 1px solid var(--ink);
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  max-width: 880px;
+  margin: 0.4rem auto 0;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--rule);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
 }
 
-.wordmark {
-  font: 600 1.15rem/1 var(--display);
-  font-variation-settings: "opsz" 36;
-  letter-spacing: -0.005em;
+.flag__place {
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
-.masthead__section {
-  padding-left: 0.9rem;
-  border-left: 1px solid var(--rule-strong);
-  font-size: 0.875rem;
-  color: var(--ink-2);
-}
-
-.masthead__meta {
-  margin-left: auto;
+.kicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin: 0 0 1rem;
   font-size: 0.8125rem;
   color: var(--muted);
 }
 
-.masthead__ago {
+.kicker__section {
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--teal-ink);
+}
+
+.kicker__ago {
   color: var(--teal-ink);
 }
 
@@ -1502,16 +1555,40 @@ table.races {
 /* ---------- footer ---------- */
 
 .sources {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
   margin-top: 2.5rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--ink);
-  font-size: 0.8125rem;
+  border-top: 4px solid var(--slate);
+  font-size: 0.75rem;
+  line-height: 1.6;
   color: var(--ink-2);
+}
+
+.sources__badge {
+  flex: none;
+  width: 44px;
+  height: 44px;
+}
+
+.sources__text {
+  min-width: 0;
 }
 
 .sources p {
   max-width: 78ch;
   margin: 0 0 0.6rem;
+}
+
+.sources__paper {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.sources__paper a {
+  color: inherit;
+  text-decoration: none;
 }
 
 /* Hover only where the input can hover: touch would otherwise keep the first tap's hover state. */
@@ -1616,18 +1693,13 @@ table.races {
     width: 16px;
     height: 16px;
   }
-  .masthead {
-    flex-wrap: wrap;
-    row-gap: 0.3rem;
+  .flag__badge {
+    width: 48px;
+    height: 48px;
   }
-  .masthead__section {
-    display: none;
-  }
-  .wordmark {
-    font-size: 1rem;
-  }
-  .masthead__meta {
-    font-size: 0.75rem;
+  .flag__wordmark {
+    max-height: 44px;
+    max-width: calc(100% - 62px);
   }
   .chamber__count strong {
     font-size: 1.35rem;
@@ -1714,6 +1786,11 @@ table.races {
 }
 
 @media print {
+  .flag__badge,
+  .flag__wordmark,
+  .sources__badge {
+    mix-blend-mode: normal; /* print on white */
+  }
   .skip,
   .map-controls,
   .map-back,

@@ -145,6 +145,7 @@ async function wikidataMatch(cand, state, forcedId) {
 // --- run ---------------------------------------------------------------------
 const queue = [];
 for (const race of results.races) {
+  if (race.office === "B") continue; // a ballot measure's "candidates" are Yes and No
   const cands = race.cands.filter((c) => c.party !== "O").slice(0, TOP);
   for (const c of cands) queue.push({ cand: c, state: race.state });
 }
@@ -239,13 +240,18 @@ writeFileSync(
 <meta name="robots" content="noindex">
 <title>Photo credits — 2026 Midterm Election Results</title>
 <style>
+@font-face{font-family:"Fraunces";font-weight:400 700;font-display:swap;src:url("fonts/fraunces.woff2") format("woff2")}
+@font-face{font-family:"Public Sans";font-weight:400 700;font-display:swap;src:url("fonts/public-sans.woff2") format("woff2")}
 body{margin:0;padding:1.5rem;background:#f6f2e9;color:#1d1b17;font:400 15px/1.5 "Public Sans",system-ui,sans-serif}
-h1{font:600 1.6rem/1.2 Georgia,serif;margin:0 0 .5rem}p{max-width:70ch;color:#4e4a42}
+.flag{display:flex;align-items:center;gap:14px;padding:1rem 0 .75rem;margin-bottom:1.25rem;border-top:4px solid #32373c;border-bottom:1px solid #32373c}
+.flag img{mix-blend-mode:multiply}.flag .wm{height:34px;width:auto}
+h1{font:600 1.6rem/1.2 Fraunces,Georgia,serif;margin:0 0 .5rem}p{max-width:70ch;color:#4e4a42}
 table{border-collapse:collapse;width:100%;margin-top:1rem;font-size:.875rem}td{padding:.4rem .5rem;border-bottom:1px solid #d9d1c1;vertical-align:middle}
 img{border-radius:50%;display:block}a{color:#2b6b62}
 </style>
 </head>
 <body>
+<header class="flag"><img src="brand/wpr-typewriter-badge.png" alt="" width="44" height="44"><a href="https://wausaupilotandreview.com/"><img class="wm" src="brand/wpr-wordmark.png" alt="Wausau Pilot &amp; Review" width="640" height="82"></a></header>
 <h1>Candidate photo credits</h1>
 <p>Portraits of sitting members of Congress are official photographs in the public domain. Other candidate photos come from Wikimedia Commons under the license shown; click the source for the original file. To report a wrong photo, email the Wausau Pilot &amp; Review newsroom.</p>
 <table>${rows}</table>

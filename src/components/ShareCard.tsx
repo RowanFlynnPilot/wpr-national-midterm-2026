@@ -11,7 +11,8 @@ export function ShareCard({ results }: { results: Results }) {
   return (
     <div className="share">
       <header className="share__masthead">
-        <span className="wordmark">Wausau Pilot &amp; Review</span>
+        <img className="share__badge" src="./brand/wpr-typewriter-badge.png" alt="" width={56} height={56} />
+        <img className="share__wordmark" src="./brand/wpr-wordmark.png" alt="Wausau Pilot & Review" width={640} height={82} />
         <span className="share__section">2026 midterm results</span>
       </header>
       <main className="share__main">
