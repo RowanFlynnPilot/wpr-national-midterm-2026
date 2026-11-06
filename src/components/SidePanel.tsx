@@ -1,5 +1,5 @@
 import { PALE, PARTY, PARTY_LABEL } from "../lib/colors";
-import { apNumber, marginText, pct } from "../lib/format";
+import { apNumber, marginText, pct, timeAgo } from "../lib/format";
 import { stateName } from "../lib/states";
 import { RUNOFF, raceFill, raceStatus } from "../lib/status";
 import type { Geo } from "../lib/geo";
@@ -17,6 +17,7 @@ interface Props {
   popularVote: PopularVote;
   counties: { S: CountyResults; G: CountyResults };
   geo: Geo;
+  now: number;
   onSelect: (office: Office, state: string | null, district: string | null) => void;
 }
 
@@ -32,7 +33,14 @@ function shortTitle(race: Race): string {
   return `${stateName(race.state)}${race.special ? " (special)" : ""}`;
 }
 
-function RaceRow({ race, onClick, showOffice = false }: { race: Race; onClick: () => void; showOffice?: boolean }) {
+interface RowProps {
+  race: Race;
+  onClick: () => void;
+  showOffice?: boolean;
+  when?: string; // replaces the margin detail, for the latest-calls feed
+}
+
+function RaceRow({ race, onClick, showOffice = false, when }: RowProps) {
   const lead = race.cands[0];
   if (!lead) return null;
   const status = raceStatus(race);
@@ -40,7 +48,7 @@ function RaceRow({ race, onClick, showOffice = false }: { race: Race; onClick: (
     status === "won"
       ? race.unopposed
         ? ["Won", "unopposed"]
-        : [race.flip ? "Flip" : "Won", `by ${marginText(race.margin)}`]
+        : [race.flip ? "Flip" : "Won", when ?? `by ${marginText(race.margin)}`]
       : status === "runoff"
         ? ["Runoff", "no majority"]
         : status === "decided"
@@ -62,7 +70,7 @@ function RaceRow({ race, onClick, showOffice = false }: { race: Race; onClick: (
   );
 }
 
-function Overview({ office, chamber, popularVote, onSelect }: Props) {
+function Overview({ office, chamber, popularVote, now, onSelect }: Props) {
   const counting = chamber.uncalled.filter((r) => !r.runoff);
   const pick = (r: Race) => onSelect(office, r.state, office === "H" ? r.district : null);
   return (
@@ -80,6 +88,17 @@ function Overview({ office, chamber, popularVote, onSelect }: Props) {
         </>
       ) : (
         <p className="panel__note">Every {OFFICE_SINGULAR[office].toLowerCase()} race has been called.</p>
+      )}
+      {chamber.latestCalls.length > 0 && (
+        <>
+          <h2 className="panel__title">Latest calls</h2>
+          <p className="panel__note">Newest first. Times are civicAPI’s; some early calls carry no time and are not listed.</p>
+          <ul className="race-rows">
+            {chamber.latestCalls.map((r) => (
+              <RaceRow key={r.id} race={r} when={timeAgo(r.calledAt as string, now)} onClick={() => pick(r)} />
+            ))}
+          </ul>
+        </>
       )}
       {chamber.runoffs.length > 0 && (
         <>

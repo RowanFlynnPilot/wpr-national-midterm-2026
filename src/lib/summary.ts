@@ -18,7 +18,10 @@ export interface Chamber {
   flips: Race[];
   uncalled: Race[]; // every race without a called winner, closest first
   runoffs: Race[];
+  latestCalls: Race[]; // called races with a timestamp, newest first
 }
+
+export const LATEST_CALLS = 8;
 
 export const OFFICE_NAME: Record<Office, string> = { S: "Senate", H: "House", G: "Governors" };
 export const OFFICE_SINGULAR: Record<Office, string> = { S: "Senate", H: "House", G: "Governor" };
@@ -55,6 +58,10 @@ export function chamber(results: Results, office: Office): Chamber {
     flips: races.filter((r) => r.flip),
     uncalled: races.filter((r) => !r.winner).sort((a, z) => a.margin - z.margin),
     runoffs: races.filter((r) => r.runoff),
+    latestCalls: races
+      .filter((r): r is Race & { calledAt: string } => r.calledAt !== null)
+      .sort((a, z) => z.calledAt.localeCompare(a.calledAt))
+      .slice(0, LATEST_CALLS),
   };
 }
 

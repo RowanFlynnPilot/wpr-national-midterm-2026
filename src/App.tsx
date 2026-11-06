@@ -222,6 +222,7 @@ export function App({ data }: { data: Data }) {
             popularVote={popularVote}
             counties={counties}
             geo={geo}
+            now={now}
             onSelect={(office, state, district) => select({ office, state, district })}
           />
         </aside>

@@ -22,10 +22,19 @@ const CENTRAL = new Intl.DateTimeFormat("en-US", {
   timeZoneName: "short",
 });
 
+/** "just now", "12 min. ago", "3 hr. ago"; beyond a day, the AP-style Central time without the zone. */
+export function timeAgo(iso: string, now: number): string {
+  const min = Math.floor((now - Date.parse(iso)) / 60_000);
+  if (min < 1) return "just now";
+  if (min < 60) return `${min} min. ago`;
+  if (min < 24 * 60) return `${Math.floor(min / 60)} hr. ago`;
+  return centralTime(iso, false);
+}
+
 /** AP-style Central time, e.g. "Nov. 5, 7:10 p.m. CST". */
-export function centralTime(iso: string): string {
+export function centralTime(iso: string, zone = true): string {
   const parts = Object.fromEntries(CENTRAL.formatToParts(new Date(iso)).map((p) => [p.type, p.value]));
   const month = AP_MONTHS[Number(parts.month) - 1];
   const meridiem = parts.dayPeriod === "AM" ? "a.m." : "p.m.";
-  return `${month} ${parts.day}, ${parts.hour}:${parts.minute} ${meridiem} ${parts.timeZoneName}`;
+  return `${month} ${parts.day}, ${parts.hour}:${parts.minute} ${meridiem}${zone ? ` ${parts.timeZoneName}` : ""}`;
 }

@@ -37,6 +37,13 @@ describe("chamber", () => {
     expect(governors.flips.map((r) => r.state)).toEqual(["NV", "TX"]);
     expect(house.flips).toEqual([]); // House flips are deliberately not tracked
   });
+  it("lists the latest calls newest first, skipping calls civicAPI gave no timestamp", () => {
+    expect(race("H", "NY-21").calledAt).toBeNull();
+    expect(house.latestCalls.map((r) => r.district)).toEqual(["WI-03"]);
+    expect(senate.latestCalls.map((r) => r.state)).toEqual(["ME", "AL", "TX", "FL"]); // AL and TX share a timestamp
+    const times = senate.latestCalls.map((r) => r.calledAt as string);
+    expect(times).toEqual([...times].sort().reverse());
+  });
 });
 
 describe("secured and controller", () => {

@@ -61,7 +61,7 @@ Each district's target = vote-weighted centroid of the counties it covers (from 
 ## Front end
 
 - `src/App.tsx` — selection state + hash routing (`#senate`, `#senate-tx`, `#house-wi`, `#house-wi-03`, `#governors-ks`).
-- `src/lib/summary.ts` — chamber tallies, data-driven headline and dek. Senate majority 51 (VP is a Republican), House 218, no majority marker for governors.
+- `src/lib/summary.ts` — chamber tallies, data-driven headline and dek. Senate majority 51 (VP is a Republican), House 218, no majority marker for governors. `latestCalls` = the 8 newest calls with a `calledAt` for the office (the ~34 calls civicAPI timestamps are skipped; the panel says so); shown on the overview panel with `timeAgo`.
 - `src/components/NationalMap.tsx` — states/counties map on us-atlas Albers USA (pre-projected; no projection at runtime). Small NE states get callout chips.
 - `src/components/NationalMap.tsx` in counties mode zooms to the selected state (CSS transform on `.map-zoom`, non-scaling strokes, "All states" button to return; no animation under `prefers-reduced-motion`).
 - `src/components/HexMap.tsx`: roving tabindex, arrow keys walk the grid (skipping gaps), Enter/Space selects, focus shows the tooltip (`focusPoint` in `Tooltip.tsx`; the same `HoverHandler` serves pointer and keyboard). `SidePanel.tsx`, `RaceCard.tsx`, `CountyMap.tsx`, `RaceTable.tsx` (table view = accessible twin of the maps).
@@ -118,4 +118,5 @@ FL-13 nearly two days before AP. Its `percent_reporting` lags AP on several call
 ## Next steps
 
 1. Settings → Pages → Source: GitHub Actions, then run "Update results" once by hand.
-2. Later: statewide ballot measures as a fourth tab (~169 in civicAPI).
+2. Wisconsin shortcut for WPR readers: design proposed in the Nov. 5 polish report, awaiting a decision. Not built.
+3. Later: statewide ballot measures as a fourth tab (~169 in civicAPI).

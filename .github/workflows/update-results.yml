@@ -1,6 +1,8 @@
 name: Update results
 
 on:
+  push:
+    branches: [main]
   schedule:
     - cron: "17 * * * *" # hourly; each run makes ~500 civicAPI requests, so keep it gentle
   workflow_dispatch:
