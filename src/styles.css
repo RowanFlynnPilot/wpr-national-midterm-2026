@@ -378,6 +378,8 @@ a {
 }
 
 .map-caption {
+  flex: 1 1 12rem;
+  min-width: 0;
   margin: 0;
   font-size: 0.9375rem;
   color: var(--ink-2);
@@ -385,6 +387,7 @@ a {
 
 .map-controls {
   display: flex;
+  flex: none;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.6rem;
@@ -1036,6 +1039,15 @@ a {
   color: var(--ink-2);
 }
 
+/* a measure's title gets two lines instead of an ellipsis */
+.race-row__who--wrap {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  white-space: normal;
+  line-height: 1.3;
+}
+
 .race-row__margin {
   display: flex;
   flex-direction: column;
@@ -1524,7 +1536,11 @@ table.races {
     filter: brightness(0.9);
   }
 
-  .national-map .counties path:hover {
+  .national-map .counties path.is-out {
+  opacity: 0.35;
+}
+
+.national-map .counties path:hover {
     filter: brightness(0.85);
   }
 
@@ -1555,6 +1571,22 @@ table.races {
 
 /* ---------- responsive ---------- */
 
+@media (max-width: 1000px) {
+  /* four tabs no longer fit a row: two by two */
+  .chambers {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .chamber:nth-child(n + 3) {
+    border-top: 1px solid var(--rule);
+  }
+  .chamber:nth-child(3) {
+    border-left: 0;
+  }
+  .chamber.is-active {
+    border-top-color: var(--teal);
+  }
+}
+
 @media (max-width: 959px) {
   .chamber__foot {
     flex-direction: column;
@@ -1574,6 +1606,16 @@ table.races {
 }
 
 @media (max-width: 700px) {
+  .copy-link__label {
+    display: none; /* the button keeps its name through aria-label */
+  }
+  .copy-link {
+    padding: 0.38rem 0.6rem;
+  }
+  .copy-link svg {
+    width: 16px;
+    height: 16px;
+  }
   .masthead {
     flex-wrap: wrap;
     row-gap: 0.3rem;
@@ -1586,18 +1628,6 @@ table.races {
   }
   .masthead__meta {
     font-size: 0.75rem;
-  }
-  .chambers {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .chamber:nth-child(n + 3) {
-    border-top: 1px solid var(--rule);
-  }
-  .chamber:nth-child(3) {
-    border-left: 0;
-  }
-  .chamber.is-active {
-    border-top-color: var(--teal);
   }
   .chamber__count strong {
     font-size: 1.35rem;

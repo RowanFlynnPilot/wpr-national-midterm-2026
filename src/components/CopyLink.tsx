@@ -31,7 +31,7 @@ export function CopyLink({ hash }: { hash: string }) {
     );
   }
   return (
-    <button type="button" className={`copy-link${state === "copied" ? " is-copied" : ""}`} onClick={copy} aria-live="polite">
+    <button type="button" className={`copy-link${state === "copied" ? " is-copied" : ""}`} onClick={copy} aria-live="polite" aria-label={state === "copied" ? "Link copied" : "Copy link to this view"}>
       <svg viewBox="0 0 16 16" aria-hidden="true">
         {state === "copied" ? (
           <path d="M3.5 8.5l3 3 6-7" />
@@ -42,7 +42,7 @@ export function CopyLink({ hash }: { hash: string }) {
           </>
         )}
       </svg>
-      {state === "copied" ? "Link copied" : "Copy link"}
+      <span className="copy-link__label">{state === "copied" ? "Link copied" : "Copy link"}</span>
     </button>
   );
 }

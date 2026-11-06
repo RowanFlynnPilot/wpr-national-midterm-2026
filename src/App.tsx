@@ -176,7 +176,7 @@ export function App({ data }: { data: Data }) {
   const raceNoun = `${racesByState.size} ${sel.office === "S" ? "Senate" : "governor"} races`;
   const mapCaption =
     sel.office === "H"
-      ? "Each hexagon is one House district, placed near where its voters live"
+      ? "One hexagon per House district, placed near where its voters live"
       : sel.office === "B"
         ? `Statewide ballot measures in ${measureCounts.size} states; darker means more`
         : mode === "states"

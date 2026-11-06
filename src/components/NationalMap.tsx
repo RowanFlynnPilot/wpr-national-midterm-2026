@@ -121,6 +121,7 @@ export const NationalMap = memo(function NationalMap({ geo, mode, description, r
                     key={c.id}
                     d={c.d}
                     fill={fill ?? NO_RACE}
+                    className={zoomed && code !== zoomed.code ? "is-out" : undefined}
                     vectorEffect="non-scaling-stroke"
                     onPointerMove={(e) => (fill && code ? onHover({ kind: "county", state: code, fips: c.id, name: c.name }, e) : onHover(null))}
                     onPointerLeave={() => onHover(null)}

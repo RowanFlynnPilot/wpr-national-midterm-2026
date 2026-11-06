@@ -62,7 +62,7 @@ export function CountyMap({ race, counties, geo }: { race: Race; counties: Count
               <span className="muted"> ({Math.round(reading.pctIn)}% in)</span>
             </>
           ) : (
-            <span className="muted">Point at a county for its result</span>
+            <span className="muted">Point at or tap a county for its result</span>
           )}
         </div>
         <MarginLegend parties={parties} />

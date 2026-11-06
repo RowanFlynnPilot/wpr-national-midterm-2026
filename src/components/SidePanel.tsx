@@ -33,6 +33,12 @@ function shortTitle(race: Race): string {
   return `${stateName(race.state)}${race.special ? " (special)" : ""}`;
 }
 
+/** "Question 2 - Prohibit Closing Places of Worship" -> ["Question 2", "Prohibit Closing Places of Worship"]. A label longer than the row's label column (14 characters) or a title without a dash -> [null, null]. */
+function splitMeasureTitle(title: string): [string | null, string | null] {
+  const m = /^(.{3,14}?)\s[-–:]\s(.+)$/.exec(title);
+  return m ? [m[1] as string, m[2] as string] : [null, null];
+}
+
 /** The route for a race's own panel: a district or measure gets its district key, a statewide race none. */
 const routeOf = (r: Race) => (r.office === "H" || r.office === "B" ? r.district : null);
 
@@ -60,13 +66,20 @@ function RaceRow({ race, onClick, showOffice = false, when }: RowProps) {
         : status === "decided"
           ? [`${race.partyDecided} seat`, `${Math.round(race.pctIn)}% in`]
           : [race.margin < 0.1 ? "<0.1" : `+${marginText(race.margin)}`, `${Math.round(race.pctIn)}% in`];
-  const who = measure ? measureShortTitle(race) : status === "runoff" ? race.cands.filter((c) => c.advanced).map((c) => c.name.split(" ").slice(-1)[0]).join(" vs. ") || lead.name : lead.name;
+  // "Question 2 - Prohibit Closing..." splits into the label and the subject; a title without a dash stays whole.
+  const [measureLabel, measureSubject] = measure ? splitMeasureTitle(measureShortTitle(race)) : [null, null];
+  const where = showOffice ? (measureLabel ?? OFFICE_SINGULAR[race.office]) : shortTitle(race);
+  const who = measure
+    ? (showOffice ? measureSubject : null) ?? measureShortTitle(race)
+    : status === "runoff"
+      ? race.cands.filter((c) => c.advanced).map((c) => c.name.split(" ").slice(-1)[0]).join(" vs. ") || lead.name
+      : lead.name;
   return (
     <li>
       <button type="button" className="race-row" onClick={onClick}>
         <span className="race-row__swatch" style={{ background: raceFill(race) }} />
-        <span className="race-row__where">{showOffice ? OFFICE_SINGULAR[race.office] : shortTitle(race)}</span>
-        <span className="race-row__who">{who}</span>
+        <span className="race-row__where">{where}</span>
+        <span className={measure ? "race-row__who race-row__who--wrap" : "race-row__who"}>{who}</span>
         <span className="race-row__margin">
           {big}
           <small>{small}</small>
