@@ -6,7 +6,7 @@ Interactive results for every U.S. Senate, House and governor race in the Nov. 3
 - State maps, county margins, and a "still counting" view of where votes remain, for every Senate and governor race
 - A hex map of all 435 House districts, placed near where each district's voters live, fully keyboard-navigable
 - Race cards with candidate photos, call times and county maps; latest calls and closest races; a searchable, sortable table of every race
-- A Wisconsin shortcut for WPR readers, a copy-link button, an Open Graph card that updates with the data, and a WordPress embed that sizes itself
+- A Wisconsin shortcut for WPR readers, a copy-link button, an Open Graph card that updates with the data, a WordPress embed that sizes itself, and a compact balance-of-power embed (`compact.html`) for homepages and sidebars
 
 ## Data
 

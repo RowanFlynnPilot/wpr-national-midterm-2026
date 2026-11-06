@@ -147,6 +147,33 @@ hash into the iframe so a shared link opens on the right view, and passes the ar
 </script>
 ```
 
+## Compact embed
+
+`compact.html` + `src/compact.tsx`: the balance of power (four cards) and the six latest calls, for a homepage module or an
+article sidebar. One `results.json` fetch, no maps, refreshed every 15 minutes. Container queries lay the cards 1, 2 or 4
+across (280px sidebar to a full-width band). Every card and row links to the full page with `target="_top"`; with
+`?host=<article URL>` the links point at the article's hash instead (`shareUrl`, same rule as Copy link). It posts
+`{type: "wpr-embed-height", id: "wpr-national-midterm-2026-compact", height}` so both embeds can share a page.
+
+```html
+<div id="wpr-national-midterm-2026-compact"></div>
+<script>
+(function () {
+  var f = document.createElement('iframe');
+  f.src = 'https://rowanflynnpilot.github.io/wpr-national-midterm-2026/compact.html?host='
+    + encodeURIComponent('https://wausaupilotandreview.com/2026-election-results/');
+  f.style.cssText = 'width:100%;border:0;min-height:420px';
+  f.title = '2026 midterm results: balance of power';
+  window.addEventListener('message', function (e) {
+    if (e.origin !== 'https://rowanflynnpilot.github.io') return;
+    if (e.data && e.data.type === 'wpr-embed-height' && e.data.id === 'wpr-national-midterm-2026-compact')
+      f.style.height = e.data.height + 'px';
+  });
+  document.getElementById('wpr-national-midterm-2026-compact').appendChild(f);
+})();
+</script>
+```
+
 ## Sharing and freshness
 
 - `share.html` + `src/share.tsx` render `ShareCard` (balance of power, 1200×630). `scripts/share-image.mjs` screenshots it to
@@ -162,6 +189,14 @@ and no text selection; form controls are 16px on coarse pointers; a skip link; t
 (`mapDescription` in App); a visually hidden status line announces the selection. Deliberately not done: a sticky balance-of-power
 strip (sticky does not work inside the auto-height iframe), a needle or probabilities (no model), swing vs. 2024 (no county
 baselines under the new maps), incumbent markers (civicAPI flags only ~50).
+
+## Device checks
+
+Touch behavior is verified under Playwright's Pixel 7 (Chromium) and iPhone 14 (WebKit) emulation against the live site:
+coarse pointer with no hover, transparent tap highlight, 16px form controls, zoomable viewport with `viewport-fit=cover`,
+no horizontal overflow, icon-only Copy link, a hex tap opening the state list, a district row tap opening the district,
+no hover background left on a tapped row, county-mode tap zooming and the All states control returning. Emulation cannot
+prove sticky hover, the 300ms tap delay, rubber-banding, safe areas or the software keyboard: check those on hardware.
 
 ## Quality gates (Nov. 5, 2026)
 

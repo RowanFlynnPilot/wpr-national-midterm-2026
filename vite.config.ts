@@ -9,7 +9,11 @@ export default defineConfig({
   plugins: [react()],
   build: {
     rolldownOptions: {
-      input: { main: resolve(import.meta.dirname, "index.html"), share: resolve(import.meta.dirname, "share.html") },
+      input: {
+        main: resolve(import.meta.dirname, "index.html"),
+        share: resolve(import.meta.dirname, "share.html"),
+        compact: resolve(import.meta.dirname, "compact.html"),
+      },
     },
   },
 });

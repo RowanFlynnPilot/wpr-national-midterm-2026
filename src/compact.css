@@ -1,0 +1,213 @@
+/* The compact embed. Fluid from a 280px sidebar to a full-width homepage band: cards go 1, 2 or 4 across. */
+.compact {
+  padding: 0.75rem 1rem 1rem;
+  container-type: inline-size;
+}
+
+.compact__masthead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.75rem;
+  padding-bottom: 0.6rem;
+  border-top: 4px solid var(--slate);
+  border-bottom: 1px solid var(--slate);
+  padding-top: 0.6rem;
+}
+
+.compact__badge {
+  width: 32px;
+  height: 32px;
+  mix-blend-mode: multiply;
+}
+
+.compact__kicker {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--teal-ink);
+}
+
+.compact__updated {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.compact__cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+
+@container (min-width: 480px) {
+  .compact__cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@container (min-width: 900px) {
+  .compact__cards {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .compact__list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: 1.5rem;
+  }
+}
+
+@container (max-width: 340px) {
+  .compact__kicker {
+    font-size: 0.7rem;
+  }
+  .compact__badge {
+    width: 26px;
+    height: 26px;
+  }
+}
+
+.compact__card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.7rem 0.85rem 0.8rem;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--paper-raised);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 120ms ease-out, transform 120ms ease-out;
+}
+
+.compact__card:active {
+  transform: scale(0.985);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .compact__card:hover {
+    border-color: var(--ink-2);
+  }
+}
+
+.compact__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.compact__name {
+  font: 600 1.05rem/1.1 var(--display);
+  font-variation-settings: "opsz" 36;
+}
+
+.compact__rule {
+  font-size: 0.6875rem;
+  color: var(--muted);
+}
+
+.compact__counts {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--ink-2);
+}
+
+.compact__count strong {
+  font: 700 1.5rem/1 var(--sans);
+  letter-spacing: -0.02em;
+  margin-right: 0.2rem;
+}
+
+.compact__count--right strong {
+  margin: 0 0 0 0.2rem;
+}
+
+.compact__count--right {
+  text-align: right;
+}
+
+.compact .seatbar {
+  height: 12px;
+  animation: none;
+}
+
+.compact__foot {
+  font-size: 0.75rem;
+  color: var(--ink-2);
+}
+
+.compact__title {
+  margin: 1rem 0 0.25rem;
+  font: 600 1.05rem/1.2 var(--display);
+  font-variation-settings: "opsz" 36;
+}
+
+.compact__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--rule);
+}
+
+.compact__list li {
+  border-bottom: 1px solid var(--rule);
+}
+
+.compact__list a {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  grid-template-areas: "swatch race when" "swatch who when";
+  align-items: center;
+  column-gap: 0.6rem;
+  padding: 0.45rem 0.25rem;
+  color: inherit;
+  text-decoration: none;
+  font-size: 0.8125rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .compact__list a:hover {
+    background: rgba(29, 27, 23, 0.035);
+  }
+}
+
+.compact__swatch {
+  grid-area: swatch;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.compact__race {
+  grid-area: race;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compact__who {
+  grid-area: who;
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compact__when {
+  grid-area: when;
+  font-size: 0.6875rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.compact__more {
+  display: inline-block;
+  margin-top: 0.9rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}

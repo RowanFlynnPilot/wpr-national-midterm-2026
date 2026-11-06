@@ -7,6 +7,8 @@ import { chromium } from "playwright";
 import { serveDist } from "./serve.mjs";
 
 const WIDTHS = [390, 768, 1280, 1600];
+// compact.html is its own page; screenshot it at a sidebar, a module and a full-width band
+const COMPACT_WIDTHS = [300, 600, 1100];
 
 const VIEWS = {
   senate: { hash: "#senate" },
@@ -31,7 +33,7 @@ const VIEWS = {
 };
 
 const [outDir = "screens", ...only] = process.argv.slice(2);
-const names = only.length ? only : Object.keys(VIEWS);
+const names = only.length ? only.filter((n) => n !== "compact") : Object.keys(VIEWS);
 mkdirSync(outDir, { recursive: true });
 
 const server = serveDist();
@@ -71,6 +73,22 @@ for (const width of WIDTHS) {
     console.log(path);
   }
   await context.close();
+}
+if (!only.length || only.includes("compact")) {
+  for (const width of COMPACT_WIDTHS) {
+    const page = await browser.newPage({ viewport: { width, height: 800 } });
+    page.on("console", (m) => m.type() === "error" && problems.push(`compact@${width}: console.error ${m.text()}`));
+    page.on("pageerror", (e) => problems.push(`compact@${width}: pageerror ${e.message}`));
+    page.on("requestfailed", (r) => problems.push(`compact@${width}: request failed ${r.url()}`));
+    await page.goto(`http://localhost:${server.port}/compact.html`, { waitUntil: "networkidle" });
+    await page.waitForSelector(".compact__cards");
+    await page.evaluate(() => document.fonts.ready);
+    await page.waitForTimeout(250);
+    const path = join(outDir, `compact-${width}.png`);
+    await page.screenshot({ path, fullPage: true });
+    await page.close();
+    console.log(path);
+  }
 }
 await browser.close();
 server.close();

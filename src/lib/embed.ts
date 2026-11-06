@@ -7,7 +7,7 @@ export const EMBED_ID = "wpr-national-midterm-2026";
 
 export const isEmbedded = (): boolean => window.parent !== window;
 
-export function initEmbedHeight(): void {
+export function initEmbedHeight(id: string = EMBED_ID): void {
   if (!isEmbedded()) return;
 
   let last = 0;
@@ -17,7 +17,7 @@ export function initEmbedHeight(): void {
     const height = Math.ceil(document.body.scrollHeight);
     if (height === last) return;
     last = height;
-    window.parent.postMessage({ type: "wpr-embed-height", id: EMBED_ID, height }, "*");
+    window.parent.postMessage({ type: "wpr-embed-height", id, height }, "*");
   };
 
   new ResizeObserver(post).observe(document.body);

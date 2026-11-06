@@ -66,6 +66,12 @@ Sourcing rules, each one earned by a real mismatch during the run: Wikidata labe
 
 A fourth tab: 133 statewide measures in 35 states (civicAPI's Referendum, Proposition and Ballot Measure types with `election_type` Statewide and a Yes/No answer set; one six-option "official state firearm" vote is excluded by that rule, and Massachusetts's blank-ballot lines fold into "Others"). Measures are races with office `B` and Y/N answers, so the cards, county maps, table, tooltips, latest-calls feed, Wisconsin block and status rules all reuse the existing code with a teal/brown pair instead of blue/red. The national map shades states by how many measures they have; each measure's card has its own Yes/No county map. The hero dek gains a sentence once any measure is called. Routes: `#measures`, `#measures-wi`, `#measures-wi-179849`. Not included: local referendums (about 2,300).
 
+## Compact embed and device checks (Nov. 6)
+
+`compact.html` is a second embed: the four balance-of-power cards and the six latest calls, one results fetch, no maps, laid out 1, 2 or 4 across by container width, every card and row linking to the full page (or the hosting article via `?host=`). It posts its own embed id so both embeds can share a page. Snippet in CLAUDE.md.
+
+Touch behavior was checked on the live site under Playwright's Pixel 7 (Chromium) and iPhone 14 (WebKit) emulation: 16 of 16 checks pass on Chromium and 15 of 16 on WebKit, where the one "failure" is WebKit not exposing the tap-highlight property to `getComputedStyle` (the rule is in the stylesheet). Covered: coarse pointer without hover, transparent tap highlight, 16 px inputs, zoomable viewport with safe-area cover, no horizontal overflow, icon-only copy link, hex tap opening the state list, district row tap, no hover state left behind, county-mode zoom and return, copy link response. Not provable in emulation and worth two minutes on a real phone: sticky hover after a tap, the tap delay feel, pull-to-refresh and rubber-banding inside the WordPress page, the home-indicator safe area, and the keyboard over the search box.
+
 ## Lighthouse (mobile, gzip-served build, two runs per view)
 
 | View | Performance | Accessibility | Best Practices | LCP | CLS |
