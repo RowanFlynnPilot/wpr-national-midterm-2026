@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { PARTY } from "../lib/colors";
 import { raceFill, raceStatus } from "../lib/status";
 import { marginText, pct } from "../lib/format";
@@ -7,7 +7,7 @@ import { OFFICE_NAME } from "../lib/summary";
 import type { Office, Race } from "../lib/types";
 
 type Filter = "all" | "open" | "flips";
-type Sort = "place" | "margin";
+type Sort = "place" | "margin" | "reporting";
 
 interface Props {
   office: Office;
@@ -22,6 +22,20 @@ export function RaceTable({ office, races, onSelect }: Props) {
   const [filter, setFilter] = useState<Filter>("all");
   const [sort, setSort] = useState<Sort>("place");
   const [showAll, setShowAll] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  // "/" jumps to the search box, as on most results pages, unless the reader is already typing.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "/" || e.ctrlKey || e.metaKey || e.altKey) return;
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === "INPUT" || t.tagName === "SELECT" || t.tagName === "TEXTAREA")) return;
+      e.preventDefault();
+      searchRef.current?.focus();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -37,6 +51,7 @@ export function RaceTable({ office, races, onSelect }: Props) {
           r.cands.some((c) => c.name.toLowerCase().includes(q)),
       );
     if (sort === "margin") return [...list].sort((a, b) => a.margin - b.margin);
+    if (sort === "reporting") return [...list].sort((a, b) => a.pctIn - b.pctIn || a.margin - b.margin);
     if (office === "H") return list; // already in district order
     return [...list].sort((a, b) => stateName(a.state).localeCompare(stateName(b.state)));
   }, [races, office, query, filter, sort]);
@@ -51,7 +66,16 @@ export function RaceTable({ office, races, onSelect }: Props) {
         <div className="table-controls">
           <label className="search">
             <span className="visually-hidden">Search by state or candidate</span>
-            <input type="search" placeholder="Search a state or candidate" value={query} onChange={(e) => setQuery(e.target.value)} />
+            <input
+              ref={searchRef}
+              type="search"
+              placeholder="Search a state or candidate…"
+              autoComplete="off"
+              spellCheck={false}
+              enterKeyHint="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
           </label>
           <div className="segmented" role="radiogroup" aria-label="Filter races">
             {filters.map(([f, label]) => (
@@ -66,19 +90,11 @@ export function RaceTable({ office, races, onSelect }: Props) {
         <table className="races">
           <thead>
             <tr>
-              <th scope="col">
-                <button type="button" className={sort === "place" ? "sort is-on" : "sort"} onClick={() => setSort("place")}>
-                  {office === "H" ? "District" : "State"}
-                </button>
-              </th>
+              <SortHeader label={office === "H" ? "District" : "State"} value="place" sort={sort} onSort={setSort} />
               <th scope="col">Leading candidate</th>
               <th scope="col">Runner-up</th>
-              <th scope="col" className="num">
-                <button type="button" className={sort === "margin" ? "sort is-on" : "sort"} onClick={() => setSort("margin")}>
-                  Margin
-                </button>
-              </th>
-              <th scope="col" className="num">Reporting</th>
+              <SortHeader label="Margin" value="margin" sort={sort} onSort={setSort} num />
+              <SortHeader label="Reporting" value="reporting" sort={sort} onSort={setSort} num />
               <th scope="col">Status</th>
             </tr>
           </thead>
@@ -114,6 +130,17 @@ export function RaceTable({ office, races, onSelect }: Props) {
         </button>
       )}
     </section>
+  );
+}
+
+function SortHeader({ label, value, sort, onSort, num = false }: { label: string; value: Sort; sort: Sort; onSort: (s: Sort) => void; num?: boolean }) {
+  const on = sort === value;
+  return (
+    <th scope="col" className={num ? "num" : undefined} aria-sort={on ? "ascending" : "none"}>
+      <button type="button" className={on ? "sort is-on" : "sort"} onClick={() => onSort(value)}>
+        {label}
+      </button>
+    </th>
   );
 }
 

@@ -8,12 +8,12 @@ import { RaceTable } from "./components/RaceTable";
 import { SidePanel } from "./components/SidePanel";
 import { Tooltip, type HoverHandler, type HoverTarget } from "./components/Tooltip";
 import { countyColumns, loadAtlas, readCounty, type Data } from "./lib/data";
-import { centralTime } from "./lib/format";
+import { centralTime, relativeAge } from "./lib/format";
 import type { Geo } from "./lib/geo";
 import { useLive } from "./lib/live";
 import { isStale } from "./lib/share";
 import { HOME_STATE, stateName } from "./lib/states";
-import { chamber, dek, headline, housePopularVote, OFFICE_NAME, OFFICE_SLUG } from "./lib/summary";
+import { chamber, dek, headline, housePopularVote, OFFICE_NAME, OFFICE_SLUG, raceTitle } from "./lib/summary";
 import type { Office, Race, Selection } from "./lib/types";
 
 const OFFICE_BY_SLUG: Record<string, Office> = { senate: "S", house: "H", governors: "G" };
@@ -137,6 +137,13 @@ export function App({ data }: { data: Data }) {
   const onHexSelect = useCallback((state: string, district: string | null) => select({ office: "H", state, district }), [select]);
   const jumpStates = useMemo(() => [...new Set(officeRaces.map((r) => r.state))].sort((a, b) => stateName(a).localeCompare(stateName(b))), [officeRaces]);
 
+  const selectedRace = sel.district ? racesByDistrict.get(sel.district) : sel.state ? racesByState.get(sel.state) : undefined;
+  const announce = selectedRace
+    ? raceTitle(selectedRace)
+    : sel.state
+      ? `${stateName(sel.state)} ${sel.office === "H" ? "House districts" : "has no race this year"}`
+      : `${OFFICE_NAME[sel.office]} overview`;
+
   const mapCaption =
     sel.office === "H"
       ? "Each hexagon is one House district, placed near where its voters live"
@@ -146,11 +153,15 @@ export function App({ data }: { data: Data }) {
 
   return (
     <div className={refreshing ? "app is-refreshing" : "app"} aria-busy={refreshing}>
+      <a className="skip" href="#board">
+        Skip to the results
+      </a>
       <header className="masthead">
         <span className="wordmark">Wausau Pilot &amp; Review</span>
         <span className="masthead__section">Midterm results</span>
         <span className="masthead__meta">
           Updated <time dateTime={results.updated}>{centralTime(results.updated)}</time>
+          {relativeAge(results.updated, now) && <span className="masthead__ago"> · {relativeAge(results.updated, now)}</span>}
         </span>
       </header>
 
@@ -247,7 +258,10 @@ export function App({ data }: { data: Data }) {
           </div>
           <Legend office={sel.office} mode={mode} hasIndependent={hasIndependent} hasRunoff={chambers[sel.office].runoffs.length > 0} />
         </div>
-        <aside className="board__panel" ref={panelRef} aria-live="polite">
+        <p className="visually-hidden" role="status">
+          Showing {announce}
+        </p>
+        <aside className="board__panel" ref={panelRef}>
           <SidePanel
             office={sel.office}
             state={sel.state}

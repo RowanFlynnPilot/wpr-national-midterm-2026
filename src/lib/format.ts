@@ -22,13 +22,18 @@ const CENTRAL = new Intl.DateTimeFormat("en-US", {
   timeZoneName: "short",
 });
 
-/** "just now", "12 min. ago", "3 hr. ago"; beyond a day, the AP-style Central time without the zone. */
-export function timeAgo(iso: string, now: number): string {
+/** "just now", "12 min. ago", "3 hr. ago"; null once a day has passed. */
+export function relativeAge(iso: string, now: number): string | null {
   const min = Math.floor((now - Date.parse(iso)) / 60_000);
   if (min < 1) return "just now";
   if (min < 60) return `${min} min. ago`;
   if (min < 24 * 60) return `${Math.floor(min / 60)} hr. ago`;
-  return centralTime(iso, false);
+  return null;
+}
+
+/** relativeAge, or beyond a day the AP-style Central time without the zone. */
+export function timeAgo(iso: string, now: number): string {
+  return relativeAge(iso, now) ?? centralTime(iso, false);
 }
 
 /** AP-style Central time, e.g. "Nov. 5, 7:10 p.m. CST". */

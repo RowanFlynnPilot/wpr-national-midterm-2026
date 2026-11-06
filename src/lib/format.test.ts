@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { apNumber, centralTime, marginText, timeAgo } from "./format";
+import { apNumber, centralTime, marginText, relativeAge, timeAgo } from "./format";
 
 describe("apNumber", () => {
   it("spells out one through nine and formats larger numbers", () => {
@@ -31,5 +31,9 @@ describe("timeAgo", () => {
     expect(timeAgo("2026-11-05T17:04:24Z", t + 12 * 60_000)).toBe("12 min. ago");
     expect(timeAgo("2026-11-05T17:04:24Z", t + 3 * 3_600_000 + 5)).toBe("3 hr. ago");
     expect(timeAgo("2026-11-05T17:04:24Z", t + 25 * 3_600_000)).toBe("Nov. 5, 11:04 a.m.");
+  });
+  it("relativeAge is null after a day", () => {
+    expect(relativeAge("2026-11-05T17:04:24Z", t + 90 * 60_000)).toBe("1 hr. ago");
+    expect(relativeAge("2026-11-05T17:04:24Z", t + 25 * 3_600_000)).toBeNull();
   });
 });

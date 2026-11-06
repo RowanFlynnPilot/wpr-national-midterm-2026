@@ -145,8 +145,22 @@ export const HexMap = memo(function HexMap({ hexes, racesByDistrict, selectedSta
       <path className="hex-borders" d={geom.borders} />
       {selectedState !== HOME_STATE && <path className="hex-home-outline" d={geom.stateEdges.get(HOME_STATE) ?? ""} />}
       {selectedState && <path className="hex-state-outline" d={geom.stateEdges.get(selectedState) ?? ""} />}
+      {selectedState && (
+        <g className="hex-numbers" aria-hidden="true">
+          {geom.cells
+            .filter((c) => c.st === selectedState)
+            .map((c) => {
+              const race = racesByDistrict.get(c.d);
+              return (
+                <text key={c.d} x={c.cx} y={c.cy} fill={race ? inkOn(raceFill(race)) : "#1D1B17"}>
+                  {race?.num === 0 ? "AL" : race?.num}
+                </text>
+              );
+            })}
+        </g>
+      )}
       <g className="hex-labels" aria-hidden="true">
-        {geom.labels.map((l) => {
+        {geom.labels.filter((l) => l.st !== selectedState).map((l) => {
           const race = racesByDistrict.get(l.d);
           return (
             <text key={l.st} x={l.x} y={l.y} fill={race ? inkOn(raceFill(race)) : "#1D1B17"}>
