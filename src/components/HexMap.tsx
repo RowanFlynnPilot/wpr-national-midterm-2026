@@ -1,6 +1,6 @@
 import { memo, useMemo, useRef, useState } from "react";
 import { inkOn } from "../lib/colors";
-import { raceFill, statusText } from "../lib/status";
+import { inSpotlight, isFresh, raceFill, statusText, type LegendKey } from "../lib/status";
 import { HOME_STATE } from "../lib/states";
 import { raceTitle } from "../lib/summary";
 import type { HexCell, Race } from "../lib/types";
@@ -28,18 +28,21 @@ interface Props {
   racesByDistrict: Map<string, Race>;
   selectedState: string | null;
   selectedDistrict: string | null;
+  spotlight: LegendKey | null; // a pressed key entry: every other hex dims
+  now: number;
   description: string; // accessible name with the tallies
   onHover: HoverHandler;
   onSelect: (state: string, district: string | null) => void;
 }
 
-export const HexMap = memo(function HexMap({ hexes, racesByDistrict, selectedState, selectedDistrict, description, onHover, onSelect }: Props) {
+export const HexMap = memo(function HexMap({ hexes, racesByDistrict, selectedState, selectedDistrict, spotlight, now, description, onHover, onSelect }: Props) {
   // Hexes are too small to hit reliably with a finger: a tap picks the state, then the panel lists its districts.
   const pointerType = useRef("mouse");
   const svgRef = useRef<SVGSVGElement>(null);
   // Roving tabindex: one hex is in the tab order, arrow keys move between them.
   const [focusKey, setFocusKey] = useState<string | null>(null);
   const [ringKey, setRingKey] = useState<string | null>(null);
+  const [hoverKey, setHoverKey] = useState<string | null>(null);
 
   const geom = useMemo(() => {
     const owner = new Map(hexes.map((h) => [`${h.q},${h.r}`, h.st]));
@@ -93,6 +96,7 @@ export const HexMap = memo(function HexMap({ hexes, racesByDistrict, selectedSta
 
   const ring = ringKey ? geom.cells.find((c) => c.d === ringKey) : undefined;
   const selected = selectedDistrict ? geom.cells.find((c) => c.d === selectedDistrict) : undefined;
+  const hover = hoverKey && hoverKey !== selectedDistrict ? geom.cells.find((c) => c.d === hoverKey) : undefined;
 
   return (
     <svg
@@ -107,20 +111,26 @@ export const HexMap = memo(function HexMap({ hexes, racesByDistrict, selectedSta
         {geom.cells.map((c) => {
           const race = racesByDistrict.get(c.d);
           if (!race) throw new Error(`no race for ${c.d}`);
-          const dim = selectedState !== null && selectedState !== c.st;
+          const dim = (selectedState !== null && selectedState !== c.st) || (spotlight !== null && !inSpotlight(race, spotlight, now));
           return (
             <polygon
               key={c.d}
               data-d={c.d}
               points={c.points}
               fill={raceFill(race)}
-              className={`hex${dim ? " is-dim" : ""}`}
+              className={`hex${dim ? " is-dim" : ""}${isFresh(race, now) ? " hex--fresh" : ""}`}
               role="button"
               tabIndex={c.d === tabStop ? 0 : -1}
               aria-label={`${raceTitle(race)}: ${statusText(race)}`}
               aria-pressed={selectedDistrict === c.d}
-              onPointerMove={(e) => onHover({ kind: "district", district: c.d }, e)}
-              onPointerLeave={() => onHover(null)}
+              onPointerMove={(e) => {
+                setHoverKey(c.d);
+                onHover({ kind: "district", district: c.d }, e);
+              }}
+              onPointerLeave={() => {
+                setHoverKey(null);
+                onHover(null);
+              }}
               onClick={() => onSelect(c.st, pointerType.current === "touch" ? null : c.d)}
               onFocus={(e) => {
                 setFocusKey(c.d);
@@ -176,6 +186,7 @@ export const HexMap = memo(function HexMap({ hexes, racesByDistrict, selectedSta
           <polygon points={selected.points} className="hex-selected__inner" />
         </g>
       )}
+      {hover && <polygon points={hover.points} className="hex-hover" />}
       {ring && <polygon points={ring.points} className="hex-focus" />}
     </svg>
   );

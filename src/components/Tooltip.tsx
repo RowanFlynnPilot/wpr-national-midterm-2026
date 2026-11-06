@@ -1,6 +1,6 @@
 import { PARTY } from "../lib/colors";
 import { countyColumns, readCounty } from "../lib/data";
-import { pct, votes } from "../lib/format";
+import { pct, timeAgo, votes } from "../lib/format";
 import { stateName } from "../lib/states";
 import { statusText } from "../lib/status";
 import { raceTitle } from "../lib/summary";
@@ -38,19 +38,20 @@ interface Props {
   race: Race | undefined;
   measures?: MeasureSummary; // set on the measures tab instead of a race
   counties: CountyResults | null;
+  now: number;
   x: number;
   y: number;
   bounds: { width: number; height: number };
 }
 
-const W = 260;
+const W = 272;
 
-export function Tooltip({ target, race, measures, counties, x, y, bounds }: Props) {
+export function Tooltip({ target, race, measures, counties, now, x, y, bounds }: Props) {
   const left = x + 16 + W > bounds.width ? Math.max(4, x - 16 - W) : x + 16;
-  const top = Math.min(Math.max(4, y - 24), Math.max(4, bounds.height - 190));
+  const top = Math.min(Math.max(4, y - 24), Math.max(4, bounds.height - 210));
   return (
     <div className="tooltip" style={{ left, top, width: W }} role="presentation">
-      {race ? <TipBody target={target} race={race} counties={counties} /> : <NoRace target={target} measures={measures} />}
+      {race ? <TipBody target={target} race={race} counties={counties} now={now} /> : <NoRace target={target} measures={measures} />}
     </div>
   );
 }
@@ -77,7 +78,7 @@ function NoRace({ target, measures }: { target: HoverTarget; measures?: MeasureS
   );
 }
 
-function TipBody({ target, race, counties }: { target: HoverTarget; race: Race; counties: CountyResults | null }) {
+function TipBody({ target, race, counties, now }: { target: HoverTarget; race: Race; counties: CountyResults | null; now: number }) {
   if (target.kind === "county") {
     const row = counties?.[String(race.id)]?.[target.fips];
     const reading = row ? readCounty(row) : null;
@@ -100,6 +101,9 @@ function TipBody({ target, race, counties }: { target: HoverTarget; race: Race; 
                   <span className="key" style={{ background: PARTY[c.party] }} />
                   <span className="name">{c.name}</span>
                   <span className="value">{pct(share)}</span>
+                  <span className="bar" aria-hidden="true">
+                    <span style={{ width: `${share}%`, background: PARTY[c.party] }} />
+                  </span>
                 </li>
               ))}
           </ul>
@@ -107,12 +111,20 @@ function TipBody({ target, race, counties }: { target: HoverTarget; race: Race; 
       </>
     );
   }
+  const lead = race.cands[0];
+  const photo = lead?.photo && lead.party !== "O" ? `./headshots/${lead.photo}` : null;
+  const timing = race.winner && race.calledAt ? `Called ${timeAgo(race.calledAt, now)}` : !race.winner && !race.runoff ? `${Math.round(race.pctIn)}% reporting` : null;
   return (
     <>
-      <div className="tooltip__title">{raceTitle(race)}</div>
-      <div className="tooltip__status">
-        {statusText(race)}
-        {!race.winner && !race.runoff && `, ${Math.round(race.pctIn)}% reporting`}
+      <div className={photo ? "tooltip__head tooltip__head--photo" : "tooltip__head"}>
+        {photo && <img className="tooltip__photo" src={photo} alt="" width={36} height={36} decoding="async" />}
+        <div>
+          <div className="tooltip__title">{raceTitle(race)}</div>
+          <div className="tooltip__status">
+            {statusText(race)}
+            {timing && ` · ${timing}`}
+          </div>
+        </div>
       </div>
       <ul className="tooltip__rows">
         {race.cands
@@ -123,6 +135,9 @@ function TipBody({ target, race, counties }: { target: HoverTarget; race: Race; 
               <span className="key" style={{ background: PARTY[c.party] }} />
               <span className="name">{c.name}</span>
               <span className="value">{pct(c.pct)}</span>
+              <span className="bar" aria-hidden="true">
+                <span style={{ width: `${c.pct}%`, background: PARTY[c.party] }} />
+              </span>
               <span className="votes">{votes(c.votes)}</span>
             </li>
           ))}

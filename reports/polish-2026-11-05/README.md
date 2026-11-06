@@ -80,6 +80,10 @@ The title placement under the headline follows the tracker model from the brand 
 
 Every office's table now expands a row into the full race card (all candidates with votes and bars, photos, call and update times, the count sparkline, an "Open on the map" button), adds Votes and Called columns, sorts on every column, filters to races within 5 points, shows a called/not-called summary, and downloads the filtered rows as CSV with the top two candidates spelled out.
 
+## Map pass (Nov. 6)
+
+The key is now a spotlight filter: press "Democrat leads", "Seat flipped" or "Called in the last 3 hours" and every other state or hex dims. Hover draws an ink outline instead of darkening the fill, fills cross-fade when a refresh changes a call, the maps fade in once on load and sit on one soft shadow, fresh calls get a dashed teal ring, the tooltip leads with the leader's headshot and share bars, and a zoomed state names its five biggest counties (Dallas, Travis, Bexar, Harris, El Paso in Texas) with overlap avoidance. Proven at 390/768/1280/1600 (`senate-spotlight-*`, `senate-spotlight-legend-*`, `senate-hover-*`, `house-hover-*`, `senate-counties-tx-*`); no console errors.
+
 ## Lighthouse (mobile, gzip-served build, two runs per view)
 
 | View | Performance | Accessibility | Best Practices | LCP | CLS |

@@ -28,6 +28,8 @@ const VIEWS = {
   "measure-card": { hash: "#measures-wi-179849" },
   "measures-hover": { hash: "#measures", hover: 'path.state.has-race[aria-label^="California"]', clip: "map" },
   "senate-demo": { hash: "?demo#senate" },
+  "senate-spotlight": { hash: "#senate", click: '.legend__item:has-text("Seat flipped")', clip: "map" },
+  "senate-spotlight-legend": { hash: "#senate", click: '.legend__item:has-text("Democrat leads")', clip: "legend" },
   "senate-table": { hash: "#senate", click: ".races tbody tr:nth-child(2) .expander", clip: "table" },
   "senate-remaining": { hash: "#senate", click: 'button[role="radio"]:has-text("Still counting")' },
   "senate-counties-tx": { hash: "#senate-tx", click: 'button[role="radio"]:has-text("Counties")', settle: 900, clip: "map" },
@@ -71,6 +73,7 @@ for (const width of WIDTHS) {
     const path = join(outDir, `${name}-${width}.png`);
     if (view.clip === "map") await page.locator(".map-frame").screenshot({ path });
     else if (view.clip === "table") await page.locator(".table-section").screenshot({ path });
+    else if (view.clip === "legend") await page.locator(".board__map").screenshot({ path });
     else await page.screenshot({ path, fullPage: true });
     await page.close();
     console.log(path);

@@ -1,10 +1,10 @@
 import { memo, useMemo, useState } from "react";
 import { NO_RACE, NO_RESULTS, inkOn, marginColor, measureCountColor, remainingColor } from "../lib/colors";
 import { countyColumns, readCounty } from "../lib/data";
-import { LABEL_NUDGE, VIEW, type Geo, type StateShape } from "../lib/geo";
+import { LABEL_NUDGE, VIEW, type Geo, type Shape, type StateShape } from "../lib/geo";
 
 import { HOME_STATE, SMALL_STATES, STATES } from "../lib/states";
-import { raceFill, statusText } from "../lib/status";
+import { inSpotlight, isFresh, raceFill, statusText, type LegendKey } from "../lib/status";
 import { raceTitle } from "../lib/summary";
 import type { CountyResults, Race } from "../lib/types";
 import { focusPoint, type HoverHandler } from "./Tooltip";
@@ -19,6 +19,8 @@ interface Props {
   description: string; // the map's accessible name, with the tallies
   racesByState: Map<string, Race>;
   measureCounts: Map<string, number>; // measures mode: statewide measures per state
+  spotlight: LegendKey | null; // a pressed key entry: every other state dims
+  now: number;
   counties: CountyResults;
   selected: string | null;
   onHover: HoverHandler;
@@ -34,17 +36,24 @@ const CHIP_X = 930;
 const CHIP_Y0 = 198;
 const CHIP_STEP = 22;
 const MAX_ZOOM = 7;
+const LABEL_GAP = 40; // minimum distance between county labels, in screen pixels
 
-/** CSS transform that fits a state's bounds in the frame, for the counties view. */
+/** Scale that fits a state's bounds in the frame, for the counties view. */
+function zoomScale(s: StateShape): number {
+  const [[x0, y0], [x1, y1]] = s.bounds;
+  return Math.min(MAX_ZOOM, (VIEW.width / (x1 - x0)) * 0.84, (VIEW.height / (y1 - y0)) * 0.84);
+}
+
 function zoomTransform(s: StateShape): string {
   const [[x0, y0], [x1, y1]] = s.bounds;
-  const k = Math.min(MAX_ZOOM, (VIEW.width / (x1 - x0)) * 0.84, (VIEW.height / (y1 - y0)) * 0.84);
+  const k = zoomScale(s);
   const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
   return `translate(${VIEW.width / 2}px, ${VIEW.height / 2}px) scale(${k}) translate(${-cx}px, ${-cy}px)`;
 }
 
-export const NationalMap = memo(function NationalMap({ geo, mode, description, racesByState, measureCounts, counties, selected, onHover, onSelect, onClear }: Props) {
+export const NationalMap = memo(function NationalMap({ geo, mode, description, racesByState, measureCounts, spotlight, now, counties, selected, onHover, onSelect, onClear }: Props) {
   const [focused, setFocused] = useState<string | null>(null);
+  const [hovered, setHovered] = useState<string | null>(null);
   const measures = mode === "measures";
   const has = (code: string) => (measures ? measureCounts.has(code) : racesByState.has(code));
   const fill = (code: string) => (measures ? (measureCounts.has(code) ? measureCountColor(measureCounts.get(code) as number) : NO_RACE) : stateFill(racesByState.get(code)));
@@ -82,6 +91,24 @@ export const NationalMap = memo(function NationalMap({ geo, mode, description, r
   const homeShape = selected === HOME_STATE ? undefined : geo.states.find((s) => s.code === HOME_STATE);
   const focusedShape = focused ? geo.states.find((s) => s.code === focused) : undefined;
   const zoomed = countyFills && selectedShape ? selectedShape : undefined;
+  const hoveredShape = hovered && hovered !== selected ? geo.states.find((s) => s.code === hovered) : undefined;
+  // In a zoomed state, name the five biggest counties by votes so the reader has bearings; neighbors that would overlap are skipped.
+  const countyLabels = useMemo(() => {
+    if (!zoomed) return [];
+    const race = racesByState.get(zoomed.code);
+    const rows = race ? counties[String(race.id)] : undefined;
+    if (!rows) return [];
+    const apart = LABEL_GAP / zoomScale(zoomed); // screen pixels, in map units
+    const picked: Shape[] = [];
+    for (const { c } of (geo.countiesByState.get(zoomed.code) ?? [])
+      .map((c) => ({ c, total: (rows[c.id] ?? []).slice(1).reduce((s, v) => s + v, 0) }))
+      .filter((x) => x.total > 0)
+      .sort((a, b) => b.total - a.total)) {
+      if (picked.every((p) => Math.hypot(p.centroid[0] - c.centroid[0], p.centroid[1] - c.centroid[1]) > apart)) picked.push(c);
+      if (picked.length === 5) break;
+    }
+    return picked;
+  }, [zoomed, racesByState, counties, geo]);
 
   const focusHandlers = (code: string) => ({
     onFocus: (e: React.FocusEvent<SVGElement>) => {
@@ -135,18 +162,28 @@ export const NationalMap = memo(function NationalMap({ geo, mode, description, r
           <g className={`states states--${flat ? "states" : "counties"}`}>
             {geo.states.map((s) => {
               const on = has(s.code);
+              const race = racesByState.get(s.code);
+              const out = spotlight !== null && !measures && (!race || !inSpotlight(race, spotlight, now));
               return (
                 <path
                   key={s.id}
                   d={s.d}
-                  className={on ? "state has-race" : "state"}
+                  className={`${on ? "state has-race" : "state"}${out ? " is-out" : ""}`}
                   fill={flat ? fill(s.code) : "transparent"}
                   tabIndex={on ? 0 : -1}
                   role={on ? "button" : undefined}
                   aria-label={label(s.code, s.name)}
                   aria-pressed={on ? selected === s.code : undefined}
-                  onPointerMove={(e) => (flat ? onHover({ kind: "state", state: s.code }, e) : undefined)}
-                  onPointerLeave={() => flat && onHover(null)}
+                  onPointerMove={(e) => {
+                    if (!flat) return;
+                    setHovered(on ? s.code : null);
+                    onHover({ kind: "state", state: s.code }, e);
+                  }}
+                  onPointerLeave={() => {
+                    if (!flat) return;
+                    setHovered(null);
+                    onHover(null);
+                  }}
                   onClick={() => on && onSelect(s.code)}
                   {...focusHandlers(s.code)}
                 />
@@ -156,7 +193,25 @@ export const NationalMap = memo(function NationalMap({ geo, mode, description, r
 
           <path className="state-borders" d={geo.stateBorders} vectorEffect="non-scaling-stroke" />
           <path className="nation" d={geo.nation} vectorEffect="non-scaling-stroke" />
+          {flat && !measures && (
+            <g className="fresh-outlines" aria-hidden="true">
+              {geo.states.map((s) => {
+                const race = racesByState.get(s.code);
+                return race && isFresh(race, now) ? <path key={s.id} d={s.d} vectorEffect="non-scaling-stroke" /> : null;
+              })}
+            </g>
+          )}
+          {zoomed && countyLabels.length > 0 && (
+            <g className="county-labels" aria-hidden="true">
+              {countyLabels.map((c) => (
+                <text key={c.id} x={c.centroid[0]} y={c.centroid[1]} style={{ fontSize: `${9 / zoomScale(zoomed)}px` }}>
+                  {c.name}
+                </text>
+              ))}
+            </g>
+          )}
           {homeShape && <path className="home-outline" d={homeShape.d} vectorEffect="non-scaling-stroke" />}
+          {flat && hoveredShape && <path className="hover-outline" d={hoveredShape.d} vectorEffect="non-scaling-stroke" />}
           {selectedShape && <path className="selected-outline" d={selectedShape.d} vectorEffect="non-scaling-stroke" />}
           {focusedShape && <path className="focus-outline" d={focusedShape.d} vectorEffect="non-scaling-stroke" />}
         </g>

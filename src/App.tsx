@@ -16,7 +16,7 @@ import { centralTime, relativeAge } from "./lib/format";
 import type { Geo } from "./lib/geo";
 import { useLive } from "./lib/live";
 import { isStale } from "./lib/share";
-import { noVotesYet } from "./lib/status";
+import { isFresh, noVotesYet, type LegendKey } from "./lib/status";
 import { HOME_STATE, stateName } from "./lib/states";
 import { chamber, dek, headline, housePopularVote, OFFICE_NAME, OFFICE_SLUG, raceTitle } from "./lib/summary";
 import type { Office, Race, Selection } from "./lib/types";
@@ -69,6 +69,8 @@ export function App({ data }: { data: Data }) {
   }, []);
   const [sel, setSel] = useState<Selection>(() => parseHash(window.location.hash));
   const [mode, setMode] = useState<MapMode>("states");
+  const [spotlight, setSpotlight] = useState<LegendKey | null>(null);
+  useEffect(() => setSpotlight(null), [sel.office, mode]); // a new map, a fresh key
   const [hover, setHover] = useState<Hover | null>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
@@ -204,6 +206,7 @@ export function App({ data }: { data: Data }) {
       : `Democrats have won ${c.won.D}, Republicans ${c.won.R}${c.won.I ? `, independents ${c.won.I}` : ""}; ${c.uncalled.length} not called.`;
   const mapDescription = `${mapCaption}. ${tally}`;
   const hasNoVotes = officeRaces.some(noVotesYet);
+  const hasFresh = officeRaces.some((r) => isFresh(r, now));
   const needsCounties = sel.office !== "H" && sel.office !== "B" && mode !== "states";
 
   // The browser tab names the view, so history, bookmarks and shared tabs read as the race.
@@ -294,6 +297,8 @@ export function App({ data }: { data: Data }) {
                 racesByDistrict={racesByDistrict}
                 selectedState={sel.state}
                 selectedDistrict={sel.district}
+                spotlight={spotlight}
+                now={now}
                 description={mapDescription}
                 onHover={onHover}
                 onSelect={onHexSelect}
@@ -305,6 +310,8 @@ export function App({ data }: { data: Data }) {
                 description={mapDescription}
                 racesByState={racesByState}
                 measureCounts={measureCounts}
+                spotlight={spotlight}
+                now={now}
                 counties={officeCounties ?? {}}
                 selected={sel.state}
                 onHover={onHover}
@@ -320,13 +327,23 @@ export function App({ data }: { data: Data }) {
                 race={hoverRace}
                 measures={hoverMeasures}
                 counties={officeCounties}
+                now={now}
                 x={hover.x}
                 y={hover.y}
                 bounds={{ width: frameRef.current.clientWidth, height: frameRef.current.clientHeight }}
               />
             )}
           </div>
-          <Legend office={sel.office} mode={sel.office === "B" ? "measures" : mode} hasIndependent={hasIndependent} hasRunoff={c.runoffs.length > 0} hasNoVotes={hasNoVotes} />
+          <Legend
+            office={sel.office}
+            mode={sel.office === "B" ? "measures" : mode}
+            hasIndependent={hasIndependent}
+            hasRunoff={c.runoffs.length > 0}
+            hasNoVotes={hasNoVotes}
+            hasFresh={hasFresh}
+            spotlight={spotlight}
+            onSpotlight={setSpotlight}
+          />
         </div>
         <p className="visually-hidden" role="status">
           Showing {announce}

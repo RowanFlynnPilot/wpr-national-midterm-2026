@@ -726,6 +726,75 @@ a {
   width: 100%;
   height: auto;
   overflow: visible;
+  animation: map-in 360ms ease-out both; /* once per mount: switching tabs replays it as a cross-fade */
+}
+
+@keyframes map-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* the states and the hex blob sit just off the paper */
+.national-map .states--states,
+.hex-map .hexes {
+  filter: drop-shadow(0 6px 14px rgba(29, 27, 23, 0.14));
+}
+
+.national-map .state,
+.hex {
+  transition: fill 400ms ease, opacity 200ms ease; /* a refreshed call changes color rather than snapping */
+}
+
+.national-map .state.is-out {
+  opacity: 0.22;
+}
+
+/* hover: an ink outline drawn on top, not a darkened fill */
+.hover-outline,
+.hex-hover {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.hex-hover {
+  stroke-width: 2.2;
+}
+
+/* called in the last three hours */
+.fresh-outlines path {
+  fill: none;
+  stroke: var(--teal);
+  stroke-width: 1.8;
+  stroke-dasharray: 3 2;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.hex--fresh {
+  stroke: var(--teal);
+  stroke-width: 1.8;
+  stroke-dasharray: 2.5 1.5;
+}
+
+.county-labels text {
+  font: 600 9px var(--sans);
+  text-anchor: middle;
+  dominant-baseline: central;
+  fill: var(--ink);
+  paint-order: stroke;
+  stroke: var(--paper);
+  stroke-width: 2.5px;
+  stroke-linejoin: round;
+  pointer-events: none;
 }
 
 .national-map .counties path {
@@ -879,7 +948,7 @@ a {
 }
 
 .hex.is-dim {
-  opacity: 0.32;
+  opacity: 0.22;
 }
 
 .hex-borders {
@@ -936,6 +1005,21 @@ a {
   pointer-events: none;
 }
 
+.tooltip__head--photo {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  column-gap: 0.6rem;
+  align-items: center;
+}
+
+.tooltip__photo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--rule);
+  object-fit: cover;
+}
+
 .tooltip__title {
   font: 600 1rem/1.2 var(--display);
   font-variation-settings: "opsz" 24;
@@ -956,10 +1040,34 @@ a {
 .tooltip__rows li {
   display: grid;
   grid-template-columns: 12px minmax(0, 1fr) auto;
+  grid-template-areas: "key name value" "key bar bar" "key votes votes";
   align-items: center;
   column-gap: 0.45rem;
-  padding: 0.18rem 0;
+  padding: 0.22rem 0;
   font-size: 0.8125rem;
+}
+
+.tooltip__rows .name {
+  grid-area: name;
+}
+
+.tooltip__rows .value {
+  grid-area: value;
+}
+
+.tooltip__rows .bar {
+  grid-area: bar;
+  display: block;
+  height: 4px;
+  margin-top: 2px;
+  border-radius: 2px;
+  background: var(--wash);
+}
+
+.tooltip__rows .bar span {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
 }
 
 .tooltip__rows .key,
@@ -981,8 +1089,8 @@ a {
 }
 
 .tooltip__rows .votes {
-  grid-column: 2 / -1;
-  margin-top: -0.1rem;
+  grid-area: votes;
+  margin-top: 0.05rem;
   font: 400 0.6875rem var(--mono);
   color: var(--muted);
 }
@@ -1007,6 +1115,50 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
+}
+
+.legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: -0.2rem -0.45rem;
+  padding: 0.2rem 0.45rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: background-color 120ms ease-out, border-color 120ms ease-out;
+}
+
+.legend__item--static {
+  cursor: default;
+}
+
+.legend__item[aria-pressed="true"] {
+  border-color: var(--ink);
+  background: var(--paper-raised);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.legend__clear {
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  background: var(--paper-raised);
+  font: inherit;
+  font-weight: 600;
+  color: var(--teal-ink);
+  cursor: pointer;
+}
+
+.legend__fresh {
+  width: 12px;
+  height: 12px;
+  border: 2px dashed var(--teal);
+  border-radius: 3px;
 }
 
 .legend__swatch {
@@ -1860,6 +2012,13 @@ table.races {
 
 /* Hover only where the input can hover: touch would otherwise keep the first tap's hover state. */
 @media (hover: hover) and (pointer: fine) {
+  .legend__item:not(.legend__item--static):hover {
+    border-color: var(--rule-strong);
+    background: var(--paper-raised);
+  }
+  .legend__clear:hover {
+    border-color: var(--ink-2);
+  }
   .expander:hover,
   .csv:hover,
   .detail__open:hover {
@@ -1892,9 +2051,7 @@ table.races {
     border-color: var(--ink-2);
   }
 
-  .national-map .states--states .state.has-race:hover {
-    filter: brightness(0.9);
-  }
+
 
   .national-map .counties path.is-out {
   opacity: 0.35;
@@ -1908,9 +2065,7 @@ table.races {
     filter: brightness(0.9);
   }
 
-  .hex:hover {
-    filter: brightness(0.88);
-  }
+
 
   .back:hover {
     background: rgba(58, 134, 124, 0.1);
@@ -1966,6 +2121,9 @@ table.races {
 }
 
 @media (max-width: 700px) {
+  .county-labels {
+    display: none; /* 9px labels scale down to 3px on a phone */
+  }
   .copy-link__label {
     display: none; /* the button keeps its name through aria-label */
   }
@@ -2130,6 +2288,11 @@ table.races {
   .seatbar {
     animation: none;
   }
+  .national-map,
+  .hex-map {
+    animation: none;
+  }
+  .national-map .state,
   .hex,
   .map-zoom,
   .app,
