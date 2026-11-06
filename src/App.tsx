@@ -76,6 +76,21 @@ export function App({ data }: { data: Data }) {
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
 
+  // Escape steps back out: district -> state -> overview.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      setSel((s) => {
+        if (!s.state) return s;
+        const next = s.district ? { ...s, district: null } : { ...s, state: null };
+        window.location.hash = toHash(next);
+        return next;
+      });
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   // A tab left open should notice when the hourly data run has stalled.
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -305,7 +320,8 @@ export function App({ data }: { data: Data }) {
           Angus King and Bernie Sanders are counted with the Senate Democrats they caucus with. Where both finalists are from the
           same party, the seat counts for that party before a winner is called. Louisiana House races without a majority go to a
           Dec. 12 runoff. On the House map, district positions within each state are approximate. Map boundaries from the U.S.
-          Census Bureau via us-atlas.
+          Census Bureau via us-atlas. Candidate photos are official congressional portraits or come from Wikimedia Commons
+          contributors (<a href="./credits.html">photo credits</a>).
         </p>
       </footer>
     </div>

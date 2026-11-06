@@ -57,7 +57,9 @@
      "votes": 104046,
      "pct": 49.11,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 369933,
+     "photo": null
     },
     {
      "name": "Bernadette M. Wilson",
@@ -66,7 +68,9 @@
      "votes": 61951,
      "pct": 29.24,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 369936,
+     "photo": null
     },
     {
      "name": "Dave Bronson",
@@ -75,7 +79,9 @@
      "votes": 30054,
      "pct": 14.19,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 369932,
+     "photo": null
     },
     {
      "name": "Treg Taylor",
@@ -84,7 +90,9 @@
      "votes": 15794,
      "pct": 7.46,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 369935,
+     "photo": null
     }
    ],
    "updated": "2026-11-06T02:07:47.915Z"
@@ -116,7 +124,9 @@
      "votes": 873339,
      "pct": 52,
      "winner": true,
-     "advanced": false
+     "advanced": false,
+     "id": 219740,
+     "photo": null
     },
     {
      "name": "Doug Jones",
@@ -125,7 +135,9 @@
      "votes": 806270,
      "pct": 48,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 219741,
+     "photo": null
     }
    ],
    "updated": "2026-11-04T06:42:37.178Z"
@@ -157,7 +169,9 @@
      "votes": 532083,
      "pct": 51.41,
      "winner": true,
-     "advanced": false
+     "advanced": false,
+     "id": 220725,
+     "photo": null
     },
     {
      "name": "Joe Lombardo",
@@ -166,7 +180,9 @@
      "votes": 458807,
      "pct": 44.33,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 220726,
+     "photo": null
     },
     {
      "name": "Danielle Ford",
@@ -175,7 +191,9 @@
      "votes": 29117,
      "pct": 2.81,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 220727,
+     "photo": null
     },
     {
      "name": "None of These Candidates",
@@ -184,7 +202,9 @@
      "votes": 15039,
      "pct": 1.45,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 49288847,
+     "photo": null
     }
    ],
    "updated": "2026-11-04T09:52:10.203Z"
@@ -216,7 +236,9 @@
      "votes": 5230929,
      "pct": 52.78,
      "winner": true,
-     "advanced": false
+     "advanced": false,
+     "id": 140181,
+     "photo": null
     },
     {
      "name": "Greg Abbott",
@@ -225,7 +247,9 @@
      "votes": 4524955,
      "pct": 45.66,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 140180,
+     "photo": null
     },
     {
      "name": "Pat Dixon",
@@ -234,7 +258,9 @@
      "votes": 148096,
      "pct": 1.49,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 1175096,
+     "photo": null
     },
     {
      "name": "Others",
@@ -243,7 +269,9 @@
      "votes": 6318,
      "pct": 0.06,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 0,
+     "photo": null
     }
    ],
    "updated": "2026-11-04T04:19:08.955Z"
@@ -275,7 +303,9 @@
      "votes": 105946,
      "pct": 49.62,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 219754,
+     "photo": null
     },
     {
      "name": "Bill Hill",
@@ -284,7 +314,9 @@
      "votes": 86208,
      "pct": 40.37,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 219757,
+     "photo": null
     },
     {
      "name": "Eric Hafner",
@@ -293,7 +325,9 @@
      "votes": 15572,
      "pct": 7.29,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 219755,
+     "photo": null
     },
     {
      "name": "James C. \"Jim\" McDermott",
@@ -302,7 +336,9 @@
      "votes": 5796,
      "pct": 2.71,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 219756,
+     "photo": null
     }
    ],
    "updated": "2026-11-06T02:07:47.915Z"
@@ -334,7 +370,9 @@
      "votes": 63994,
      "pct": 51.46,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 219956,
+     "photo": null
     },
     {
      "name": "Mike Thompson",
@@ -343,7 +381,9 @@
      "votes": 60365,
      "pct": 48.54,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 219955,
+     "photo": null
     }
    ],
    "updated": "2026-11-06T02:07:47.915Z"
@@ -375,7 +415,9 @@
      "votes": 81470,
      "pct": 54.19,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 219935,
+     "photo": null
     },
     {
      "name": "Young Kim",
@@ -384,7 +426,9 @@
      "votes": 68864,
      "pct": 45.81,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 219936,
+     "photo": null
     }
    ],
    "updated": "2026-11-06T02:07:47.915Z"
@@ -416,7 +460,9 @@
      "votes": 0,
      "pct": 0,
      "winner": true,
-     "advanced": false
+     "advanced": false,
+     "id": 220101,
+     "photo": null
     }
    ],
    "updated": "2026-11-06T02:07:47.915Z"
@@ -448,7 +494,9 @@
      "votes": 40789,
      "pct": 17.9,
      "winner": false,
-     "advanced": true
+     "advanced": true,
+     "id": 220448,
+     "photo": null
     },
     {
      "name": "Gabe Firment",
@@ -457,7 +505,9 @@
      "votes": 39131,
      "pct": 17.17,
      "winner": false,
-     "advanced": true
+     "advanced": true,
+     "id": 220445,
+     "photo": null
     },
     {
      "name": "Misti Cordell",
@@ -466,7 +516,9 @@
      "votes": 33366,
      "pct": 14.64,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 220442,
+     "photo": null
     },
     {
      "name": "Michael Echols",
@@ -475,7 +527,9 @@
      "votes": 32902,
      "pct": 14.44,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 220444,
+     "photo": null
     },
     {
      "name": "Stewart Cathey, Jr.",
@@ -484,7 +538,9 @@
      "votes": 28160,
      "pct": 12.36,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 220441,
+     "photo": null
     },
     {
      "name": "Others",
@@ -493,7 +549,9 @@
      "votes": 53569,
      "pct": 23.5,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 0,
+     "photo": null
     }
    ],
    "updated": "2026-11-06T02:07:47.915Z"
@@ -525,7 +583,9 @@
      "votes": 50878,
      "pct": 19.42,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 220451,
+     "photo": null
     },
     {
      "name": "Blake Miguez",
@@ -534,7 +594,9 @@
      "votes": 50213,
      "pct": 19.17,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 220457,
+     "photo": null
     },
     {
      "name": "Rick Edmonds",
@@ -543,7 +605,9 @@
      "votes": 49241,
      "pct": 18.8,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 220453,
+     "photo": null
     },
     {
      "name": "Lindsay Garcia",
@@ -552,7 +616,9 @@
      "votes": 33544,
      "pct": 12.81,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 220455,
+     "photo": null
     },
     {
      "name": "Stephen Wagley",
@@ -561,7 +627,9 @@
      "votes": 28169,
      "pct": 10.75,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 220458,
+     "photo": null
     },
     {
      "name": "Others",
@@ -570,7 +638,9 @@
      "votes": 49906,
      "pct": 19.05,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 0,
+     "photo": null
     }
    ],
    "updated": "2026-11-06T02:07:47.915Z"
@@ -602,7 +672,9 @@
      "votes": 140126,
      "pct": 50.92,
      "winner": true,
-     "advanced": false
+     "advanced": false,
+     "id": 220879,
+     "photo": null
     },
     {
      "name": "Blake Gendebien",
@@ -611,7 +683,9 @@
      "votes": 134399,
      "pct": 48.84,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 220878,
+     "photo": null
     },
     {
      "name": "Others",
@@ -620,7 +694,9 @@
      "votes": 652,
      "pct": 0.24,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 0,
+     "photo": null
     }
    ],
    "updated": "2026-11-06T02:07:47.915Z"
@@ -652,7 +728,9 @@
      "votes": 95585,
      "pct": 48.87,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 221179,
+     "photo": null
     },
     {
      "name": "Scott DesJarlais",
@@ -661,7 +739,9 @@
      "votes": 95305,
      "pct": 48.73,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 221178,
+     "photo": null
     },
     {
      "name": "Jacob Kristopher Anders",
@@ -670,7 +750,9 @@
      "votes": 2833,
      "pct": 1.45,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 23160904,
+     "photo": null
     },
     {
      "name": "Others",
@@ -679,7 +761,9 @@
      "votes": 1853,
      "pct": 0.95,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 0,
+     "photo": null
     }
    ],
    "updated": "2026-11-06T02:07:47.915Z"
@@ -711,7 +795,9 @@
      "votes": 172757,
      "pct": 52.44,
      "winner": true,
-     "advanced": false
+     "advanced": false,
+     "id": 221269,
+     "photo": null
     },
     {
      "name": "Derrick Van Orden",
@@ -720,7 +806,9 @@
      "votes": 150872,
      "pct": 45.79,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 221268,
+     "photo": null
     },
     {
      "name": "Alexander Valiensi Kent",
@@ -729,7 +817,9 @@
      "votes": 4035,
      "pct": 1.22,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 45122005,
+     "photo": null
     },
     {
      "name": "Others",
@@ -738,7 +828,9 @@
      "votes": 1799,
      "pct": 0.55,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 0,
+     "photo": null
     }
    ],
    "updated": "2026-11-04T06:09:43.616Z"
@@ -770,7 +862,9 @@
      "votes": 103171,
      "pct": 48.16,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 219759,
+     "photo": null
     },
     {
      "name": "Dan Sullivan",
@@ -779,7 +873,9 @@
      "votes": 102617,
      "pct": 47.9,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 219760,
+     "photo": null
     },
     {
      "name": "Gerald L. Heikes",
@@ -788,7 +884,9 @@
      "votes": 4851,
      "pct": 2.26,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 219758,
+     "photo": null
     },
     {
      "name": "Daniel J. Jr. Sullivan",
@@ -797,7 +895,9 @@
      "votes": 3607,
      "pct": 1.68,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 219761,
+     "photo": null
     }
    ],
    "updated": "2026-11-06T02:07:47.915Z"
@@ -829,7 +929,9 @@
      "votes": 917347,
      "pct": 54.71,
      "winner": true,
-     "advanced": false
+     "advanced": false,
+     "id": 219738,
+     "photo": null
     },
     {
      "name": "Everett Wess",
@@ -838,7 +940,9 @@
      "votes": 759336,
      "pct": 45.29,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 219739,
+     "photo": null
     }
    ],
    "updated": "2026-11-04T03:42:08.969Z"
@@ -870,7 +974,9 @@
      "votes": 4208004,
      "pct": 50.87,
      "winner": true,
-     "advanced": false
+     "advanced": false,
+     "id": 220151,
+     "photo": null
     },
     {
      "name": "Angie Nixon",
@@ -879,7 +985,9 @@
      "votes": 3969271,
      "pct": 47.99,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 220152,
+     "photo": null
     },
     {
      "name": "Neil J. Gillespie",
@@ -888,7 +996,9 @@
      "votes": 94538,
      "pct": 1.14,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 220153,
+     "photo": null
     }
    ],
    "updated": "2026-11-04T02:23:25.538Z"
@@ -920,7 +1030,9 @@
      "votes": 376015,
      "pct": 53,
      "winner": true,
-     "advanced": false
+     "advanced": false,
+     "id": 220471,
+     "photo": null
     },
     {
      "name": "Susan Collins",
@@ -929,7 +1041,9 @@
      "votes": 332563,
      "pct": 46.88,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 220470,
+     "photo": null
     },
     {
      "name": "Others",
@@ -938,7 +1052,9 @@
      "votes": 882,
      "pct": 0.12,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 0,
+     "photo": null
     }
    ],
    "updated": "2026-11-04T06:45:05.269Z"
@@ -970,7 +1086,9 @@
      "votes": 466877,
      "pct": 49.05,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 205792,
+     "photo": null
     },
     {
      "name": "Cindy Hyde-Smith",
@@ -979,7 +1097,9 @@
      "votes": 464993,
      "pct": 48.85,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 205793,
+     "photo": null
     },
     {
      "name": "Ty Pinkins",
@@ -988,7 +1108,9 @@
      "votes": 20023,
      "pct": 2.1,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 205794,
+     "photo": null
     }
    ],
    "updated": "2026-11-06T02:07:47.915Z"
@@ -1020,7 +1142,9 @@
      "votes": 5445156,
      "pct": 55.03,
      "winner": true,
-     "advanced": false
+     "advanced": false,
+     "id": 221153,
+     "photo": null
     },
     {
      "name": "Ken Paxton",
@@ -1029,7 +1153,9 @@
      "votes": 4249762,
      "pct": 42.95,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 221152,
+     "photo": null
     },
     {
      "name": "Ted Brown",
@@ -1038,7 +1164,9 @@
      "votes": 190259,
      "pct": 1.92,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 1175698,
+     "photo": null
     },
     {
      "name": "Others",
@@ -1047,7 +1175,9 @@
      "votes": 9663,
      "pct": 0.1,
      "winner": false,
-     "advanced": false
+     "advanced": false,
+     "id": 0,
+     "photo": null
     }
    ],
    "updated": "2026-11-04T03:42:08.969Z"

@@ -23,6 +23,12 @@ KEEP_MIN_PCT = 1.0
 MAX_CANDS = 5
 COUNTY_CANDS = 3
 COUNTY_TOLERANCE_PCT = 2.0  # county rows normally sum within 0.3% of the statewide total; more means a broken feed
+# Candidate photos resolved by hand with `npm run headshots` (scripts/headshots.mjs); keyed by civicAPI candidate_id.
+HEADSHOTS_PATH = ROOT / "pipeline" / "headshots.json"
+HEADSHOTS = json.loads(HEADSHOTS_PATH.read_text(encoding="utf-8")) if HEADSHOTS_PATH.exists() else {}
+for _id, _entry in HEADSHOTS.items():
+    if _entry.get("file") and not (ROOT / "public" / "headshots" / _entry["file"]).exists():
+        raise RuntimeError(f"headshots.json points at missing file public/headshots/{_entry['file']} ({_entry['name']})")
 
 
 def party_code(party: str) -> str:
@@ -61,14 +67,15 @@ def candidates(raw: list[dict]) -> list[dict]:
         else:
             rest.append(c)
     out = [
-        {"name": re.sub(r"\s+", " ", c["name"]).strip(), "party": candidate_party(c)[0], "partyName": candidate_party(c)[1],
-         "votes": c["votes"], "pct": c["percent"], "winner": c["winner"], "advanced": c.get("advanced", False)}
+        {"id": c["candidate_id"], "name": re.sub(r"\s+", " ", c["name"]).strip(), "party": candidate_party(c)[0], "partyName": candidate_party(c)[1],
+         "votes": c["votes"], "pct": c["percent"], "winner": c["winner"], "advanced": c.get("advanced", False),
+         "photo": HEADSHOTS.get(str(c["candidate_id"]), {}).get("file")}
         for c in kept
     ]
     other_votes = sum(c["votes"] for c in rest)
     if other_votes:
-        out.append({"name": "Others", "party": "O", "partyName": "Other candidates", "votes": other_votes,
-                    "pct": round(100 * other_votes / total, 2), "winner": False, "advanced": False})
+        out.append({"id": 0, "name": "Others", "party": "O", "partyName": "Other candidates", "votes": other_votes,
+                    "pct": round(100 * other_votes / total, 2), "winner": False, "advanced": False, "photo": None})
     return out
 
 

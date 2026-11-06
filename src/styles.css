@@ -988,7 +988,7 @@ a {
 
 .race-row {
   display: grid;
-  grid-template-columns: 10px 6.2rem minmax(0, 1fr) auto;
+  grid-template-columns: 10px minmax(4.5rem, max-content) minmax(0, 1fr) auto;
   align-items: center;
   gap: 0.6rem;
   width: 100%;
@@ -1012,6 +1012,7 @@ a {
 }
 
 .race-row__where {
+  max-width: 7.5rem;
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1041,7 +1042,11 @@ a {
 }
 
 .race-row--house {
-  grid-template-columns: 6.2rem minmax(0, 1fr);
+  grid-template-columns: 10px minmax(4.5rem, max-content) minmax(0, 1fr);
+}
+
+.race-row--house::before {
+  content: "";
 }
 
 .delegation {
@@ -1108,8 +1113,41 @@ a {
 }
 
 .cand {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "line" "meta" "bar";
+  column-gap: 0.65rem;
   padding: 0.55rem 0;
   border-top: 1px solid var(--rule);
+}
+
+/* Once any candidate on the card has a photo, every row gets the column so names and bars align. */
+.cands:has(.cand__photo) .cand {
+  grid-template-columns: 44px minmax(0, 1fr);
+  grid-template-areas: "photo line" "photo meta" "photo bar";
+}
+
+.cand__photo {
+  grid-area: photo;
+  align-self: start;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--rule);
+  object-fit: cover;
+  background: var(--wash);
+}
+
+.cand__line {
+  grid-area: line;
+}
+
+.cand__meta {
+  grid-area: meta;
+}
+
+.cand__bar {
+  grid-area: bar;
 }
 
 .cand__line {

@@ -2,7 +2,9 @@ export type Party = "D" | "R" | "I" | "O";
 export type Office = "S" | "H" | "G";
 
 export interface Candidate {
+  id: number; // civicAPI candidate_id; 0 for the "Others" bucket
   name: string;
+  photo: string | null; // file in public/headshots, resolved by scripts/headshots.mjs
   party: Party;
   partyName: string;
   votes: number;

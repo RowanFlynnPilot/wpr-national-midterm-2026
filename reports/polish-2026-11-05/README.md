@@ -56,6 +56,12 @@ From the checklists: hover states gated to devices that can hover, press feedbac
 
 Skipped on purpose: a sticky balance-of-power strip (position: sticky cannot work inside the auto-height iframe), needles or win probabilities (no model), swing arrows vs. 2024 (no county baselines under the redrawn maps), incumbent asterisks (civicAPI flags about 50 of 370).
 
+## Candidate photos (late evening)
+
+`npm run headshots` resolves a photo for the top two candidates in every race: 543 of 1007 candidates, a photo for the leader in 438 of 506 races (355 official congressional portraits, public domain; 188 from Wikimedia Commons under CC BY, CC BY-SA, CC0, public domain or Commons free use, each credited on `credits.html`). Photos appear on race cards only; mixed rows in the panel lists looked uneven and were reverted.
+
+Sourcing rules, each one earned by a real mismatch during the run: Wikidata labels get the same suffix handling as candidate names (otherwise "Nick Begich III" matched his grandfather); anyone with a date of death or born before 1920 is rejected (an 1844 legislator came back as Paul Barringer); the Wikipedia article's lead image is used rather than Wikidata's image claim (Begich's claim was the grandfather's portrait); state seals, flags and logos are rejected as placeholders (Zach Lahn's infobox); a missing Congress portrait falls through to Wikipedia (a new member crashed the first run). Every Commons match was reviewed on a contact sheet. Two to eyeball yourself: Rebecca Bennett (NJ) in a flight helmet, which is her article's lead image (she is a former Navy helicopter pilot), and Mark Teixeira (TX) in a Yankees uniform, who really is the TX-21 candidate. John E. Sununu is pinned in `pipeline/headshots-overrides.json` because his father shares the normalized name.
+
 ## Lighthouse (mobile, gzip-served build, two runs per view)
 
 | View | Performance | Accessibility | Best Practices | LCP | CLS |

@@ -29,6 +29,7 @@ export function RaceCard({ race, heading = "h3" }: { race: Race; heading?: "h2" 
           .filter((c) => c.party !== "O" || c.pct >= 0.5)
           .map((c) => (
             <li key={c.name} className={c.winner ? "cand is-winner" : "cand"}>
+              {c.photo && <img className="cand__photo" src={`./headshots/${c.photo}`} width={44} height={44} alt="" loading="lazy" decoding="async" />}
               <div className="cand__line">
                 <span className="cand__name">
                   {c.winner && (

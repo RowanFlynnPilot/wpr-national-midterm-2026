@@ -15,8 +15,30 @@ npm run dev       # local server
 npm run build     # type-check + production build to dist/
 npm test          # Vitest: src/lib/*.test.ts against src/lib/__fixtures__/races.json (19 real races frozen Nov. 5)
 npm run hexmap    # ONLY when district maps change (run `npm run data` first): regenerates public/data/house-hex.json
+npm run headshots # by hand only: resolves candidate photos into public/headshots + pipeline/headshots.json (see Candidate photos)
 npm run screens   # Playwright screenshots of every view at 390/768/1280/1600 into screens/ (build first); fails on console errors
 ```
+
+## Candidate photos
+
+`scripts/headshots.mjs` (Node + sharp, run by hand, never on the cron) finds a photo for the top two candidates in every race:
+1. Sitting members of Congress: `unitedstates/congress-legislators` matched on name and state → public-domain portrait from
+   `unitedstates/images` (falls through to tier 2 when the repo lacks a new member's portrait).
+2. Wikidata: an entity whose label is the name (labels get the same suffix/initial stripping as candidate names, so
+   "Nick Begich III" matches the III entity, not the grandfather), human, no date of death and not born before 1920, with an
+   English Wikipedia article whose intro mentions the race's state and a political role. Exactly one such entity or no match.
+   The photo is the article's lead image (Wikidata's own image claim can be stale); placeholder images (seals, flags, logos,
+   SVGs) are rejected. Commons images are kept only under CC BY, CC BY-SA, CC0, public domain or Commons "free use";
+   author and license go into the manifest.
+3. `pipeline/headshots-overrides.json`: `{"<candidate_id>": "Q123"}` forces an entity, `{"<candidate_id>": null}` suppresses a photo.
+   This is the review path: a wrong face is worse than none, so fix it here and rerun.
+
+Output: `public/headshots/<candidate_id>.webp` (96×96), `pipeline/headshots.json` (manifest; `build.py` copies `file` onto each
+candidate as `photo`, keyed by civicAPI `candidate_id`), and `public/credits.html` (per-photo source, author, license; linked
+from the footer). Failed lookups are left out of the manifest so the next run retries them; resolved ones are not re-looked-up.
+Candidates have `id` in results.json for this; the "Others" bucket is id 0. `build.py` fails if the manifest points at a file
+that is not in `public/headshots`. Photos appear only on race cards (44px, lazy); rows and tooltips stay text, because coverage
+is partial and mixed rows looked uneven. Review every Commons match on a contact sheet after a run; Congress portraits are reliable.
 
 ## Map shapes
 
@@ -128,6 +150,7 @@ Accessibility 100, Best Practices 100, CLS 0. `npm run screens` doubles as the z
 
 ## Deploy
 
+`public/embed-test.html` wraps the build in the CLAUDE.md snippet so auto-height can be checked locally (`/embed-test.html` on Pages).
 `.github/workflows/update-results.yml` fetches, tests, builds (including share.png via a cached Playwright Chromium) and deploys to Pages hourly (each run makes ~500 civicAPI requests; keep it gentle on a free API). Enable Pages → Source: "GitHub Actions" in repo settings, and run the workflow once by hand to publish. If a fetch or build fails, nothing deploys and the last good version stays up. Stop the cron once states certify (late November into December).
 
 ## AP cross-check (Nov. 5, 2026)

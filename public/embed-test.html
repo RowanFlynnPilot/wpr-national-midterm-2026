@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Embed test — 2026 Midterm Election Results</title>
+<style>
+body{margin:0;background:#fff;color:#222;font:16px/1.6 Georgia,serif}
+.article{max-width:720px;margin:0 auto;padding:2rem 1rem}
+.frame{max-width:1100px;margin:0 auto;border:2px dashed #c9c9c9}
+#log{font:12px/1.4 ui-monospace,monospace;color:#555;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<div class="article">
+<h1>Embed test</h1>
+<p>The same snippet as in CLAUDE.md, pointed at this build. The dashed border is the iframe; it should grow and shrink with the content and never show its own scrollbar. The log lists the height messages received.</p>
+<p id="log">waiting for wpr-embed-height…</p>
+</div>
+<div class="frame" id="wpr-national-midterm-2026"></div>
+<div class="article"><p>Text after the embed, to show the page flows around it.</p></div>
+<script>
+(function () {
+  var f = document.createElement('iframe');
+  f.src = './index.html?host=' + encodeURIComponent('https://wausaupilotandreview.com/embed-test/') + location.hash;
+  f.style.cssText = 'width:100%;border:0;min-height:900px;display:block';
+  f.allow = 'clipboard-write';
+  f.title = '2026 midterm election results';
+  var log = document.getElementById('log');
+  window.addEventListener('message', function (e) {
+    if (e.data && e.data.type === 'wpr-embed-height' && e.data.id === 'wpr-national-midterm-2026') {
+      f.style.height = e.data.height + 'px';
+      log.textContent = new Date().toLocaleTimeString() + '  height ' + e.data.height + 'px\n' + log.textContent;
+    }
+  });
+  document.getElementById('wpr-national-midterm-2026').appendChild(f);
+})();
+</script>
+</body>
+</html>
