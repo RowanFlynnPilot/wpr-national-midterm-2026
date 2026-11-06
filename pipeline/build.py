@@ -151,6 +151,7 @@ def main() -> None:
             "num": district_num(r["district"]) if office == "H" else None,
             "special": "special" in r["election_name"].lower(),
             "pctIn": detail["percent_reporting"],
+            "updated": detail["last_updated"],
             "calledAt": detail.get("called_at") if winner else None,  # civicAPI omits it on some races called at poll close
             "winner": winner,
             "leader": major[0]["party"],

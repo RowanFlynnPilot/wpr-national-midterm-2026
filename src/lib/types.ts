@@ -19,6 +19,7 @@ export interface Race {
   num: number | null;
   special: boolean;
   pctIn: number;
+  updated: string; // civicAPI's last_updated for this race
   calledAt: string | null;
   winner: Party | null;
   leader: Party;

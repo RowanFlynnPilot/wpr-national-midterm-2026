@@ -12,6 +12,7 @@ import { centralTime, relativeAge } from "./lib/format";
 import type { Geo } from "./lib/geo";
 import { useLive } from "./lib/live";
 import { isStale } from "./lib/share";
+import { noVotesYet } from "./lib/status";
 import { HOME_STATE, stateName } from "./lib/states";
 import { chamber, dek, headline, housePopularVote, OFFICE_NAME, OFFICE_SLUG, raceTitle } from "./lib/summary";
 import type { Office, Race, Selection } from "./lib/types";
@@ -144,12 +145,19 @@ export function App({ data }: { data: Data }) {
       ? `${stateName(sel.state)} ${sel.office === "H" ? "House districts" : "has no race this year"}`
       : `${OFFICE_NAME[sel.office]} overview`;
 
+  const raceNoun = `${racesByState.size} ${sel.office === "S" ? "Senate" : "governor"} races`;
   const mapCaption =
     sel.office === "H"
       ? "Each hexagon is one House district, placed near where its voters live"
       : mode === "states"
         ? `${OFFICE_NAME[sel.office]} results by state`
-        : `County results in the ${racesByState.size} ${sel.office === "S" ? "Senate" : "governor"} races`;
+        : mode === "counties"
+          ? `County results in the ${raceNoun}`
+          : `Where votes are still being counted in the ${raceNoun}`;
+  const c = chambers[sel.office];
+  const tally = `Democrats have won ${c.won.D}, Republicans ${c.won.R}${c.won.I ? `, independents ${c.won.I}` : ""}; ${c.uncalled.length} not called.`;
+  const mapDescription = `${mapCaption}. ${tally}`;
+  const hasNoVotes = officeRaces.some(noVotesYet);
 
   return (
     <div className={refreshing ? "app is-refreshing" : "app"} aria-busy={refreshing}>
@@ -211,9 +219,9 @@ export function App({ data }: { data: Data }) {
             </label>
             {sel.office !== "H" && (
               <div className="segmented" role="radiogroup" aria-label="Map detail">
-                {(["states", "counties"] as const).map((m) => (
+                {([["states", "States"], ["counties", "Counties"], ["remaining", "Still counting"]] as const).map(([m, label]) => (
                   <button key={m} type="button" role="radio" aria-checked={mode === m} className={mode === m ? "is-on" : undefined} onClick={() => setMode(m)}>
-                    {m === "states" ? "States" : "Counties"}
+                    {label}
                   </button>
                 ))}
               </div>
@@ -228,6 +236,7 @@ export function App({ data }: { data: Data }) {
                 racesByDistrict={racesByDistrict}
                 selectedState={sel.state}
                 selectedDistrict={sel.district}
+                description={mapDescription}
                 onHover={onHover}
                 onSelect={onHexSelect}
               />
@@ -235,6 +244,7 @@ export function App({ data }: { data: Data }) {
               <NationalMap
                 geo={geo}
                 mode={mode}
+                description={mapDescription}
                 racesByState={racesByState}
                 counties={officeCounties ?? {}}
                 selected={sel.state}
@@ -256,7 +266,7 @@ export function App({ data }: { data: Data }) {
               />
             )}
           </div>
-          <Legend office={sel.office} mode={mode} hasIndependent={hasIndependent} hasRunoff={chambers[sel.office].runoffs.length > 0} />
+          <Legend office={sel.office} mode={mode} hasIndependent={hasIndependent} hasRunoff={c.runoffs.length > 0} hasNoVotes={hasNoVotes} />
         </div>
         <p className="visually-hidden" role="status">
           Showing {announce}

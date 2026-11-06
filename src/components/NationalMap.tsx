@@ -1,5 +1,5 @@
 import { memo, useMemo, useState } from "react";
-import { NO_RACE, NO_RESULTS, inkOn, marginColor } from "../lib/colors";
+import { NO_RACE, NO_RESULTS, inkOn, marginColor, remainingColor } from "../lib/colors";
 import { countyColumns, readCounty } from "../lib/data";
 import { LABEL_NUDGE, VIEW, type Geo, type StateShape } from "../lib/geo";
 
@@ -9,11 +9,13 @@ import { raceTitle } from "../lib/summary";
 import type { CountyResults, Race } from "../lib/types";
 import { focusPoint, type HoverHandler } from "./Tooltip";
 
-export type MapMode = "states" | "counties";
+/** states: one fill per race; counties: county margins; remaining: how much of each county's vote is still out. */
+export type MapMode = "states" | "counties" | "remaining";
 
 interface Props {
   geo: Geo;
   mode: MapMode;
+  description: string; // the map's accessible name, with the tallies
   racesByState: Map<string, Race>;
   counties: CountyResults;
   selected: string | null;
@@ -44,11 +46,11 @@ function zoomTransform(s: StateShape): string {
   return `translate(${VIEW.width / 2}px, ${VIEW.height / 2}px) scale(${k}) translate(${-cx}px, ${-cy}px)`;
 }
 
-export const NationalMap = memo(function NationalMap({ geo, mode, racesByState, counties, selected, onHover, onSelect, onClear }: Props) {
+export const NationalMap = memo(function NationalMap({ geo, mode, description, racesByState, counties, selected, onHover, onSelect, onClear }: Props) {
   const [focused, setFocused] = useState<string | null>(null);
 
   const countyFills = useMemo(() => {
-    if (mode !== "counties") return null;
+    if (mode === "states") return null;
     const fills = new Map<string, string>();
     for (const race of racesByState.values()) {
       const rows = counties[String(race.id)];
@@ -56,6 +58,10 @@ export const NationalMap = memo(function NationalMap({ geo, mode, racesByState, 
       const cols = countyColumns(race);
       for (const [fips, row] of Object.entries(rows)) {
         const reading = readCounty(row);
+        if (mode === "remaining") {
+          fills.set(fips, remainingColor(reading?.pctIn ?? 0));
+          continue;
+        }
         const col = reading ? cols[reading.leaderIndex] : undefined;
         fills.set(fips, reading && col ? marginColor(col.party, reading.margin) : NO_RESULTS);
       }
@@ -66,7 +72,7 @@ export const NationalMap = memo(function NationalMap({ geo, mode, racesByState, 
   const selectedShape = selected ? geo.states.find((s) => s.code === selected) : undefined;
   const homeShape = selected === HOME_STATE ? undefined : geo.states.find((s) => s.code === HOME_STATE);
   const focusedShape = focused ? geo.states.find((s) => s.code === focused) : undefined;
-  const zoomed = mode === "counties" && selectedShape ? selectedShape : undefined;
+  const zoomed = mode !== "states" && selectedShape ? selectedShape : undefined;
 
   const focusHandlers = (code: string, race: Race | undefined) => ({
     onFocus: (e: React.FocusEvent<SVGElement>) => {
@@ -92,10 +98,10 @@ export const NationalMap = memo(function NationalMap({ geo, mode, racesByState, 
         className="national-map"
         viewBox={`0 0 ${VIEW.width} ${VIEW.height}`}
         role="group"
-        aria-label={mode === "counties" ? "Map of county results" : "Map of results by state"}
+        aria-label={description}
       >
         <g className="map-zoom" style={{ transform: zoomed ? zoomTransform(zoomed) : "none" }}>
-          {mode === "counties" && countyFills && (
+          {countyFills && (
             <g className="counties" aria-hidden="true">
               {geo.counties.map((c) => {
                 const fill = countyFills.get(c.id);
@@ -115,7 +121,7 @@ export const NationalMap = memo(function NationalMap({ geo, mode, racesByState, 
             </g>
           )}
 
-          <g className={`states states--${mode}`}>
+          <g className={`states states--${mode === "states" ? "states" : "counties"}`}>
             {geo.states.map((s) => {
               const race = racesByState.get(s.code);
               return (

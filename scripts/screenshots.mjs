@@ -21,6 +21,7 @@ const VIEWS = {
   "governors-counties": { hash: "#governors", click: 'button[role="radio"]:has-text("Counties")' },
   "senate-hover": { hash: "#senate", hover: 'path.state.has-race[aria-label^="Texas"]', clip: "map" },
   "house-hover": { hash: "#house", hover: "polygon.hex >> nth=100", clip: "map" },
+  "senate-remaining": { hash: "#senate", click: 'button[role="radio"]:has-text("Still counting")' },
   "senate-counties-tx": { hash: "#senate-tx", click: 'button[role="radio"]:has-text("Counties")', settle: 900, clip: "map" },
   "house-keyboard": { hash: "#house", focus: 'polygon.hex[tabindex="0"]', keys: ["ArrowRight", "ArrowRight", "ArrowDown"], clip: "map" },
 };

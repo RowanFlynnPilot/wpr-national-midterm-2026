@@ -45,9 +45,10 @@ the maps fill in when it lands (`MapPending` holds the space). Starting it any e
 
 ## Race status rules (`src/lib/status.ts`, `pipeline/build.py`)
 
-- **won** — civicAPI `winner`. **runoff** — a candidate is `advanced`, or Louisiana House with no one at 50% (`MAJORITY_RUNOFF`; LA moved its House primaries to Nov. 3 with a Dec. 12 runoff, and civicAPI flags finalists only once second place is settled). **decided** — top-two finalists from one party (CA-04/07/11/14, CA-40): the seat counts for that party before a call. **leading** — everything else.
+- **no votes yet** — `total` is 0 and no winner (`noVotesYet`): neutral fill, "No votes reported yet", never a painted lead. **won** — civicAPI `winner`. **runoff** — a candidate is `advanced`, or Louisiana House with no one at 50% (`MAJORITY_RUNOFF`; LA moved its House primaries to Nov. 3 with a Dec. 12 runoff, and civicAPI flags finalists only once second place is settled). **decided** — top-two finalists from one party (CA-04/07/11/14, CA-40): the seat counts for that party before a call. **leading** — everything else.
 - `unopposed` — one non-"Others" candidate. Florida doesn't print unopposed races, so FL-10 has zero votes; the card says so.
-- Ranked-choice note (Alaska, Maine federal races) appears only when no one has a majority of first choices.
+- Ranked-choice note (Alaska, Maine federal races) appears only when no one has a majority of first choices; Alaska's adds that the tabulation runs around Nov. 18. `RUNOFF_DATE` puts "Dec. 12" on Louisiana runoff text. Same-party finals read "Seat decided: both finalists are Democrats. Winner not called".
+- Each race carries civicAPI's `last_updated` as `updated`; the race card footer shows it, so a race civicAPI stops updating is visible as such.
 - Nevada's "None of These Candidates" is party `O`, "Ballot option".
 
 ## Known data limits (deliberate choices)
@@ -65,7 +66,7 @@ Each district's target = vote-weighted centroid of the counties it covers (from 
 - `src/App.tsx` — selection state + hash routing (`#senate`, `#senate-tx`, `#house-wi`, `#house-wi-03`, `#governors-ks`).
 - `src/lib/summary.ts` — chamber tallies, data-driven headline and dek. Senate majority 51 (VP is a Republican), House 218, no majority marker for governors. `latestCalls` = the 8 newest calls with a `calledAt` for the office (the ~34 calls civicAPI timestamps are skipped; the panel says so); shown on the overview panel with `timeAgo`.
 - `src/components/NationalMap.tsx` — states/counties map on us-atlas Albers USA (pre-projected; no projection at runtime). Small NE states get callout chips.
-- `src/components/NationalMap.tsx` in counties mode zooms to the selected state (CSS transform on `.map-zoom`, non-scaling strokes, "All states" button to return; no animation under `prefers-reduced-motion`).
+- `src/components/NationalMap.tsx` has three modes: states, counties (margin bins) and "Still counting" (`remaining`: share of each county's vote still out, teal ramp from `remainingColor`; the legend names civicAPI's % reporting as the source). Both county modes zoom to the selected state (CSS transform on `.map-zoom`, non-scaling strokes, "All states" button to return; no animation under `prefers-reduced-motion`).
 - `src/components/HexMap.tsx`: roving tabindex, arrow keys walk the grid (skipping gaps), Enter/Space selects, focus shows the tooltip (`focusPoint` in `Tooltip.tsx`; the same `HoverHandler` serves pointer and keyboard). `SidePanel.tsx`, `RaceCard.tsx`, `CountyMap.tsx`, `RaceTable.tsx` (table view = accessible twin of the maps).
 - `src/lib/live.ts` (`useLive`) refetches results and county files every 15 minutes and when the tab becomes visible; the old render stays at reduced opacity while a refresh is in flight, and a failed refresh shows a specific notice while keeping the last good data.
 - `HOME_STATE` (`src/lib/states.ts`, "WI") drives the Wisconsin shortcut: a toolbar chip that selects it on the current tab, a resting teal outline on both maps (replaced by the selected outline once picked), and the "Wisconsin at a glance" block (statewide races plus the House delegation) at the top of every overview panel.
@@ -109,6 +110,15 @@ hash into the iframe so a shared link opens on the right view, and passes the ar
   `dist/share.png` as the last step of `npm run build` and stamps `?v=<fetched>` onto the og:image URL in `dist/index.html`
   so crawlers refetch after each data run. Open Graph and Twitter tags live in `index.html`.
 - `.stale` notice appears when `results.fetched` is more than three hours old (`isStale`, re-checked every minute).
+
+## Review pass (Nov. 5, 2026, evening)
+
+Based on a survey of AP, Decision Desk HQ, NBC, ABC and 2024 accessibility audits (notes in `reports/polish-2026-11-05/README.md`):
+hover styles are gated behind `(hover: hover) and (pointer: fine)`; controls have `:active` feedback, `touch-action: manipulation`
+and no text selection; form controls are 16px on coarse pointers; a skip link; the map's accessible name carries the tallies
+(`mapDescription` in App); a visually hidden status line announces the selection. Deliberately not done: a sticky balance-of-power
+strip (sticky does not work inside the auto-height iframe), a needle or probabilities (no model), swing vs. 2024 (no county
+baselines under the new maps), incumbent markers (civicAPI flags only ~50).
 
 ## Quality gates (Nov. 5, 2026)
 

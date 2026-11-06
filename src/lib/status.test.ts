@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PALE, PARTY } from "./colors";
+import { NO_RESULTS, PALE, PARTY } from "./colors";
 import { race } from "./fixture";
 import { RUNOFF, raceFill, raceStatus, rcvNote, statusText } from "./status";
 
@@ -43,6 +43,12 @@ describe("raceFill", () => {
     expect(raceFill(race("H", "AK-AL"))).toBe(PALE.R);
     expect(raceFill(race("H", "LA-05"))).toBe(RUNOFF);
   });
+  it("no votes yet: neutral fill and plain text, never a painted lead", () => {
+    const waiting = { ...race("S", "MS"), total: 0, cands: race("S", "MS").cands.map((c) => ({ ...c, votes: 0, pct: 0 })) };
+    expect(raceFill(waiting)).toBe(NO_RESULTS);
+    expect(statusText(waiting)).toBe("No votes reported yet");
+    expect(raceFill(race("H", "FL-10"))).toBe(PARTY.D); // unopposed and called, zero votes printed
+  });
 });
 
 describe("statusText", () => {
@@ -52,11 +58,12 @@ describe("statusText", () => {
     expect(statusText(race("H", "FL-10"))).toBe("Unopposed");
   });
   it("runoffs name the finalists only once both are settled", () => {
-    expect(statusText(race("H", "LA-05"))).toBe('Headed to a runoff: Patricia "Pat" Moore vs. Gabe Firment');
-    expect(statusText(race("H", "LA-06"))).toBe("Headed to a runoff. No candidate won a majority");
+    expect(statusText(race("H", "LA-05"))).toBe('Headed to a Dec. 12 runoff: Patricia "Pat" Moore vs. Gabe Firment');
+    expect(statusText(race("H", "LA-06"))).toBe("Headed to a Dec. 12 runoff. No candidate won a majority");
+    expect(statusText({ ...race("H", "LA-06"), state: "GA" })).toBe("Headed to a runoff. No candidate won a majority");
   });
   it("uncalled races", () => {
-    expect(statusText(race("H", "CA-04"))).toBe("Not called. Both finalists are Democrats");
+    expect(statusText(race("H", "CA-04"))).toBe("Seat decided: both finalists are Democrats. Winner not called");
     expect(statusText(race("S", "MS"))).toBe("Not called. Democrat leads by 0.2 points");
     expect(statusText(race("S", "AK"))).toBe("Not called. Democrat leads by 0.3 points in first-choice votes");
     expect(statusText({ ...race("S", "MS"), margin: 0.04 })).toBe("Not called. Democrat leads by <0.1 points");
@@ -65,7 +72,7 @@ describe("statusText", () => {
 
 describe("rcvNote", () => {
   it("Alaska and Maine federal races, only while nobody has a majority of first choices", () => {
-    expect(rcvNote(race("S", "AK"))).toMatch(/^Alaska uses ranked-choice voting/);
+    expect(rcvNote(race("S", "AK"))).toMatch(/^Alaska uses ranked-choice voting.*around Nov\. 18\.$/);
     expect(rcvNote(race("G", "AK"))).toMatch(/^Alaska uses ranked-choice voting/);
     expect(rcvNote(race("H", "AK-AL"))).not.toBeNull();
     const maineClose = { ...race("S", "ME"), cands: race("S", "ME").cands.map((c, i) => ({ ...c, pct: i === 0 ? 49 : c.pct })) };

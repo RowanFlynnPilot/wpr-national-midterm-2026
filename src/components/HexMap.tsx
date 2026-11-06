@@ -28,11 +28,12 @@ interface Props {
   racesByDistrict: Map<string, Race>;
   selectedState: string | null;
   selectedDistrict: string | null;
+  description: string; // accessible name with the tallies
   onHover: HoverHandler;
   onSelect: (state: string, district: string | null) => void;
 }
 
-export const HexMap = memo(function HexMap({ hexes, racesByDistrict, selectedState, selectedDistrict, onHover, onSelect }: Props) {
+export const HexMap = memo(function HexMap({ hexes, racesByDistrict, selectedState, selectedDistrict, description, onHover, onSelect }: Props) {
   // Hexes are too small to hit reliably with a finger: a tap picks the state, then the panel lists its districts.
   const pointerType = useRef("mouse");
   const svgRef = useRef<SVGSVGElement>(null);
@@ -99,7 +100,7 @@ export const HexMap = memo(function HexMap({ hexes, racesByDistrict, selectedSta
       className="hex-map"
       viewBox={geom.box.map((v) => v.toFixed(1)).join(" ")}
       role="group"
-      aria-label="House results, one hexagon per district. Arrow keys move between districts."
+      aria-label={`${description} Arrow keys move between districts.`}
       onPointerDown={(e) => (pointerType.current = e.pointerType)}
     >
       <g className="hexes">

@@ -8,6 +8,17 @@ export const PARTY: Record<Party, string> = { D: "#2D63A6", R: "#C23A30", I: "#B
 export const PALE: Record<Party, string> = { D: "#93B4DD", R: "#E59C90", I: "#E2C67E", O: "#CFC9BC" };
 
 export const NO_RACE = "#E6E0D3";
+
+// "Still counting" county mode: share of the vote still to report, light -> deep teal.
+export const REMAINING_BINS = [5, 25, 50]; // four classes: 0 (done), <5, 5-25, 25-50, 50+
+export const REMAINING_RAMP = ["#EFE9DC", "#CFE3DF", "#9CC7C0", "#5FA59B", "#2B6B62"];
+
+export function remainingColor(pctReporting: number): string {
+  const left = 100 - pctReporting;
+  if (left <= 0) return REMAINING_RAMP[0] as string;
+  const idx = REMAINING_BINS.findIndex((b) => left < b);
+  return REMAINING_RAMP[idx === -1 ? REMAINING_RAMP.length - 1 : idx + 1] as string;
+}
 export const NO_RESULTS = "#D8D2C4";
 
 export const PARTY_LABEL: Record<Party, string> = { D: "Democrat", R: "Republican", I: "Independent", O: "Other" };

@@ -46,6 +46,16 @@ Rejected: opening the page on `#governors-wi` by default (the national headline 
 - Fonts self-hosted and preloaded (the Google Fonts stylesheet was the render-blocking request behind a 4 s LCP). Map shapes load after first paint behind a fixed-ratio placeholder. A margin collapse in the loading state caused the only layout shift; fixed. `<main>` landmark added; stray `aria-label`s removed.
 - `npm audit`: 0 vulnerabilities. `npm run screens`: zero console errors across 14 views × 4 widths. Actions: green on every push.
 
+## Review pass (evening)
+
+A second pass against the craft, Web Interface Guidelines and mobile-native checklists, a worst-case-data stress test, and a survey of what AP, Decision Desk HQ, NBC, ABC and PBS shipped this cycle (NYT, Post, Bloomberg, CNN and Politico block fetching; their rows rest on secondary write-ups).
+
+Built from the survey: a "Still counting" county mode showing where votes remain (DDHQ's "Remaining"); a "No votes yet" map state so an early lead is never painted (NYT's gray); per-race update times on the card (AP, DDHQ); data-driven map descriptions for screen readers (the 2024 audits' main complaint); the Dec. 12 date on Louisiana runoff cards and the Nov. 18 timing on Alaska's ranked-choice note; "Seat decided … winner not called" wording for California's same-party finals. Already in place before the survey: the uncalled list sorted by margin with leader and % in, the "N not called" counter, the latest-calls feed, the table as the maps' text twin, a search shortcut.
+
+From the checklists: hover states gated to devices that can hover, press feedback, no tap flash, 16 px touch inputs, a skip link, one status line for assistive tech, print styles. The stress test (70-character names, one-glyph names, 100% shares) found and fixed a horizontal overflow in the race card.
+
+Skipped on purpose: a sticky balance-of-power strip (position: sticky cannot work inside the auto-height iframe), needles or win probabilities (no model), swing arrows vs. 2024 (no county baselines under the redrawn maps), incumbent asterisks (civicAPI flags about 50 of 370).
+
 ## Lighthouse (mobile, gzip-served build, two runs per view)
 
 | View | Performance | Accessibility | Best Practices | LCP | CLS |

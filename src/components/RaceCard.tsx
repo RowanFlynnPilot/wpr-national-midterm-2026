@@ -59,6 +59,7 @@ export function RaceCard({ race, heading = "h3" }: { race: Race; heading?: "h2" 
         <footer className="race-card__foot">
           <span>{Math.round(race.pctIn)}% reporting</span>
           <span>{votes(race.total)} votes</span>
+          <span>Updated {centralTime(race.updated, false)}</span>
         </footer>
       )}
       {note && <p className="race-card__note">{note}</p>}

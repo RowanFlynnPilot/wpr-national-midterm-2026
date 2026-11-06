@@ -1,4 +1,4 @@
-import { NO_RACE, PALE, PARTY } from "../lib/colors";
+import { NO_RACE, NO_RESULTS, PALE, PARTY, REMAINING_BINS, REMAINING_RAMP } from "../lib/colors";
 import { RUNOFF } from "../lib/status";
 import type { Office } from "../lib/types";
 import { MarginLegend } from "./CountyMap";
@@ -9,11 +9,31 @@ interface Props {
   mode: MapMode;
   hasIndependent: boolean;
   hasRunoff: boolean;
+  hasNoVotes: boolean;
 }
 
-export function Legend({ office, mode, hasIndependent, hasRunoff }: Props) {
+export function Legend({ office, mode, hasIndependent, hasRunoff, hasNoVotes }: Props) {
   if (office !== "H" && mode === "counties") {
     return <MarginLegend parties={hasIndependent ? ["D", "R", "I"] : ["D", "R"]} />;
+  }
+  if (office !== "H" && mode === "remaining") {
+    const [b1, b2, b3] = REMAINING_BINS as [number, number, number];
+    const labels = ["Done", `<${b1}%`, `${b1}–${b2}%`, `${b2}–${b3}%`, `${b3}%+`];
+    return (
+      <div className="margin-legend">
+        <div className="margin-legend__title">Share of the county’s vote still to be reported, by civicAPI’s % reporting</div>
+        <div className="margin-legend__row margin-legend__row--remaining">
+          {REMAINING_RAMP.map((c, i) => (
+            <span key={c} className="margin-legend__step" style={{ background: c }} title={labels[i]} />
+          ))}
+        </div>
+        <div className="margin-legend__ticks margin-legend__ticks--remaining" aria-hidden="true">
+          {labels.map((l) => (
+            <span key={l}>{l}</span>
+          ))}
+        </div>
+      </div>
+    );
   }
   const items = [
     { label: "Democrat won", color: PARTY.D },
@@ -22,6 +42,7 @@ export function Legend({ office, mode, hasIndependent, hasRunoff }: Props) {
     { label: "Republican won", color: PARTY.R },
     ...(hasIndependent ? [{ label: "Independent or other party", color: PARTY.I }] : []),
     ...(hasRunoff ? [{ label: "Headed to runoff", color: RUNOFF }] : []),
+    ...(hasNoVotes ? [{ label: "No votes yet", color: NO_RESULTS }] : []),
   ];
   return (
     <ul className="legend">

@@ -869,6 +869,20 @@ a {
   margin-bottom: 2px;
 }
 
+.margin-legend__row--remaining,
+.margin-legend__ticks--remaining {
+  grid-template-columns: repeat(5, 56px);
+}
+
+.margin-legend__ticks--remaining span {
+  transform: none;
+  text-align: center;
+}
+
+.margin-legend__ticks--remaining span:first-child {
+  grid-column: auto;
+}
+
 .margin-legend__step {
   height: 10px;
   border-radius: 2px;
@@ -1215,7 +1229,9 @@ a {
 
 .race-card__foot {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
+  gap: 0.2rem 0.75rem;
   padding-top: 0.55rem;
   border-top: 1px solid var(--rule);
   font-size: 0.75rem;
