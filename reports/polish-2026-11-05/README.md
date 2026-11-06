@@ -62,6 +62,10 @@ Skipped on purpose: a sticky balance-of-power strip (position: sticky cannot wor
 
 Sourcing rules, each one earned by a real mismatch during the run: Wikidata labels get the same suffix handling as candidate names (otherwise "Nick Begich III" matched his grandfather); anyone with a date of death or born before 1920 is rejected (an 1844 legislator came back as Paul Barringer); the Wikipedia article's lead image is used rather than Wikidata's image claim (Begich's claim was the grandfather's portrait); state seals, flags and logos are rejected as placeholders (Zach Lahn's infobox); a missing Congress portrait falls through to Wikipedia (a new member crashed the first run). Every Commons match was reviewed on a contact sheet. Two to eyeball yourself: Rebecca Bennett (NJ) in a flight helmet, which is her article's lead image (she is a former Navy helicopter pilot), and Mark Teixeira (TX) in a Yankees uniform, who really is the TX-21 candidate. John E. Sununu is pinned in `pipeline/headshots-overrides.json` because his father shares the normalized name.
 
+## Ballot measures tab (night)
+
+A fourth tab: 133 statewide measures in 35 states (civicAPI's Referendum, Proposition and Ballot Measure types with `election_type` Statewide and a Yes/No answer set; one six-option "official state firearm" vote is excluded by that rule, and Massachusetts's blank-ballot lines fold into "Others"). Measures are races with office `B` and Y/N answers, so the cards, county maps, table, tooltips, latest-calls feed, Wisconsin block and status rules all reuse the existing code with a teal/brown pair instead of blue/red. The national map shades states by how many measures they have; each measure's card has its own Yes/No county map. The hero dek gains a sentence once any measure is called. Routes: `#measures`, `#measures-wi`, `#measures-wi-179849`. Not included: local referendums (about 2,300).
+
 ## Lighthouse (mobile, gzip-served build, two runs per view)
 
 | View | Performance | Accessibility | Best Practices | LCP | CLS |

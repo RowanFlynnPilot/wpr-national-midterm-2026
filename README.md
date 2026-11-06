@@ -2,7 +2,7 @@
 
 Interactive results for every U.S. Senate, House and governor race in the Nov. 3, 2026 midterm elections, built by [Wausau Pilot & Review](https://wausaupilotandreview.com).
 
-- National balance of power for the Senate, House and governors, with a data-driven headline
+- National balance of power for the Senate, House and governors, with a data-driven headline, plus every statewide ballot measure with Yes/No county maps
 - State maps, county margins, and a "still counting" view of where votes remain, for every Senate and governor race
 - A hex map of all 435 House districts, placed near where each district's voters live, fully keyboard-navigable
 - Race cards with candidate photos, call times and county maps; latest calls and closest races; a searchable, sortable table of every race

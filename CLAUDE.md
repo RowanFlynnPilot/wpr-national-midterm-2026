@@ -1,6 +1,6 @@
 # wpr-national-midterm-2026
 
-Reader-facing explorer of every Nov. 3, 2026 U.S. Senate, House and governor race, for Wausau Pilot & Review.
+Reader-facing explorer of every Nov. 3, 2026 U.S. Senate, House and governor race, plus statewide ballot measures, for Wausau Pilot & Review.
 Built Nov. 5, 2026, two days after the election, while ~34 races were still uncalled.
 
 ## Stack
@@ -58,7 +58,8 @@ the maps fill in when it lands (`MapPending` holds the space). Starting it any e
 
 ## Pipeline
 
-- `pipeline/fetch.py` — writes `pipeline/raw/` (gitignored). Fails if counts are not exactly 35 Senate / 435 House / 36 governor.
+- `pipeline/fetch.py` — writes `pipeline/raw/` (gitignored). Fails if counts are not exactly 35 Senate / 435 House / 36 governor. Also fetches statewide ballot measures: race types Referendum / Proposition / Ballot Measure with `election_type` "Statewide", no district or municipality, and a Yes/No answer set (133 on Nov. 5; one "official state firearm" vote with six options is excluded by that rule); fails under 100.
+- **Ballot measures are races with office `B`** (`build.py`): the answers are candidates with party `Y`/`N` (blank-ballot lines fold into Others), `title` holds the measure name, and `district` is `<state>-<civicAPI id>` so a measure routes like a district (`#measures-wi-179849`). County rows go to `counties-B.json` with the same row shape.
 - `pipeline/build.py` — normalizes to the front-end schema (`src/lib/types.ts`). Fails the build on impossible states (`check_race`): two winners, a winner plus runoff finalists, negative votes, shares past 100%, reporting outside 0–100, a Senate/governor race with no seat holder in baselines, or county rows summing more than 2% away from the statewide total. Party codes: Democratic→D, Republican→R, everything else→I (the panel shows the real party name). Candidates under 1% fold into "Others" (max 5 kept).
 - County rows: `[pctReporting, votes for race.cands[0..2] (excluding Others), all other votes]`. New England and Alaska use civicAPI's County/Borough aggregate rows, not towns or House districts.
 - Alaska: civicAPI uses the 2019 split census areas (02063, 02066); us-atlas still draws Valdez-Cordova (02261), so they're merged (`FIPS_MERGE`).
@@ -67,6 +68,7 @@ the maps fill in when it lands (`MapPending` holds the space). Starting it any e
 
 ## Race status rules (`src/lib/status.ts`, `pipeline/build.py`)
 
+- Measures: **won** with winner `Y` reads "Passed", `N` "Failed"; otherwise "Not called. Yes leads by X points". No ranked-choice note, no flips, no majority line; the tab's bar is passed / leading yes / leading no / failed.
 - **no votes yet** — `total` is 0 and no winner (`noVotesYet`): neutral fill, "No votes reported yet", never a painted lead. **won** — civicAPI `winner`. **runoff** — a candidate is `advanced`, or Louisiana House with no one at 50% (`MAJORITY_RUNOFF`; LA moved its House primaries to Nov. 3 with a Dec. 12 runoff, and civicAPI flags finalists only once second place is settled). **decided** — top-two finalists from one party (CA-04/07/11/14, CA-40): the seat counts for that party before a call. **leading** — everything else.
 - `unopposed` — one non-"Others" candidate. Florida doesn't print unopposed races, so FL-10 has zero votes; the card says so.
 - Ranked-choice note (Alaska, Maine federal races) appears only when no one has a majority of first choices; Alaska's adds that the tabulation runs around Nov. 18. `RUNOFF_DATE` puts "Dec. 12" on Louisiana runoff text. Same-party finals read "Seat decided: both finalists are Democrats. Winner not called".
@@ -85,15 +87,15 @@ Each district's target = vote-weighted centroid of the counties it covers (from 
 
 ## Front end
 
-- `src/App.tsx` — selection state + hash routing (`#senate`, `#senate-tx`, `#house-wi`, `#house-wi-03`, `#governors-ks`).
+- `src/App.tsx` — selection state + hash routing (`#senate`, `#senate-tx`, `#house-wi`, `#house-wi-03`, `#governors-ks`, `#measures`, `#measures-wi`, `#measures-wi-179849`).
 - `src/lib/summary.ts` — chamber tallies, data-driven headline and dek. Senate majority 51 (VP is a Republican), House 218, no majority marker for governors. `latestCalls` = the 8 newest calls with a `calledAt` for the office (the ~34 calls civicAPI timestamps are skipped; the panel says so); shown on the overview panel with `timeAgo`.
 - `src/components/NationalMap.tsx` — states/counties map on us-atlas Albers USA (pre-projected; no projection at runtime). Small NE states get callout chips.
-- `src/components/NationalMap.tsx` has three modes: states, counties (margin bins) and "Still counting" (`remaining`: share of each county's vote still out, teal ramp from `remainingColor`; the legend names civicAPI's % reporting as the source). Both county modes zoom to the selected state (CSS transform on `.map-zoom`, non-scaling strokes, "All states" button to return; no animation under `prefers-reduced-motion`).
+- `src/components/NationalMap.tsx` has a `measures` mode (states shaded by how many statewide measures they have, `measureCountColor`; the tooltip gives passed/failed/not called); the measures tab has no counties toggle, each measure's card carries its own county map. For the other offices it has three modes: states, counties (margin bins) and "Still counting" (`remaining`: share of each county's vote still out, teal ramp from `remainingColor`; the legend names civicAPI's % reporting as the source). Both county modes zoom to the selected state (CSS transform on `.map-zoom`, non-scaling strokes, "All states" button to return; no animation under `prefers-reduced-motion`).
 - `src/components/HexMap.tsx`: roving tabindex, arrow keys walk the grid (skipping gaps), Enter/Space selects, focus shows the tooltip (`focusPoint` in `Tooltip.tsx`; the same `HoverHandler` serves pointer and keyboard). `SidePanel.tsx`, `RaceCard.tsx`, `CountyMap.tsx`, `RaceTable.tsx` (table view = accessible twin of the maps).
 - `src/lib/live.ts` (`useLive`) refetches results and county files every 15 minutes and when the tab becomes visible; the old render stays at reduced opacity while a refresh is in flight, and a failed refresh shows a specific notice while keeping the last good data.
 - `HOME_STATE` (`src/lib/states.ts`, "WI") drives the Wisconsin shortcut: a toolbar chip that selects it on the current tab, a resting teal outline on both maps (replaced by the selected outline once picked), and the "Wisconsin at a glance" block (statewide races plus the House delegation) at the top of every overview panel.
 - Chamber tabs are WAI-ARIA tabs (Left/Right/Home/End). `raceTitle` in `summary.ts` is the one source for race names (cards, tooltips, aria-labels).
-- Colors validated with the dataviz palette checker on cream: D `#2D63A6`, R `#C23A30`, Ind/other `#B88A1E` (below 3:1, always paired with a label). Pale tints = leading, not called. `--muted` is `#6b665a` (5.1:1 on cream, 4.7:1 on the wash); the earlier `#7d776b` was under AA.
+- Colors validated with the dataviz palette checker on cream: D `#2D63A6`, R `#C23A30`, Ind/other `#B88A1E` (below 3:1, always paired with a label). Measures: Yes `#2B7A6F` (brand teal), No `#A0612C` (warm brown), with pale and five-step ramps in `colors.ts`; the tab's hero numbers and the table's Yes/No columns carry those colors beside their labels. Pale tints = leading, not called. `--muted` is `#6b665a` (5.1:1 on cream, 4.7:1 on the wash); the earlier `#7d776b` was under AA.
 - WPR design system: teal `#3A867C`, cream `#F6F2E9`, Fraunces (headlines), Public Sans (UI, hero numbers), JetBrains Mono (vote counts in tables).
 - Fonts are self-hosted in `public/fonts` (latin subsets of the variable woff2 files Google Fonts serves; `python scripts/fetch_fonts.py` refreshes them), declared at the top of `styles.css` and preloaded from `index.html`. Nothing render-blocking leaves the origin.
 - `.loading` uses padding, not margin: a top margin collapses through `<body>` and shifts the page when the app replaces it (that was a 0.08 CLS).
@@ -162,4 +164,4 @@ FL-13 nearly two days before AP. Its `percent_reporting` lags AP on several call
 ## Next steps
 
 1. Settings → Pages → Source: GitHub Actions, then run "Update results" once by hand.
-2. Later: statewide ballot measures as a fourth tab (~169 in civicAPI).
+3. Local measures (civicAPI has ~2,300 `election_type` "Local" referendums) are out of scope.
