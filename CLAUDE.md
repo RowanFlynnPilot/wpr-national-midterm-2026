@@ -25,7 +25,10 @@ npm run screens   # Playwright screenshots of every view at 390/768/1280/1600 in
 their numbers still change) to `pipeline/history.json`: `{"<race id>": [[t, leader, margin, pctIn], ...]}`, t in Unix seconds
 of the fetch, no point repeated for an unchanged reading. It writes `public/data/history.json`, the last 7 days for races with
 two or more points. The workflow runs it after `build.py` and, after the deploy, commits `pipeline/history.json` back to main
-with `[skip ci]` (the push trigger also ignores that path), so the hourly run never retriggers itself. `--backfill` replays
+with the skip-ci phrase in the subject (the push trigger also ignores that path), so the hourly run never retriggers itself.
+GitHub scans the whole commit message for that phrase, so never mention it in your own commit bodies, or the push will not
+deploy (it happened once; `gh workflow run "Update results"` is the recovery). The record step rebases with `--autostash`
+because the rebuilt data files are unstaged in the runner's tree. `--backfill` replays
 every `results.json` in git history; it seeded the file on Nov. 5. Front end: `src/lib/history.ts` signs each margin from
 the race's current side (`readings`), `trend` compares the last two points (widening / narrowing / flipped, under 0.1 pt is
 nothing), `Sparkline.tsx` draws the series on the race card, and the "still being counted" rows carry the trend glyph.
