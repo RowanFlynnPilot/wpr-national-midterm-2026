@@ -1181,6 +1181,190 @@
     }
    ],
    "updated": "2026-11-04T03:42:08.969Z"
+  },
+  {
+   "id": 150571,
+   "office": "B",
+   "state": "CA",
+   "district": "CA-150571",
+   "num": null,
+   "title": "California Proposition 4",
+   "special": false,
+   "pctIn": 99.9,
+   "updated": "2026-11-06T03:42:56.418Z",
+   "calledAt": null,
+   "winner": null,
+   "leader": "N",
+   "prior": null,
+   "flip": null,
+   "runoff": false,
+   "unopposed": false,
+   "partyDecided": null,
+   "margin": 2.7,
+   "marginVotes": 226535,
+   "total": 8420415,
+   "cands": [
+    {
+     "id": 370889,
+     "name": "No",
+     "party": "N",
+     "partyName": "",
+     "votes": 4323475,
+     "pct": 51.35,
+     "winner": false,
+     "advanced": false,
+     "photo": null
+    },
+    {
+     "id": 370888,
+     "name": "Yes",
+     "party": "Y",
+     "partyName": "",
+     "votes": 4096940,
+     "pct": 48.65,
+     "winner": false,
+     "advanced": false,
+     "photo": null
+    }
+   ]
+  },
+  {
+   "id": 87243,
+   "office": "B",
+   "state": "MO",
+   "district": "MO-87243",
+   "num": null,
+   "title": "Missouri Amendment 3",
+   "special": false,
+   "pctIn": 89.2,
+   "updated": "2026-11-06T03:56:51.825Z",
+   "calledAt": "2026-11-04T06:53:42.309Z",
+   "winner": "N",
+   "leader": "N",
+   "prior": null,
+   "flip": null,
+   "runoff": false,
+   "unopposed": false,
+   "partyDecided": null,
+   "margin": 4.46,
+   "marginVotes": 76958,
+   "total": 1727036,
+   "cands": [
+    {
+     "id": 220670,
+     "name": "No",
+     "party": "N",
+     "partyName": "",
+     "votes": 901997,
+     "pct": 52.23,
+     "winner": true,
+     "advanced": false,
+     "photo": null
+    },
+    {
+     "id": 220669,
+     "name": "Yes",
+     "party": "Y",
+     "partyName": "",
+     "votes": 825039,
+     "pct": 47.77,
+     "winner": false,
+     "advanced": false,
+     "photo": null
+    }
+   ]
+  },
+  {
+   "id": 140000,
+   "office": "B",
+   "state": "VA",
+   "district": "VA-140000",
+   "num": null,
+   "title": "Virginia Constitutional Amendment Question 1",
+   "special": false,
+   "pctIn": 0,
+   "updated": "2026-10-09T23:14:40.671Z",
+   "calledAt": null,
+   "winner": null,
+   "leader": "Y",
+   "prior": null,
+   "flip": null,
+   "runoff": false,
+   "unopposed": false,
+   "partyDecided": null,
+   "margin": 0,
+   "marginVotes": 0,
+   "total": 0,
+   "cands": [
+    {
+     "id": 351102,
+     "name": "Yes",
+     "party": "Y",
+     "partyName": "",
+     "votes": 0,
+     "pct": 0,
+     "winner": false,
+     "advanced": false,
+     "photo": null
+    },
+    {
+     "id": 351103,
+     "name": "No",
+     "party": "N",
+     "partyName": "",
+     "votes": 0,
+     "pct": 0,
+     "winner": false,
+     "advanced": false,
+     "photo": null
+    }
+   ]
+  },
+  {
+   "id": 179849,
+   "office": "B",
+   "state": "WI",
+   "district": "WI-179849",
+   "num": null,
+   "title": "Wisconsin Question 3 - Prohibit Government Discrimination or Preferential Treatment",
+   "special": false,
+   "pctIn": 96.1,
+   "updated": "2026-11-06T03:54:54.784Z",
+   "calledAt": "2026-11-04T06:53:42.310Z",
+   "winner": "Y",
+   "leader": "Y",
+   "prior": null,
+   "flip": null,
+   "runoff": false,
+   "unopposed": false,
+   "partyDecided": null,
+   "margin": 12.94,
+   "marginVotes": 332903,
+   "total": 2572195,
+   "cands": [
+    {
+     "id": 22720058,
+     "name": "Yes",
+     "party": "Y",
+     "partyName": "",
+     "votes": 1452549,
+     "pct": 56.47,
+     "winner": true,
+     "advanced": false,
+     "photo": null
+    },
+    {
+     "id": 22720059,
+     "name": "No",
+     "party": "N",
+     "partyName": "",
+     "votes": 1119646,
+     "pct": 43.53,
+     "winner": false,
+     "advanced": false,
+     "photo": null
+    }
+   ]
   }
  ]
 }

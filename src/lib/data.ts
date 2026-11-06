@@ -1,10 +1,10 @@
 import { buildGeo, type Atlas, type Geo } from "./geo";
-import type { CountyResults, HexCell, Race, Results } from "./types";
+import type { CountyResults, CountySets, HexCell, Race, Results } from "./types";
 
 /** What changes on every data run. */
 export interface Live {
   results: Results;
-  counties: { S: CountyResults; G: CountyResults };
+  counties: CountySets;
 }
 
 /** Everything the page needs except the map shapes, which arrive separately (see loadAtlas). */
@@ -20,12 +20,13 @@ async function getJson<T>(file: string): Promise<T> {
 
 /** The results and county breakdowns; refetched while the page stays open. */
 export async function loadLive(): Promise<Live> {
-  const [results, S, G] = await Promise.all([
+  const [results, S, G, B] = await Promise.all([
     getJson<Results>("results.json"),
     getJson<CountyResults>("counties-S.json"),
     getJson<CountyResults>("counties-G.json"),
+    getJson<CountyResults>("counties-B.json"),
   ]);
-  return { results, counties: { S, G } };
+  return { results, counties: { S, G, B } };
 }
 
 export async function loadData(): Promise<Data> {

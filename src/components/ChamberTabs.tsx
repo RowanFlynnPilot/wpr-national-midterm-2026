@@ -1,3 +1,4 @@
+import { PARTY } from "../lib/colors";
 import { apNumber } from "../lib/format";
 import { OFFICE_NAME, secured, type Chamber } from "../lib/summary";
 import type { Office } from "../lib/types";
@@ -9,7 +10,7 @@ interface Props {
   onChange: (office: Office) => void;
 }
 
-const ORDER: Office[] = ["S", "H", "G"];
+const ORDER: Office[] = ["S", "H", "G", "B"];
 
 export function ChamberTabs({ chambers, office, onChange }: Props) {
   // WAI-ARIA tabs: the active tab is the only tab stop; Left/Right/Home/End move and select.
@@ -36,9 +37,11 @@ export function ChamberTabs({ chambers, office, onChange }: Props) {
 }
 
 function ChamberTab({ c, active, onClick }: { c: Chamber; active: boolean; onClick: () => void }) {
-  const d = secured(c, "D"), r = secured(c, "R");
+  const measures = c.office === "B";
+  const left = measures ? { n: c.won.Y, label: "Passed", color: PARTY.Y } : { n: secured(c, "D"), label: "Democrats", color: PARTY.D };
+  const right = measures ? { n: c.won.N, label: "Failed", color: PARTY.N } : { n: secured(c, "R"), label: "Republicans", color: PARTY.R };
+  const rule = measures ? `${c.total} statewide` : c.office === "G" ? `${c.total} governors` : `${c.majority} for a majority`;
   const uncalled = c.uncalled.length;
-  const isGov = c.office === "G";
   return (
     <button
       type="button"
@@ -52,24 +55,26 @@ function ChamberTab({ c, active, onClick }: { c: Chamber; active: boolean; onCli
     >
       <span className="chamber__head">
         <span className="chamber__name">{OFFICE_NAME[c.office]}</span>
-        <span className="chamber__rule">{isGov ? `${c.total} governors` : `${c.majority} for a majority`}</span>
+        <span className="chamber__rule">{rule}</span>
       </span>
       <span className="chamber__counts">
-        <span className="chamber__count chamber__count--d">
-          <strong>{d}</strong>
-          <span>Democrats</span>
+        <span className="chamber__count">
+          <strong style={{ color: left.color }}>{left.n}</strong>
+          <span>{left.label}</span>
         </span>
-        <span className="chamber__count chamber__count--r">
-          <strong>{r}</strong>
-          <span>Republicans</span>
+        <span className="chamber__count chamber__count--right">
+          <strong style={{ color: right.color }}>{right.n}</strong>
+          <span>{right.label}</span>
         </span>
       </span>
       <SeatBar chamber={c} />
       <span className="chamber__foot">
-        {uncalled ? `${apNumber(uncalled).replace(/^\w/, (x) => x.toUpperCase())} not called` : "All races called"}
-        <span className="chamber__before">
-          Before: {c.before.D} D, {c.before.R} R
-        </span>
+        {uncalled ? `${apNumber(uncalled).replace(/^\w/, (x) => x.toUpperCase())} not called` : measures ? "All measures called" : "All races called"}
+        {!measures && (
+          <span className="chamber__before">
+            Before: {c.before.D} D, {c.before.R} R
+          </span>
+        )}
       </span>
     </button>
   );

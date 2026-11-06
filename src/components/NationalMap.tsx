@@ -1,5 +1,5 @@
 import { memo, useMemo, useState } from "react";
-import { NO_RACE, NO_RESULTS, inkOn, marginColor, remainingColor } from "../lib/colors";
+import { NO_RACE, NO_RESULTS, inkOn, marginColor, measureCountColor, remainingColor } from "../lib/colors";
 import { countyColumns, readCounty } from "../lib/data";
 import { LABEL_NUDGE, VIEW, type Geo, type StateShape } from "../lib/geo";
 
@@ -9,14 +9,16 @@ import { raceTitle } from "../lib/summary";
 import type { CountyResults, Race } from "../lib/types";
 import { focusPoint, type HoverHandler } from "./Tooltip";
 
-/** states: one fill per race; counties: county margins; remaining: how much of each county's vote is still out. */
-export type MapMode = "states" | "counties" | "remaining";
+/** states: one fill per race; counties: county margins; remaining: how much of each county's vote is still out;
+ *  measures: how many statewide ballot measures each state has. */
+export type MapMode = "states" | "counties" | "remaining" | "measures";
 
 interface Props {
   geo: Geo;
   mode: MapMode;
   description: string; // the map's accessible name, with the tallies
   racesByState: Map<string, Race>;
+  measureCounts: Map<string, number>; // measures mode: statewide measures per state
   counties: CountyResults;
   selected: string | null;
   onHover: HoverHandler;
@@ -26,11 +28,6 @@ interface Props {
 
 function stateFill(race: Race | undefined): string {
   return race ? raceFill(race) : NO_RACE;
-}
-
-/** Accessible name for a state with a race; states without one are decorative (the tooltip still names them on hover). */
-function stateLabel(race: Race | undefined): string | undefined {
-  return race ? `${raceTitle(race)}: ${statusText(race)}` : undefined;
 }
 
 const CHIP_X = 930;
@@ -46,11 +43,23 @@ function zoomTransform(s: StateShape): string {
   return `translate(${VIEW.width / 2}px, ${VIEW.height / 2}px) scale(${k}) translate(${-cx}px, ${-cy}px)`;
 }
 
-export const NationalMap = memo(function NationalMap({ geo, mode, description, racesByState, counties, selected, onHover, onSelect, onClear }: Props) {
+export const NationalMap = memo(function NationalMap({ geo, mode, description, racesByState, measureCounts, counties, selected, onHover, onSelect, onClear }: Props) {
   const [focused, setFocused] = useState<string | null>(null);
+  const measures = mode === "measures";
+  const has = (code: string) => (measures ? measureCounts.has(code) : racesByState.has(code));
+  const fill = (code: string) => (measures ? (measureCounts.has(code) ? measureCountColor(measureCounts.get(code) as number) : NO_RACE) : stateFill(racesByState.get(code)));
+  /** Accessible name for a state with something on the ballot; the rest are decorative (the tooltip still names them on hover). */
+  const label = (code: string, name: string) => {
+    if (measures) {
+      const n = measureCounts.get(code);
+      return n ? `${name}: ${n} statewide ballot measure${n === 1 ? "" : "s"}` : undefined;
+    }
+    const race = racesByState.get(code);
+    return race ? `${raceTitle(race)}: ${statusText(race)}` : undefined;
+  };
 
   const countyFills = useMemo(() => {
-    if (mode === "states") return null;
+    if (mode === "states" || mode === "measures") return null;
     const fills = new Map<string, string>();
     for (const race of racesByState.values()) {
       const rows = counties[String(race.id)];
@@ -72,25 +81,26 @@ export const NationalMap = memo(function NationalMap({ geo, mode, description, r
   const selectedShape = selected ? geo.states.find((s) => s.code === selected) : undefined;
   const homeShape = selected === HOME_STATE ? undefined : geo.states.find((s) => s.code === HOME_STATE);
   const focusedShape = focused ? geo.states.find((s) => s.code === focused) : undefined;
-  const zoomed = mode !== "states" && selectedShape ? selectedShape : undefined;
+  const zoomed = countyFills && selectedShape ? selectedShape : undefined;
 
-  const focusHandlers = (code: string, race: Race | undefined) => ({
+  const focusHandlers = (code: string) => ({
     onFocus: (e: React.FocusEvent<SVGElement>) => {
       if (!e.currentTarget.matches(":focus-visible")) return;
       setFocused(code);
-      onHover(race ? { kind: "state", state: code } : null, focusPoint(e.currentTarget));
+      onHover(has(code) ? { kind: "state", state: code } : null, focusPoint(e.currentTarget));
     },
     onBlur: () => {
       setFocused(null);
       onHover(null);
     },
     onKeyDown: (e: React.KeyboardEvent) => {
-      if (race && (e.key === "Enter" || e.key === " ")) {
+      if (has(code) && (e.key === "Enter" || e.key === " ")) {
         e.preventDefault();
         onSelect(code);
       }
     },
   });
+  const flat = mode === "states" || measures; // one fill per state, labels on
 
   return (
     <>
@@ -121,23 +131,23 @@ export const NationalMap = memo(function NationalMap({ geo, mode, description, r
             </g>
           )}
 
-          <g className={`states states--${mode === "states" ? "states" : "counties"}`}>
+          <g className={`states states--${flat ? "states" : "counties"}`}>
             {geo.states.map((s) => {
-              const race = racesByState.get(s.code);
+              const on = has(s.code);
               return (
                 <path
                   key={s.id}
                   d={s.d}
-                  className={race ? "state has-race" : "state"}
-                  fill={mode === "states" ? stateFill(race) : "transparent"}
-                  tabIndex={race ? 0 : -1}
-                  role={race ? "button" : undefined}
-                  aria-label={stateLabel(race)}
-                  aria-pressed={race ? selected === s.code : undefined}
-                  onPointerMove={(e) => (mode === "states" ? onHover({ kind: "state", state: s.code }, e) : undefined)}
-                  onPointerLeave={() => mode === "states" && onHover(null)}
-                  onClick={() => race && onSelect(s.code)}
-                  {...focusHandlers(s.code, race)}
+                  className={on ? "state has-race" : "state"}
+                  fill={flat ? fill(s.code) : "transparent"}
+                  tabIndex={on ? 0 : -1}
+                  role={on ? "button" : undefined}
+                  aria-label={label(s.code, s.name)}
+                  aria-pressed={on ? selected === s.code : undefined}
+                  onPointerMove={(e) => (flat ? onHover({ kind: "state", state: s.code }, e) : undefined)}
+                  onPointerLeave={() => flat && onHover(null)}
+                  onClick={() => on && onSelect(s.code)}
+                  {...focusHandlers(s.code)}
                 />
               );
             })}
@@ -150,7 +160,7 @@ export const NationalMap = memo(function NationalMap({ geo, mode, description, r
           {focusedShape && <path className="focus-outline" d={focusedShape.d} vectorEffect="non-scaling-stroke" />}
         </g>
 
-        {mode === "states" && (
+        {flat && (
           <g className="state-labels" aria-hidden="true">
             {geo.states.filter((s) => !SMALL_STATES.includes(s.code)).map((s) => {
               const race = racesByState.get(s.code);
@@ -158,7 +168,7 @@ export const NationalMap = memo(function NationalMap({ geo, mode, description, r
               const [x, y] = [s.centroid[0] + dx, s.centroid[1] + dy];
               return (
                 <g key={s.id}>
-                  <text x={x} y={y} fill={inkOn(stateFill(race))} className={s.code === "VT" || s.code === "NH" ? "small" : undefined}>
+                  <text x={x} y={y} fill={inkOn(fill(s.code))} className={s.code === "VT" || s.code === "NH" ? "small" : undefined}>
                     {s.code}
                   </text>
                   {race?.flip && <circle className="flip-dot" cx={x} cy={y + 8} r={3} />}
@@ -174,24 +184,25 @@ export const NationalMap = memo(function NationalMap({ geo, mode, description, r
               const s = geo.states.find((x) => x.code === code);
               if (!s) return null;
               const race = racesByState.get(code);
-              const fill = stateFill(race);
+              const on = has(code);
+              const chipFill = fill(code);
               const y = CHIP_Y0 + i * CHIP_STEP;
               return (
                 <g
                   key={code}
-                  className={race ? "chip has-race" : "chip"}
-                  tabIndex={race ? 0 : -1}
-                  role={race ? "button" : undefined}
-                  aria-label={stateLabel(race)}
-                  aria-pressed={race ? selected === code : undefined}
-                  onPointerMove={(e) => onHover(race ? { kind: "state", state: code } : null, e)}
+                  className={on ? "chip has-race" : "chip"}
+                  tabIndex={on ? 0 : -1}
+                  role={on ? "button" : undefined}
+                  aria-label={label(code, s.name)}
+                  aria-pressed={on ? selected === code : undefined}
+                  onPointerMove={(e) => onHover(on ? { kind: "state", state: code } : null, e)}
                   onPointerLeave={() => onHover(null)}
-                  onClick={() => race && onSelect(code)}
-                  {...focusHandlers(code, race)}
+                  onClick={() => on && onSelect(code)}
+                  {...focusHandlers(code)}
                 >
                   <line x1={s.centroid[0]} y1={s.centroid[1]} x2={CHIP_X} y2={y} />
-                  <rect x={CHIP_X} y={y - 8} width={28} height={16} rx={3} fill={fill} />
-                  <text x={CHIP_X + 14} y={y + 0.5} fill={inkOn(fill)}>
+                  <rect x={CHIP_X} y={y - 8} width={28} height={16} rx={3} fill={chipFill} />
+                  <text x={CHIP_X + 14} y={y + 0.5} fill={inkOn(chipFill)}>
                     {code}
                   </text>
                   {race?.flip && mode === "states" && <circle className="flip-dot" cx={CHIP_X + 34} cy={y} r={3} />}

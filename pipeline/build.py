@@ -12,7 +12,8 @@ from pathlib import Path
 ROOT = Path(__file__).parent.parent
 RAW = ROOT / "pipeline" / "raw"
 OUT = ROOT / "public" / "data"
-OFFICE_CODE = {"US Senate": "S", "House of Representatives": "H", "Governor": "G"}
+OFFICE_CODE = {"US Senate": "S", "House of Representatives": "H", "Governor": "G",
+               "Referendum": "B", "Proposition": "B", "Ballot Measure": "B"}  # B: statewide ballot measure
 COUNTY_TYPES = {"County", "Parish", "Borough", "City"}  # Virginia independent cities carry county FIPS
 # Alaska split Valdez-Cordova (02261) in 2019; us-atlas still draws the old census area.
 FIPS_MERGE = {"02063": "02261", "02066": "02261"}
@@ -35,8 +36,10 @@ def party_code(party: str) -> str:
     return {"Democratic": "D", "Republican": "R"}.get(party, "I")
 
 
-def candidate_party(c: dict) -> tuple[str, str]:
-    """(code, display name). Nevada lists "None of These Candidates" as a ballot line with no party."""
+def candidate_party(c: dict, office: str) -> tuple[str, str]:
+    """(code, display name). Measures carry Y/N; Nevada lists "None of These Candidates" as a ballot line with no party."""
+    if office == "B":
+        return {"Yes": "Y", "No": "N"}[c["name"]], ""
     if c["name"].lower().startswith("none of these"):
         return "O", "Ballot option"
     if not c["party"]:
@@ -45,7 +48,8 @@ def candidate_party(c: dict) -> tuple[str, str]:
 
 
 def norm_name(name: str) -> str:
-    return re.sub(r"[^a-z]", "", name.lower().removesuffix(" county").removesuffix(" parish").removesuffix(" borough"))
+    """Applied to both civicAPI and us-atlas names, so "Alexandria City" meets "Alexandria" and "Carson City" meets itself."""
+    return re.sub(r"[^a-z]", "", name.lower().removesuffix(" county").removesuffix(" parish").removesuffix(" borough").removesuffix(" city"))
 
 
 def load_county_index() -> tuple[set[str], dict[tuple[str, str], str]]:
@@ -56,18 +60,20 @@ def load_county_index() -> tuple[set[str], dict[tuple[str, str], str]]:
     return ids, by_name
 
 
-def candidates(raw: list[dict]) -> list[dict]:
+def candidates(raw: list[dict], office: str) -> list[dict]:
+    if office == "B":  # Yes and No only; blank-ballot lines (Massachusetts) fold into "Others"
+        raw = sorted(raw, key=lambda c: c["name"] not in ("Yes", "No"))
     ordered = sorted(raw, key=lambda c: -c["votes"])
     total = sum(c["votes"] for c in ordered)
     kept, rest = [], []
     for c in ordered:
-        is_writein_bucket = c["name"].lower() == "write-in"
+        is_writein_bucket = c["name"].lower() == "write-in" or (office == "B" and c["name"] not in ("Yes", "No"))
         if not is_writein_bucket and len(kept) < MAX_CANDS and (c["winner"] or c["percent"] >= KEEP_MIN_PCT or len(kept) < 2):
             kept.append(c)
         else:
             rest.append(c)
     out = [
-        {"id": c["candidate_id"], "name": re.sub(r"\s+", " ", c["name"]).strip(), "party": candidate_party(c)[0], "partyName": candidate_party(c)[1],
+        {"id": c["candidate_id"], "name": re.sub(r"\s+", " ", c["name"]).strip(), "party": candidate_party(c, office)[0], "partyName": candidate_party(c, office)[1],
          "votes": c["votes"], "pct": c["percent"], "winner": c["winner"], "advanced": c.get("advanced", False),
          "photo": HEADSHOTS.get(str(c["candidate_id"]), {}).get("file")}
         for c in kept
@@ -127,16 +133,18 @@ def main() -> None:
     search = json.loads((RAW / "search.json").read_text())
     baselines = json.loads((ROOT / "pipeline" / "baselines.json").read_text())
     ids, by_name = load_county_index()
-    races, counties = [], {"S": {}, "G": {}}
+    races, counties = [], {"S": {}, "G": {}, "B": {}}
     latest = ""
     for r in search["races"]:
         detail = json.loads((RAW / "races" / f"{r['id']}.json").read_text())
         office = OFFICE_CODE[r["type"]]
-        cands = candidates(detail["candidates"])
+        cands = candidates(detail["candidates"], office)
+        if office == "B" and [c["party"] for c in cands if c["party"] != "O"] not in (["Y", "N"], ["N", "Y"]):
+            raise RuntimeError(f"{r['election_name']}: measure without a Yes/No pair")
         check_race(r["election_name"], detail, cands)
         winners = [c for c in cands if c["winner"]]
         holder = None
-        if office != "H":
+        if office in ("S", "G"):
             holder = baselines[{"S": "senate", "G": "governor"}[office]]["seat_holder"].get(r["province"])
             if holder not in ("D", "R", "I"):
                 raise RuntimeError(f"{r['election_name']}: no pre-election seat holder for {r['province']} in baselines.json")
@@ -154,8 +162,9 @@ def main() -> None:
             "id": r["id"],
             "office": office,
             "state": r["province"],
-            "district": r["district"],
+            "district": r["district"] if office != "B" else f"{r['province']}-{r['id']}",  # measures route by id
             "num": district_num(r["district"]) if office == "H" else None,
+            "title": r["election_name"] if office == "B" else None,
             "special": "special" in r["election_name"].lower(),
             "pctIn": detail["percent_reporting"],
             "updated": detail["last_updated"],

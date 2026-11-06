@@ -1,7 +1,7 @@
-"""Fetch Nov. 3, 2026 U.S. Senate, House and Governor results from civicAPI.
+"""Fetch Nov. 3, 2026 U.S. Senate, House and Governor results, plus statewide ballot measures, from civicAPI.
 
 Writes raw API responses to pipeline/raw/:
-  search.json            every race on the 2026-11-03 ballot (filtered to our three offices)
+  search.json            every race on the 2026-11-03 ballot (filtered to our three offices and statewide measures)
   races/<id>.json        full race detail (candidates, incumbency, call time, county results)
 
 civicAPI is free for commercial use with attribution: https://civicapi.org
@@ -16,6 +16,10 @@ from pathlib import Path
 API = "https://civicapi.org/api/v2"
 ELECTION_DATE = "2026-11-03"
 OFFICES = {"US Senate", "House of Representatives", "Governor"}
+# Statewide ballot measures: these race types with election_type "Statewide", no district or municipality,
+# and a plain Yes/No answer set (one 2026 "state firearm" vote lists six models and is left out).
+MEASURE_TYPES = {"Referendum", "Proposition", "Ballot Measure"}
+MIN_MEASURES = 100
 STATES = {
     "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA",
     "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
@@ -40,7 +44,15 @@ def fetch_search() -> list[dict]:
     if data["count"] != len(data["races"]):
         raise RuntimeError(f"search truncated: count={data['count']} returned={len(data['races'])}")
     races = [r for r in data["races"] if r["type"] in OFFICES and r["province"] in STATES]
-    return races
+    measures = [
+        r for r in data["races"]
+        if r["type"] in MEASURE_TYPES and r["election_type"] == "Statewide" and r["province"] in STATES
+        and not r["district"] and not r["municipality"]
+        and {"Yes", "No"} <= {c["name"] for c in r["candidates"]}
+    ]
+    if len(measures) < MIN_MEASURES:
+        raise RuntimeError(f"only {len(measures)} statewide measures matched; the API's typing may have changed")
+    return races + measures
 
 
 def fetch_detail(race_id: int) -> None:
@@ -52,14 +64,15 @@ def main() -> None:
     started = time.time()
     (RAW / "races").mkdir(parents=True, exist_ok=True)
     races = fetch_search()
-    counts = {o: sum(r["type"] == o for r in races) for o in OFFICES}
+    counts = {o: sum(r["type"] == o for r in races if r["type"] in OFFICES) for o in OFFICES}
     expected = {"US Senate": 35, "House of Representatives": 435, "Governor": 36}
     if counts != expected:
         raise RuntimeError(f"unexpected race counts {counts}, expected {expected}")
     (RAW / "search.json").write_text(json.dumps({"fetched_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "races": races}))
     with ThreadPoolExecutor(max_workers=6) as pool:
         list(pool.map(fetch_detail, [r["id"] for r in races]))
-    print(f"fetched {len(races)} races in {time.time() - started:.0f}s", file=sys.stderr)
+    measures = sum(r["type"] not in OFFICES for r in races)
+    print(f"fetched {len(races) - measures} races and {measures} statewide measures in {time.time() - started:.0f}s", file=sys.stderr)
 
 
 if __name__ == "__main__":

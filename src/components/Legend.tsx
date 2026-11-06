@@ -1,4 +1,4 @@
-import { NO_RACE, NO_RESULTS, PALE, PARTY, REMAINING_BINS, REMAINING_RAMP } from "../lib/colors";
+import { MEASURE_BINS, MEASURE_RAMP, NO_RACE, NO_RESULTS, PALE, PARTY, REMAINING_BINS, REMAINING_RAMP } from "../lib/colors";
 import { RUNOFF } from "../lib/status";
 import type { Office } from "../lib/types";
 import { MarginLegend } from "./CountyMap";
@@ -13,6 +13,24 @@ interface Props {
 }
 
 export function Legend({ office, mode, hasIndependent, hasRunoff, hasNoVotes }: Props) {
+  if (office === "B") {
+    const [b1, b2, b3] = MEASURE_BINS as [number, number, number];
+    const labels = ["1 measure", `${b1}\u2013${b2 - 1}`, `${b2}\u2013${b3 - 1}`, `${b3} or more`];
+    return (
+      <ul className="legend">
+        {MEASURE_RAMP.map((c, i) => (
+          <li key={c}>
+            <span className="legend__swatch" style={{ background: c }} />
+            {labels[i]}
+          </li>
+        ))}
+        <li>
+          <span className="legend__swatch" style={{ background: NO_RACE }} />
+          No statewide measures
+        </li>
+      </ul>
+    );
+  }
   if (office !== "H" && mode === "counties") {
     return <MarginLegend parties={hasIndependent ? ["D", "R", "I"] : ["D", "R"]} />;
   }

@@ -78,7 +78,7 @@ export function MarginLegend({ parties }: { parties: Party[] }) {
       <div className="margin-legend__title">County margin, points</div>
       {parties.map((p) => (
         <div className="margin-legend__row" key={p}>
-          <span className="margin-legend__party">{p === "D" ? "Dem." : p === "R" ? "Rep." : "Ind./other"}</span>
+          <span className="margin-legend__party">{p === "D" ? "Dem." : p === "R" ? "Rep." : p === "Y" ? "Yes" : p === "N" ? "No" : "Ind./other"}</span>
           {MARGIN_RAMP[p].map((c, i) => (
             <span key={c} className="margin-legend__step" style={{ background: c }} title={`${labels[i]}${i === 4 ? "+" : ""}`} />
           ))}

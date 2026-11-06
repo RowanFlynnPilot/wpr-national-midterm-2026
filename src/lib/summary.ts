@@ -4,7 +4,7 @@ import { stateName } from "./states";
 import type { Office, Party, Race, Results } from "./types";
 
 type Tally = Record<Party, number>;
-const zero = (): Tally => ({ D: 0, R: 0, I: 0, O: 0 });
+const zero = (): Tally => ({ D: 0, R: 0, I: 0, O: 0, Y: 0, N: 0 });
 
 export interface Chamber {
   office: Office;
@@ -23,14 +23,25 @@ export interface Chamber {
 
 export const LATEST_CALLS = 8;
 
-export const OFFICE_NAME: Record<Office, string> = { S: "Senate", H: "House", G: "Governors" };
-export const OFFICE_SINGULAR: Record<Office, string> = { S: "Senate", H: "House", G: "Governor" };
-export const OFFICE_SLUG: Record<Office, string> = { S: "senate", H: "house", G: "governors" };
+export const OFFICE_NAME: Record<Office, string> = { S: "Senate", H: "House", G: "Governors", B: "Ballot measures" };
+export const OFFICE_SINGULAR: Record<Office, string> = { S: "Senate", H: "House", G: "Governor", B: "Ballot measure" };
+export const OFFICE_SLUG: Record<Office, string> = { S: "senate", H: "house", G: "governors", B: "measures" };
 
 /** "Wisconsin District 3", "Texas Senate", "Florida Senate special election". */
 export function raceTitle(race: Race): string {
+  if (race.office === "B") {
+    if (!race.title) throw new Error(`measure ${race.id} has no title`);
+    return race.title;
+  }
   if (race.office === "H") return `${stateName(race.state)} ${race.num === 0 ? "at-large" : `District ${race.num}`}`;
   return `${stateName(race.state)} ${OFFICE_SINGULAR[race.office]}${race.special ? " special election" : ""}`;
+}
+
+/** A measure's title without its state: "Wisconsin Question 3 - Prohibit..." -> "Question 3 - Prohibit...". */
+export function measureShortTitle(race: Race): string {
+  const title = raceTitle(race);
+  const prefix = `${stateName(race.state)} `;
+  return title.startsWith(prefix) ? title.slice(prefix.length) : title;
 }
 
 export function chamber(results: Results, office: Office): Chamber {
@@ -45,11 +56,11 @@ export function chamber(results: Results, office: Office): Chamber {
   const b = results.baselines;
   if (office === "S") Object.assign(notUp, b.senate.not_up);
   if (office === "G") Object.assign(notUp, b.governor.not_up);
-  const before = office === "S" ? b.senate.before : office === "G" ? b.governor.before : b.house.before;
+  const before = office === "S" ? b.senate.before : office === "G" ? b.governor.before : office === "H" ? b.house.before : { D: 0, R: 0 };
   return {
     office,
-    total: office === "H" ? 435 : office === "S" ? 100 : 50,
-    majority: office === "H" ? 218 : office === "S" ? 51 : 26,
+    total: office === "H" ? 435 : office === "S" ? 100 : office === "G" ? 50 : races.length,
+    majority: office === "H" ? 218 : office === "S" ? 51 : office === "G" ? 26 : 0, // measures have no majority line
     notUp,
     won,
     decided,
@@ -84,7 +95,7 @@ export function headline(house: Chamber, senate: Chamber): string {
 
 const cap = (s: string) => s.replace(/^\w/, (c) => c.toUpperCase());
 
-export function dek(house: Chamber, senate: Chamber, governors: Chamber): string {
+export function dek(house: Chamber, senate: Chamber, governors: Chamber, measures?: Chamber): string {
   const sentences = [
     `Democrats have won ${secured(house, "D")} House seats to Republicans' ${secured(house, "R")} and, with the two independents who caucus with them, hold at least ${secured(senate, "D")} Senate seats.`,
   ];
@@ -105,6 +116,9 @@ export function dek(house: Chamber, senate: Chamber, governors: Chamber): string
     : "";
   if (counting) sentences.push(`Votes are still being counted in ${apNumber(counting)} race${counting === 1 ? "" : "s"}${runoffClause ? `, and ${runoffClause}` : ""}.`);
   else if (runoffClause) sentences.push(`${cap(runoffClause)}.`);
+  if (measures && measures.won.Y + measures.won.N > 0) {
+    sentences.push(`Of ${measures.total} statewide ballot measures, ${apNumber(measures.won.Y)} ${measures.won.Y === 1 ? "has" : "have"} passed and ${apNumber(measures.won.N)} ${measures.won.N === 1 ? "has" : "have"} failed.`);
+  }
   return sentences.join(" ");
 }
 

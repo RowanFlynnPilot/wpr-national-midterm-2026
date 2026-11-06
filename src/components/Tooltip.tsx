@@ -26,9 +26,17 @@ export function focusPoint(el: Element): HoverPoint {
   return { clientX: r.left + r.width / 2, clientY: r.top + r.height / 2, pointerType: "keyboard" };
 }
 
+/** A state's ballot measures, for the measures map. */
+export interface MeasureSummary {
+  total: number;
+  passed: number;
+  failed: number;
+}
+
 interface Props {
   target: HoverTarget;
   race: Race | undefined;
+  measures?: MeasureSummary; // set on the measures tab instead of a race
   counties: CountyResults | null;
   x: number;
   y: number;
@@ -37,22 +45,34 @@ interface Props {
 
 const W = 260;
 
-export function Tooltip({ target, race, counties, x, y, bounds }: Props) {
+export function Tooltip({ target, race, measures, counties, x, y, bounds }: Props) {
   const left = x + 16 + W > bounds.width ? Math.max(4, x - 16 - W) : x + 16;
   const top = Math.min(Math.max(4, y - 24), Math.max(4, bounds.height - 190));
   return (
     <div className="tooltip" style={{ left, top, width: W }} role="presentation">
-      {race ? <TipBody target={target} race={race} counties={counties} /> : <NoRace target={target} />}
+      {race ? <TipBody target={target} race={race} counties={counties} /> : <NoRace target={target} measures={measures} />}
     </div>
   );
 }
 
-function NoRace({ target }: { target: HoverTarget }) {
+function NoRace({ target, measures }: { target: HoverTarget; measures?: MeasureSummary }) {
   const title = target.kind === "district" ? target.district : stateName(target.state);
+  if (measures) {
+    const open = measures.total - measures.passed - measures.failed;
+    return (
+      <>
+        <div className="tooltip__title">{title}</div>
+        <div className="tooltip__status">
+          {measures.total} statewide measure{measures.total === 1 ? "" : "s"}: {measures.passed} passed, {measures.failed} failed
+          {open ? `, ${open} not called` : ""}
+        </div>
+      </>
+    );
+  }
   return (
     <>
       <div className="tooltip__title">{title}</div>
-      <div className="tooltip__status">No race this year</div>
+      <div className="tooltip__status">{target.kind === "state" ? "No statewide measures" : "No race this year"}</div>
     </>
   );
 }

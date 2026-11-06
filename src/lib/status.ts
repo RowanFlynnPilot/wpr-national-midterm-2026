@@ -34,6 +34,7 @@ export function statusText(r: Race): string {
   if (noVotesYet(r)) return "No votes reported yet";
   switch (raceStatus(r)) {
     case "won":
+      if (r.office === "B") return r.winner === "Y" ? "Passed" : "Failed";
       return r.unopposed ? "Unopposed" : r.flip && r.prior ? `Winner called. Flipped from ${PARTY_LABEL[r.prior]}` : "Winner called";
     case "runoff": {
       const finalists = r.cands.filter((c) => c.advanced).map((c) => c.name);
@@ -49,6 +50,7 @@ export function statusText(r: Race): string {
 
 /** Ranked-choice states, shown only when no one has a majority of first choices. */
 export function rcvNote(r: Race): string | null {
+  if (r.office === "B") return null; // a measure is a single yes/no question
   const top = r.cands[0]?.pct ?? 0;
   if (top > 50) return null;
   const where = r.state === "AK" ? stateName("AK") : r.state === "ME" && r.office !== "G" ? "Maine, in federal races," : null;

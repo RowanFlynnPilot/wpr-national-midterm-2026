@@ -70,6 +70,18 @@ describe("statusText", () => {
   });
 });
 
+describe("ballot measures", () => {
+  it("pass or fail on the call, lead by Yes or No before it, and never carry a ranked-choice note", () => {
+    expect(statusText(race("B", "WI-179849"))).toBe("Passed");
+    expect(statusText(race("B", "MO-87243"))).toBe("Failed");
+    expect(statusText(race("B", "CA-150571"))).toBe("Not called. No leads by 2.7 points");
+    expect(statusText(race("B", "VA-140000"))).toBe("No votes reported yet");
+    expect(raceFill(race("B", "WI-179849"))).toBe(PARTY.Y);
+    expect(raceFill(race("B", "CA-150571"))).toBe(PALE.N);
+    expect(rcvNote({ ...race("B", "WI-179849"), state: "AK" })).toBeNull();
+  });
+});
+
 describe("rcvNote", () => {
   it("Alaska and Maine federal races, only while nobody has a majority of first choices", () => {
     expect(rcvNote(race("S", "AK"))).toMatch(/^Alaska uses ranked-choice voting.*around Nov\. 18\.$/);

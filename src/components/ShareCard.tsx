@@ -1,9 +1,9 @@
 import { apNumber, centralTime } from "../lib/format";
 import { chamber, headline, OFFICE_NAME, secured } from "../lib/summary";
-import type { Office, Results } from "../lib/types";
+import type { Results } from "../lib/types";
 import { SeatBar } from "./SeatBar";
 
-const ORDER: Office[] = ["S", "H", "G"];
+const ORDER = ["S", "H", "G"] as const; // the card shows the three sets of offices, not the measures
 
 /** The 1200×630 Open Graph image: balance of power in all three sets of races. Rendered by scripts/share-image.mjs. */
 export function ShareCard({ results }: { results: Results }) {

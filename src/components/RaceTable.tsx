@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PARTY } from "../lib/colors";
-import { raceFill, raceStatus } from "../lib/status";
+import { noVotesYet, raceFill, raceStatus } from "../lib/status";
 import { marginText, pct } from "../lib/format";
 import { stateName } from "../lib/states";
-import { OFFICE_NAME } from "../lib/summary";
+import { measureShortTitle, OFFICE_NAME } from "../lib/summary";
 import type { Office, Race } from "../lib/types";
 
 type Filter = "all" | "open" | "flips";
@@ -47,7 +47,8 @@ export function RaceTable({ office, races, onSelect }: Props) {
           !q ||
           stateName(r.state).toLowerCase().includes(q) ||
           r.state.toLowerCase() === q ||
-          (r.district ?? "").toLowerCase().includes(q) ||
+          (r.office !== "B" && (r.district ?? "").toLowerCase().includes(q)) ||
+          (r.title ?? "").toLowerCase().includes(q) ||
           r.cands.some((c) => c.name.toLowerCase().includes(q)),
       );
     if (sort === "margin") return [...list].sort((a, b) => a.margin - b.margin);
@@ -57,19 +58,21 @@ export function RaceTable({ office, races, onSelect }: Props) {
   }, [races, office, query, filter, sort]);
 
   const visible = showAll || query ? rows : rows.slice(0, PAGE);
-  const filters: [Filter, string][] = office === "H" ? [["all", "All"], ["open", "Not called"]] : [["all", "All"], ["open", "Not called"], ["flips", "Flipped"]];
+  const measures = office === "B";
+  const filters: [Filter, string][] = office === "H" || measures ? [["all", "All"], ["open", "Not called"]] : [["all", "All"], ["open", "Not called"], ["flips", "Flipped"]];
+  const heading = measures ? "Every statewide ballot measure" : `Every ${OFFICE_NAME[office] === "Governors" ? "governor" : OFFICE_NAME[office]} race`;
 
   return (
     <section className="table-section" aria-labelledby="table-title">
       <div className="table-tools">
-        <h2 id="table-title">Every {OFFICE_NAME[office] === "Governors" ? "governor" : OFFICE_NAME[office]} race</h2>
+        <h2 id="table-title">{heading}</h2>
         <div className="table-controls">
           <label className="search">
             <span className="visually-hidden">Search by state or candidate</span>
             <input
               ref={searchRef}
               type="search"
-              placeholder="Search a state or candidate…"
+              placeholder={measures ? "Search a state or measure…" : "Search a state or candidate…"}
               autoComplete="off"
               spellCheck={false}
               enterKeyHint="search"
@@ -91,16 +94,27 @@ export function RaceTable({ office, races, onSelect }: Props) {
           <thead>
             <tr>
               <SortHeader label={office === "H" ? "District" : "State"} value="place" sort={sort} onSort={setSort} />
-              <th scope="col">Leading candidate</th>
-              <th scope="col">Runner-up</th>
+              {measures ? (
+                <>
+                  <th scope="col">Measure</th>
+                  <th scope="col" className="num">Yes</th>
+                  <th scope="col" className="num phone-hide">No</th>
+                </>
+              ) : (
+                <>
+                  <th scope="col">Leading candidate</th>
+                  <th scope="col" className="phone-hide">Runner-up</th>
+                </>
+              )}
               <SortHeader label="Margin" value="margin" sort={sort} onSort={setSort} num />
-              <SortHeader label="Reporting" value="reporting" sort={sort} onSort={setSort} num />
+              <SortHeader label="Reporting" value="reporting" sort={sort} onSort={setSort} num phoneHide />
               <th scope="col">Status</th>
             </tr>
           </thead>
           <tbody>
             {visible.map((r) => {
               const [a, b] = r.cands.filter((c) => c.party !== "O");
+              const yes = r.cands.find((c) => c.party === "Y"), no = r.cands.find((c) => c.party === "N");
               return (
                 <tr key={r.id} onClick={() => onSelect(r)}>
                   <th scope="row">
@@ -108,10 +122,20 @@ export function RaceTable({ office, races, onSelect }: Props) {
                       {office === "H" ? r.district : `${stateName(r.state)}${r.special ? " (special)" : ""}`}
                     </button>
                   </th>
-                  <td>{a && <Cand name={a.name} party={a.party} value={a.pct} strong={a.winner} />}</td>
-                  <td>{b && <Cand name={b.name} party={b.party} value={b.pct} strong={false} />}</td>
+                  {measures ? (
+                    <>
+                      <td className="measure-cell">{measureShortTitle(r)}</td>
+                      <td className="num" style={{ color: PARTY.Y }}>{yes && !noVotesYet(r) ? pct(yes.pct) : "\u2014"}</td>
+                      <td className="num phone-hide" style={{ color: PARTY.N }}>{no && !noVotesYet(r) ? pct(no.pct) : "\u2014"}</td>
+                    </>
+                  ) : (
+                    <>
+                      <td>{a && <Cand name={a.name} party={a.party} value={a.pct} strong={a.winner} />}</td>
+                      <td className="phone-hide">{b && <Cand name={b.name} party={b.party} value={b.pct} strong={false} />}</td>
+                    </>
+                  )}
                   <td className="num">{r.unopposed ? "Unopposed" : marginText(r.margin)}</td>
-                  <td className="num">{Math.round(r.pctIn)}%</td>
+                  <td className="num phone-hide">{Math.round(r.pctIn)}%</td>
                   <td>
                     <span className={`pill pill--${r.winner ? "won" : "open"}`} style={{ ["--c" as string]: raceFill(r) }}>
                       {pillText(r)}
@@ -133,10 +157,10 @@ export function RaceTable({ office, races, onSelect }: Props) {
   );
 }
 
-function SortHeader({ label, value, sort, onSort, num = false }: { label: string; value: Sort; sort: Sort; onSort: (s: Sort) => void; num?: boolean }) {
+function SortHeader({ label, value, sort, onSort, num = false, phoneHide = false }: { label: string; value: Sort; sort: Sort; onSort: (s: Sort) => void; num?: boolean; phoneHide?: boolean }) {
   const on = sort === value;
   return (
-    <th scope="col" className={num ? "num" : undefined} aria-sort={on ? "ascending" : "none"}>
+    <th scope="col" className={[num ? "num" : "", phoneHide ? "phone-hide" : ""].filter(Boolean).join(" ") || undefined} aria-sort={on ? "ascending" : "none"}>
       <button type="button" className={on ? "sort is-on" : "sort"} onClick={() => onSort(value)}>
         {label}
       </button>
@@ -145,8 +169,10 @@ function SortHeader({ label, value, sort, onSort, num = false }: { label: string
 }
 
 function pillText(r: Race): string {
+  if (noVotesYet(r)) return "No votes yet";
   switch (raceStatus(r)) {
     case "won":
+      if (r.office === "B") return r.winner === "Y" ? "Passed" : "Failed";
       return r.flip ? `${r.winner} flip` : `${r.winner} win`;
     case "runoff":
       return "Runoff";

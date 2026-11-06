@@ -1,10 +1,10 @@
 import { PALE, PARTY, PARTY_LABEL } from "../lib/colors";
 import { apNumber, marginText, pct, timeAgo } from "../lib/format";
 import { HOME_STATE, stateName } from "../lib/states";
-import { RUNOFF, raceFill, raceStatus } from "../lib/status";
+import { RUNOFF, noVotesYet, raceFill, raceStatus } from "../lib/status";
 import type { Geo } from "../lib/geo";
-import { OFFICE_NAME, OFFICE_SINGULAR, type Chamber, type PopularVote } from "../lib/summary";
-import type { CountyResults, Office, Race } from "../lib/types";
+import { measureShortTitle, OFFICE_NAME, OFFICE_SINGULAR, type Chamber, type PopularVote } from "../lib/summary";
+import type { CountySets, Office, Race } from "../lib/types";
 import { CountyMap } from "./CountyMap";
 import { RaceCard } from "./RaceCard";
 
@@ -15,7 +15,7 @@ interface Props {
   races: Race[];
   chamber: Chamber;
   popularVote: PopularVote;
-  counties: { S: CountyResults; G: CountyResults };
+  counties: CountySets;
   geo: Geo | null; // null until the map shapes load
   now: number;
   onSelect: (office: Office, state: string | null, district: string | null) => void;
@@ -23,8 +23,8 @@ interface Props {
 
 export function SidePanel(props: Props) {
   const { office, state, district } = props;
-  if (district) return <DistrictView {...props} district={district} />;
-  if (state) return office === "H" ? <HouseStateView {...props} state={state} /> : <StateView {...props} state={state} />;
+  if (district) return office === "B" ? <MeasureView {...props} district={district} /> : <DistrictView {...props} district={district} />;
+  if (state) return office === "H" ? <HouseStateView {...props} state={state} /> : office === "B" ? <MeasuresStateView {...props} state={state} /> : <StateView {...props} state={state} />;
   return <Overview {...props} />;
 }
 
@@ -32,6 +32,9 @@ function shortTitle(race: Race): string {
   if (race.office === "H") return race.district ?? race.state;
   return `${stateName(race.state)}${race.special ? " (special)" : ""}`;
 }
+
+/** The route for a race's own panel: a district or measure gets its district key, a statewide race none. */
+const routeOf = (r: Race) => (r.office === "H" || r.office === "B" ? r.district : null);
 
 interface RowProps {
   race: Race;
@@ -44,17 +47,20 @@ function RaceRow({ race, onClick, showOffice = false, when }: RowProps) {
   const lead = race.cands[0];
   if (!lead) return null;
   const status = raceStatus(race);
+  const measure = race.office === "B";
   const [big, small] =
-    status === "won"
+    noVotesYet(race)
+      ? ["—", "no votes yet"]
+      : status === "won"
       ? race.unopposed
         ? ["Won", "unopposed"]
-        : [race.flip ? "Flip" : "Won", when ?? `by ${marginText(race.margin)}`]
+        : [measure ? (race.winner === "Y" ? "Passed" : "Failed") : race.flip ? "Flip" : "Won", when ?? `by ${marginText(race.margin)}`]
       : status === "runoff"
         ? ["Runoff", "no majority"]
         : status === "decided"
           ? [`${race.partyDecided} seat`, `${Math.round(race.pctIn)}% in`]
           : [race.margin < 0.1 ? "<0.1" : `+${marginText(race.margin)}`, `${Math.round(race.pctIn)}% in`];
-  const who = status === "runoff" ? race.cands.filter((c) => c.advanced).map((c) => c.name.split(" ").slice(-1)[0]).join(" vs. ") || lead.name : lead.name;
+  const who = measure ? measureShortTitle(race) : status === "runoff" ? race.cands.filter((c) => c.advanced).map((c) => c.name.split(" ").slice(-1)[0]).join(" vs. ") || lead.name : lead.name;
   return (
     <li>
       <button type="button" className="race-row" onClick={onClick}>
@@ -72,12 +78,14 @@ function RaceRow({ race, onClick, showOffice = false, when }: RowProps) {
 
 function Overview({ office, chamber, popularVote, races, now, onSelect }: Props) {
   const counting = chamber.uncalled.filter((r) => !r.runoff);
-  const pick = (r: Race) => onSelect(office, r.state, office === "H" ? r.district : null);
+  const pick = (r: Race) => onSelect(office, r.state, routeOf(r));
+  const measures = office === "B";
+  const failed = measures ? races.filter((r) => r.office === "B" && r.winner === "N") : [];
   return (
     <div className="panel">
       {office === "H" && <PopularVoteBlock vote={popularVote} />}
       <HomeGlance races={races} onSelect={onSelect} />
-      <h2 className="panel__title">{OFFICE_NAME[office] === "Governors" ? "Governor" : OFFICE_NAME[office]} races still being counted</h2>
+      <h2 className="panel__title">{measures ? "Measures" : `${OFFICE_NAME[office] === "Governors" ? "Governor" : OFFICE_NAME[office]} races`} still being counted</h2>
       {counting.length ? (
         <>
           <p className="panel__note">Closest first. Leads are in percentage points.</p>
@@ -88,7 +96,17 @@ function Overview({ office, chamber, popularVote, races, now, onSelect }: Props)
           </ul>
         </>
       ) : (
-        <p className="panel__note">Every {OFFICE_SINGULAR[office].toLowerCase()} race has been called.</p>
+        <p className="panel__note">Every {measures ? "measure" : `${OFFICE_SINGULAR[office].toLowerCase()} race`} has been called.</p>
+      )}
+      {measures && failed.length > 0 && (
+        <>
+          <h2 className="panel__title">Measures that failed</h2>
+          <ul className="race-rows">
+            {failed.map((r) => (
+              <RaceRow key={r.id} race={r} onClick={() => pick(r)} />
+            ))}
+          </ul>
+        </>
       )}
       {chamber.latestCalls.length > 0 && (
         <>
@@ -112,7 +130,7 @@ function Overview({ office, chamber, popularVote, races, now, onSelect }: Props)
           </ul>
         </>
       )}
-      {office !== "H" && (
+      {office !== "H" && !measures && (
         <>
           <h2 className="panel__title">Seats that changed parties</h2>
           {chamber.flips.length ? (
@@ -288,8 +306,52 @@ function HouseStateView({ state, races, onSelect }: Props & { state: string }) {
   );
 }
 
+function MeasuresStateView({ state, races, onSelect }: Props & { state: string }) {
+  const list = races.filter((r) => r.office === "B" && r.state === state);
+  const others = races.filter((r) => r.state === state && r.office !== "H" && r.office !== "B");
+  const house = races.filter((r) => r.state === state && r.office === "H");
+  return (
+    <div className="panel">
+      <Back label="All ballot measures" onClick={() => onSelect("B", null, null)} />
+      <h2 className="panel__title panel__title--state">{stateName(state)} ballot measures</h2>
+      <p className="panel__lede">
+        {apNumber(list.length).replace(/^\w/, (c) => c.toUpperCase())} statewide measure{list.length === 1 ? "" : "s"}
+      </p>
+      <ul className="race-rows race-rows--measures">
+        {list.map((r) => (
+          <RaceRow key={r.id} race={r} onClick={() => onSelect("B", state, r.district)} />
+        ))}
+      </ul>
+      <h3 className="panel__subtitle">Also on the ballot in {stateName(state)}</h3>
+      <ul className="race-rows">
+        {others.map((r) => (
+          <RaceRow key={r.id} race={r} showOffice onClick={() => onSelect(r.office, state, null)} />
+        ))}
+        <li>
+          <button type="button" className="race-row race-row--house" onClick={() => onSelect("H", state, null)}>
+            <span className="race-row__where">House</span>
+            <Delegation races={house} />
+          </button>
+        </li>
+      </ul>
+    </div>
+  );
+}
+
+function MeasureView({ races, district, counties, geo, onSelect }: Props & { district: string }) {
+  const race = races.find((r) => r.office === "B" && r.district === district);
+  if (!race) throw new Error(`unknown measure ${district}`);
+  return (
+    <div className="panel">
+      <Back label={`All ${stateName(race.state)} measures`} onClick={() => onSelect("B", race.state, null)} />
+      <RaceCard race={race} heading="h2" />
+      {geo && <CountyMap race={race} counties={counties.B} geo={geo} />}
+    </div>
+  );
+}
+
 function DistrictView({ races, district, onSelect }: Props & { district: string }) {
-  const race = races.find((r) => r.district === district);
+  const race = races.find((r) => r.office === "H" && r.district === district);
   if (!race) throw new Error(`unknown district ${district}`);
   return (
     <div className="panel">

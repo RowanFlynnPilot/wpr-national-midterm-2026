@@ -4,22 +4,36 @@ import { secured, type Chamber } from "../lib/summary";
 
 /** Balance-of-power bar: secured seats at the ends in full color, leads pale, runoffs gray, majority line. */
 export function SeatBar({ chamber: c }: { chamber: Chamber }) {
-  const segs = [
-    { key: "D", n: secured(c, "D"), color: PARTY.D },
-    { key: "Dl", n: c.leading.D, color: PALE.D },
-    { key: "I", n: secured(c, "I"), color: PARTY.I },
-    { key: "Il", n: c.leading.I, color: PALE.I },
-    { key: "Ro", n: c.runoffs.length, color: RUNOFF },
-    { key: "Rl", n: c.leading.R, color: PALE.R },
-    { key: "R", n: secured(c, "R"), color: PARTY.R },
-  ].filter((s) => s.n > 0);
-  const label = [
-    `${secured(c, "D")} Democrats`,
-    secured(c, "I") ? `${secured(c, "I")} independents` : "",
-    `${secured(c, "R")} Republicans`,
-    c.uncalled.length ? `${c.uncalled.length} not called` : "all called",
-    c.office === "G" ? "" : `${c.majority} for a majority`,
-  ]
+  const measures = c.office === "B";
+  const segs = (
+    measures
+      ? [
+          { key: "Y", n: c.won.Y, color: PARTY.Y },
+          { key: "Yl", n: c.leading.Y, color: PALE.Y },
+          { key: "Nl", n: c.leading.N, color: PALE.N },
+          { key: "N", n: c.won.N, color: PARTY.N },
+        ]
+      : [
+          { key: "D", n: secured(c, "D"), color: PARTY.D },
+          { key: "Dl", n: c.leading.D, color: PALE.D },
+          { key: "I", n: secured(c, "I"), color: PARTY.I },
+          { key: "Il", n: c.leading.I, color: PALE.I },
+          { key: "Ro", n: c.runoffs.length, color: RUNOFF },
+          { key: "Rl", n: c.leading.R, color: PALE.R },
+          { key: "R", n: secured(c, "R"), color: PARTY.R },
+        ]
+  ).filter((s) => s.n > 0);
+  const label = (
+    measures
+      ? [`${c.won.Y} passed`, `${c.won.N} failed`, c.uncalled.length ? `${c.uncalled.length} not called` : "all called"]
+      : [
+          `${secured(c, "D")} Democrats`,
+          secured(c, "I") ? `${secured(c, "I")} independents` : "",
+          `${secured(c, "R")} Republicans`,
+          c.uncalled.length ? `${c.uncalled.length} not called` : "all called",
+          c.office === "G" ? "" : `${c.majority} for a majority`,
+        ]
+  )
     .filter(Boolean)
     .join(", ");
   return (
@@ -27,7 +41,7 @@ export function SeatBar({ chamber: c }: { chamber: Chamber }) {
       {segs.map((s) => (
         <span key={s.key} className="seatbar__seg" style={{ width: `${(100 * s.n) / c.total}%`, background: s.color }} />
       ))}
-      {c.office !== "G" && <span className="seatbar__majority" style={{ left: `${(100 * c.majority) / c.total}%` }} />}
+      {c.majority > 0 && <span className="seatbar__majority" style={{ left: `${(100 * c.majority) / c.total}%` }} />}
     </span>
   );
 }

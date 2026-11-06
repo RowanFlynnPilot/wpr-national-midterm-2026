@@ -8,26 +8,26 @@ const governors = chamber(RESULTS, "G");
 
 describe("chamber", () => {
   it("tallies Senate races into won, leading and seats not up", () => {
-    expect(senate.won).toEqual({ D: 2, R: 2, I: 0, O: 0 }); // ME, TX / AL, FL
-    expect(senate.leading).toEqual({ D: 2, R: 0, I: 0, O: 0 }); // AK, MS
-    expect(senate.decided).toEqual({ D: 0, R: 0, I: 0, O: 0 });
-    expect(senate.notUp).toEqual({ D: 34, R: 31, I: 0, O: 0 });
+    expect(senate.won).toEqual({ D: 2, R: 2, I: 0, O: 0, Y: 0, N: 0 }); // ME, TX / AL, FL
+    expect(senate.leading).toEqual({ D: 2, R: 0, I: 0, O: 0, Y: 0, N: 0 }); // AK, MS
+    expect(senate.decided).toEqual({ D: 0, R: 0, I: 0, O: 0, Y: 0, N: 0 });
+    expect(senate.notUp).toEqual({ D: 34, R: 31, I: 0, O: 0, Y: 0, N: 0 });
     expect(senate.before).toEqual({ D: 47, R: 53 });
     expect(senate.total).toBe(100);
     expect(senate.majority).toBe(51);
   });
   it("tallies House races, counting same-party finals as decided and runoffs separately", () => {
-    expect(house.won).toEqual({ D: 2, R: 1, I: 0, O: 0 }); // FL-10, WI-03 / NY-21
-    expect(house.decided).toEqual({ D: 1, R: 1, I: 0, O: 0 }); // CA-04 / CA-40
-    expect(house.leading).toEqual({ D: 1, R: 1, I: 0, O: 0 }); // TN-04 / AK-AL
+    expect(house.won).toEqual({ D: 2, R: 1, I: 0, O: 0, Y: 0, N: 0 }); // FL-10, WI-03 / NY-21
+    expect(house.decided).toEqual({ D: 1, R: 1, I: 0, O: 0, Y: 0, N: 0 }); // CA-04 / CA-40
+    expect(house.leading).toEqual({ D: 1, R: 1, I: 0, O: 0, Y: 0, N: 0 }); // TN-04 / AK-AL
     expect(house.runoffs.map((r) => r.district)).toEqual(["LA-05", "LA-06"]);
-    expect(house.notUp).toEqual({ D: 0, R: 0, I: 0, O: 0 });
+    expect(house.notUp).toEqual({ D: 0, R: 0, I: 0, O: 0, Y: 0, N: 0 });
     expect(house.majority).toBe(218);
   });
   it("tallies governors", () => {
-    expect(governors.won).toEqual({ D: 2, R: 1, I: 0, O: 0 }); // NV, TX / AL
-    expect(governors.leading).toEqual({ D: 1, R: 0, I: 0, O: 0 }); // AK
-    expect(governors.notUp).toEqual({ D: 6, R: 8, I: 0, O: 0 });
+    expect(governors.won).toEqual({ D: 2, R: 1, I: 0, O: 0, Y: 0, N: 0 }); // NV, TX / AL
+    expect(governors.leading).toEqual({ D: 1, R: 0, I: 0, O: 0, Y: 0, N: 0 }); // AK
+    expect(governors.notUp).toEqual({ D: 6, R: 8, I: 0, O: 0, Y: 0, N: 0 });
     expect(governors.total).toBe(50);
   });
   it("lists uncalled races closest first, including runoffs, and flips among called races", () => {
@@ -36,6 +36,14 @@ describe("chamber", () => {
     expect(senate.flips.map((r) => r.state)).toEqual(["ME", "TX"]);
     expect(governors.flips.map((r) => r.state)).toEqual(["NV", "TX"]);
     expect(house.flips).toEqual([]); // House flips are deliberately not tracked
+  });
+  it("tallies ballot measures as passed (Y), failed (N) and leading, with no majority line", () => {
+    const measures = chamber(RESULTS, "B");
+    expect(measures.total).toBe(4);
+    expect(measures.majority).toBe(0);
+    expect(measures.won).toEqual({ D: 0, R: 0, I: 0, O: 0, Y: 1, N: 1 }); // WI Question 3 / MO Amendment 3
+    expect(measures.leading).toEqual({ D: 0, R: 0, I: 0, O: 0, Y: 1, N: 1 }); // VA Question 1 (no votes yet) / CA Proposition 4
+    expect(measures.uncalled.map((r) => r.state)).toEqual(["VA", "CA"]); // closest first; no votes counts as a zero margin
   });
   it("lists the latest calls newest first, skipping calls civicAPI gave no timestamp", () => {
     expect(race("H", "NY-21").calledAt).toBeNull();
@@ -55,21 +63,21 @@ describe("secured and controller", () => {
     expect(controller(senate)).toBeNull();
   });
   it("a party controls a chamber once secured seats reach the majority line, leads do not count", () => {
-    expect(controller({ ...senate, won: { D: 16, R: 2, I: 0, O: 0 } })).toBeNull(); // 34 + 16 = 50
-    expect(controller({ ...senate, won: { D: 17, R: 2, I: 0, O: 0 } })).toBe("D");
-    expect(controller({ ...senate, leading: { D: 30, R: 0, I: 0, O: 0 } })).toBeNull();
-    expect(controller({ ...house, won: { D: 0, R: 217, I: 0, O: 0 } })).toBe("R"); // 217 + 1 decided
+    expect(controller({ ...senate, won: { D: 16, R: 2, I: 0, O: 0, Y: 0, N: 0 } })).toBeNull(); // 34 + 16 = 50
+    expect(controller({ ...senate, won: { D: 17, R: 2, I: 0, O: 0, Y: 0, N: 0 } })).toBe("D");
+    expect(controller({ ...senate, leading: { D: 30, R: 0, I: 0, O: 0, Y: 0, N: 0 } })).toBeNull();
+    expect(controller({ ...house, won: { D: 0, R: 217, I: 0, O: 0, Y: 0, N: 0 } })).toBe("R"); // 217 + 1 decided
   });
 });
 
 describe("headline", () => {
   it("names the winner of each chamber, or that control is undecided", () => {
     expect(headline(house, senate)).toBe("Control of the House is still undecided; control of the Senate is still undecided");
-    const dSenate = { ...senate, won: { D: 17, R: 2, I: 0, O: 0 } };
+    const dSenate = { ...senate, won: { D: 17, R: 2, I: 0, O: 0, Y: 0, N: 0 } };
     expect(headline(house, dSenate)).toBe("Control of the House is still undecided; Democrats win the Senate");
-    const rHouse = { ...house, won: { D: 0, R: 217, I: 0, O: 0 } };
+    const rHouse = { ...house, won: { D: 0, R: 217, I: 0, O: 0, Y: 0, N: 0 } };
     expect(headline(rHouse, dSenate)).toBe("Republicans win the House; Democrats win the Senate");
-    expect(headline(rHouse, { ...senate, won: { D: 0, R: 20, I: 0, O: 0 } })).toBe("Republicans win the House and the Senate");
+    expect(headline(rHouse, { ...senate, won: { D: 0, R: 20, I: 0, O: 0, Y: 0, N: 0 } })).toBe("Republicans win the House and the Senate");
   });
 });
 
@@ -80,6 +88,11 @@ describe("dek", () => {
         "They flipped two Senate seats and two governor's offices. " +
         "Votes are still being counted in seven races, and two Louisiana House races are headed to runoffs.",
     );
+  });
+  it("adds the measures sentence once any measure is called", () => {
+    const measures = chamber(RESULTS, "B");
+    expect(dek(house, senate, governors, measures)).toMatch(/ Of 4 statewide ballot measures, one has passed and one has failed\.$/);
+    expect(dek(house, senate, governors, { ...measures, won: { ...measures.won, Y: 0, N: 0 } })).not.toContain("ballot measures");
   });
   it("drops the flip sentence when nothing flipped and uses AP number style", () => {
     const noFlips = { ...senate, flips: [] };

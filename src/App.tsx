@@ -6,7 +6,7 @@ import { Legend } from "./components/Legend";
 import { NationalMap, type MapMode } from "./components/NationalMap";
 import { RaceTable } from "./components/RaceTable";
 import { SidePanel } from "./components/SidePanel";
-import { Tooltip, type HoverHandler, type HoverTarget } from "./components/Tooltip";
+import { Tooltip, type HoverHandler, type HoverTarget, type MeasureSummary } from "./components/Tooltip";
 import { countyColumns, loadAtlas, readCounty, type Data } from "./lib/data";
 import { centralTime, relativeAge } from "./lib/format";
 import type { Geo } from "./lib/geo";
@@ -17,13 +17,13 @@ import { HOME_STATE, stateName } from "./lib/states";
 import { chamber, dek, headline, housePopularVote, OFFICE_NAME, OFFICE_SLUG, raceTitle } from "./lib/summary";
 import type { Office, Race, Selection } from "./lib/types";
 
-const OFFICE_BY_SLUG: Record<string, Office> = { senate: "S", house: "H", governors: "G" };
+const OFFICE_BY_SLUG: Record<string, Office> = { senate: "S", house: "H", governors: "G", measures: "B" };
 
 function parseHash(hash: string): Selection {
   const [slug = "", st, dist] = hash.replace(/^#/, "").toLowerCase().split("-");
   const office = OFFICE_BY_SLUG[slug] ?? "S";
   const state = st && /^[a-z]{2}$/.test(st) ? st.toUpperCase() : null;
-  const district = office === "H" && state && dist ? `${state}-${dist.toUpperCase()}` : null;
+  const district = (office === "H" || office === "B") && state && dist ? `${state}-${dist.toUpperCase()}` : null; // a measure's key is its id
   return { office, state, district };
 }
 
@@ -108,20 +108,26 @@ export function App({ data }: { data: Data }) {
   }, []);
 
   const chambers = useMemo(
-    () => ({ S: chamber(results, "S"), H: chamber(results, "H"), G: chamber(results, "G") }),
+    () => ({ S: chamber(results, "S"), H: chamber(results, "H"), G: chamber(results, "G"), B: chamber(results, "B") }),
     [results],
   );
 
   const popularVote = useMemo(() => housePopularVote(results), [results]);
   const officeRaces = useMemo(() => results.races.filter((r) => r.office === sel.office), [results, sel.office]);
   const racesByState = useMemo(
-    () => new Map(officeRaces.filter((r) => r.office !== "H").map((r) => [r.state, r])),
+    () => new Map(officeRaces.filter((r) => r.office !== "H" && r.office !== "B").map((r) => [r.state, r])),
     [officeRaces],
   );
   const racesByDistrict = useMemo(
-    () => new Map(results.races.filter((r) => r.office === "H").map((r) => [r.district as string, r])),
+    () => new Map(results.races.filter((r) => r.office === "H" || r.office === "B").map((r) => [r.district as string, r])),
     [results],
   );
+  const measuresByState = useMemo(() => {
+    const m = new Map<string, Race[]>();
+    for (const r of results.races) if (r.office === "B") m.set(r.state, [...(m.get(r.state) ?? []), r]);
+    return m;
+  }, [results]);
+  const measureCounts = useMemo(() => new Map([...measuresByState].map(([st, list]) => [st, list.length])), [measuresByState]);
   const officeCounties = sel.office === "S" ? counties.S : sel.office === "G" ? counties.G : null;
 
   const hasIndependent = useMemo(() => {
@@ -147,6 +153,13 @@ export function App({ data }: { data: Data }) {
       ? racesByDistrict.get(hover.target.district)
       : racesByState.get(hover.target.state)
     : undefined;
+  const hoverMeasures: MeasureSummary | undefined =
+    hover && sel.office === "B" && hover.target.kind === "state" && measuresByState.has(hover.target.state)
+      ? (() => {
+          const list = measuresByState.get(hover.target.state) as Race[];
+          return { total: list.length, passed: list.filter((r) => r.winner === "Y").length, failed: list.filter((r) => r.winner === "N").length };
+        })()
+      : undefined;
 
   const onStateSelect = useCallback((state: string) => select({ office: sel.office, state, district: null }), [select, sel.office]);
   const onStateClear = useCallback(() => select({ office: sel.office, state: null, district: null }, false), [select, sel.office]);
@@ -157,20 +170,25 @@ export function App({ data }: { data: Data }) {
   const announce = selectedRace
     ? raceTitle(selectedRace)
     : sel.state
-      ? `${stateName(sel.state)} ${sel.office === "H" ? "House districts" : "has no race this year"}`
+      ? `${stateName(sel.state)} ${sel.office === "H" ? "House districts" : sel.office === "B" ? "ballot measures" : "has no race this year"}`
       : `${OFFICE_NAME[sel.office]} overview`;
 
   const raceNoun = `${racesByState.size} ${sel.office === "S" ? "Senate" : "governor"} races`;
   const mapCaption =
     sel.office === "H"
       ? "Each hexagon is one House district, placed near where its voters live"
-      : mode === "states"
+      : sel.office === "B"
+        ? `Statewide ballot measures in ${measureCounts.size} states; darker means more`
+        : mode === "states"
         ? `${OFFICE_NAME[sel.office]} results by state`
         : mode === "counties"
           ? `County results in the ${raceNoun}`
           : `Where votes are still being counted in the ${raceNoun}`;
   const c = chambers[sel.office];
-  const tally = `Democrats have won ${c.won.D}, Republicans ${c.won.R}${c.won.I ? `, independents ${c.won.I}` : ""}; ${c.uncalled.length} not called.`;
+  const tally =
+    sel.office === "B"
+      ? `${c.won.Y} passed, ${c.won.N} failed; ${c.uncalled.length} not called.`
+      : `Democrats have won ${c.won.D}, Republicans ${c.won.R}${c.won.I ? `, independents ${c.won.I}` : ""}; ${c.uncalled.length} not called.`;
   const mapDescription = `${mapCaption}. ${tally}`;
   const hasNoVotes = officeRaces.some(noVotesYet);
 
@@ -203,7 +221,7 @@ export function App({ data }: { data: Data }) {
       <main>
       <section className="hero">
         <h1>{headline(chambers.H, chambers.S)}</h1>
-        <p className="hero__dek">{dek(chambers.H, chambers.S, chambers.G)}</p>
+        <p className="hero__dek">{dek(chambers.H, chambers.S, chambers.G, chambers.B)}</p>
       </section>
 
       <ChamberTabs chambers={chambers} office={sel.office} onChange={(office) => select({ office, state: sel.state, district: null }, false)} />
@@ -232,7 +250,7 @@ export function App({ data }: { data: Data }) {
                 ))}
               </select>
             </label>
-            {sel.office !== "H" && (
+            {sel.office !== "H" && sel.office !== "B" && (
               <div className="segmented" role="radiogroup" aria-label="Map detail">
                 {([["states", "States"], ["counties", "Counties"], ["remaining", "Still counting"]] as const).map(([m, label]) => (
                   <button key={m} type="button" role="radio" aria-checked={mode === m} className={mode === m ? "is-on" : undefined} onClick={() => setMode(m)}>
@@ -258,9 +276,10 @@ export function App({ data }: { data: Data }) {
             ) : geo ? (
               <NationalMap
                 geo={geo}
-                mode={mode}
+                mode={sel.office === "B" ? "measures" : mode}
                 description={mapDescription}
                 racesByState={racesByState}
+                measureCounts={measureCounts}
                 counties={officeCounties ?? {}}
                 selected={sel.state}
                 onHover={onHover}
@@ -274,6 +293,7 @@ export function App({ data }: { data: Data }) {
               <Tooltip
                 target={hover.target}
                 race={hoverRace}
+                measures={hoverMeasures}
                 counties={officeCounties}
                 x={hover.x}
                 y={hover.y}
@@ -281,7 +301,7 @@ export function App({ data }: { data: Data }) {
               />
             )}
           </div>
-          <Legend office={sel.office} mode={mode} hasIndependent={hasIndependent} hasRunoff={c.runoffs.length > 0} hasNoVotes={hasNoVotes} />
+          <Legend office={sel.office} mode={sel.office === "B" ? "measures" : mode} hasIndependent={hasIndependent} hasRunoff={c.runoffs.length > 0} hasNoVotes={hasNoVotes} />
         </div>
         <p className="visually-hidden" role="status">
           Showing {announce}
@@ -305,7 +325,7 @@ export function App({ data }: { data: Data }) {
       <RaceTable
         office={sel.office}
         races={results.races}
-        onSelect={(r) => select({ office: r.office, state: r.state, district: r.office === "H" ? r.district : null })}
+        onSelect={(r) => select({ office: r.office, state: r.state, district: r.office === "H" || r.office === "B" ? r.district : null })}
       />
 
       </main>

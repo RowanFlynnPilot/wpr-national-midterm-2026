@@ -1,5 +1,7 @@
-export type Party = "D" | "R" | "I" | "O";
-export type Office = "S" | "H" | "G";
+/** D/R/I/O for candidates; Y/N are the answers on a ballot measure. */
+export type Party = "D" | "R" | "I" | "O" | "Y" | "N";
+/** Senate, House, governor; B is a statewide ballot measure. */
+export type Office = "S" | "H" | "G" | "B";
 
 export interface Candidate {
   id: number; // civicAPI candidate_id; 0 for the "Others" bucket
@@ -17,8 +19,9 @@ export interface Race {
   id: number;
   office: Office;
   state: string;
-  district: string | null;
+  district: string | null; // "WI-03"; for a measure, "<state>-<civicAPI id>" (its route)
   num: number | null;
+  title: string | null; // a measure's name, e.g. "Wisconsin Question 3 - ..."; null for candidate races
   special: boolean;
   pctIn: number;
   updated: string; // civicAPI's last_updated for this race
@@ -49,6 +52,12 @@ export interface Results {
 
 /** raceId -> county FIPS -> [pctReporting, votes for race.cands[0..2] (non-"Others"), all other votes] */
 export type CountyResults = Record<string, Record<string, number[]>>;
+
+export interface CountySets {
+  S: CountyResults;
+  G: CountyResults;
+  B: CountyResults;
+}
 
 export interface HexCell {
   d: string;

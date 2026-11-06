@@ -224,7 +224,7 @@ a {
 
 .chambers {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   border-top: 1px solid var(--rule);
   border-bottom: 1px solid var(--rule);
 }
@@ -291,16 +291,8 @@ a {
   color: var(--ink-2);
 }
 
-.chamber__count--r {
+.chamber__count--right {
   align-items: flex-end;
-}
-
-.chamber__count--d strong {
-  color: var(--d);
-}
-
-.chamber__count--r strong {
-  color: var(--r);
 }
 
 .seatbar {
@@ -1004,6 +996,24 @@ a {
   grid-template-columns: 10px 3.6rem minmax(0, 1fr) auto;
 }
 
+/* a measure's title is the row */
+.race-rows--measures .race-row {
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+}
+
+.race-rows--measures .race-row__where {
+  display: none;
+}
+
+.race-rows--measures .race-row__who {
+  white-space: normal;
+  color: var(--ink);
+}
+
+.measure-cell {
+  max-width: 34rem;
+}
+
 
 .race-row__swatch {
   width: 10px;
@@ -1577,6 +1587,18 @@ table.races {
   .masthead__meta {
     font-size: 0.75rem;
   }
+  .chambers {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .chamber:nth-child(n + 3) {
+    border-top: 1px solid var(--rule);
+  }
+  .chamber:nth-child(3) {
+    border-left: 0;
+  }
+  .chamber.is-active {
+    border-top-color: var(--teal);
+  }
   .chamber__count strong {
     font-size: 1.35rem;
   }
@@ -1609,11 +1631,11 @@ table.races {
     align-items: flex-start;
     gap: 0.5rem;
   }
-  .races th:nth-child(3),
-  .races td:nth-child(3),
-  .races th:nth-child(5),
-  .races td:nth-child(5) {
+  .races .phone-hide {
     display: none;
+  }
+  .measure-cell {
+    min-width: 11rem;
   }
   .search input {
     width: 100%;
