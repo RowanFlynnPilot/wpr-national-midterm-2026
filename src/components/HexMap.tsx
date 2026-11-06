@@ -1,6 +1,7 @@
 import { memo, useMemo, useRef, useState } from "react";
 import { inkOn } from "../lib/colors";
 import { raceFill, statusText } from "../lib/status";
+import { HOME_STATE } from "../lib/states";
 import { raceTitle } from "../lib/summary";
 import type { HexCell, Race } from "../lib/types";
 import { focusPoint, type HoverHandler } from "./Tooltip";
@@ -142,6 +143,7 @@ export const HexMap = memo(function HexMap({ hexes, racesByDistrict, selectedSta
         })}
       </g>
       <path className="hex-borders" d={geom.borders} />
+      {selectedState !== HOME_STATE && <path className="hex-home-outline" d={geom.stateEdges.get(HOME_STATE) ?? ""} />}
       {selectedState && <path className="hex-state-outline" d={geom.stateEdges.get(selectedState) ?? ""} />}
       <g className="hex-labels" aria-hidden="true">
         {geom.labels.map((l) => {

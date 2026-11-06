@@ -36,6 +36,9 @@ export const FIPS_BY_CODE: Record<string, string> = Object.fromEntries(
   Object.entries(STATES).map(([fips, s]) => [s.code, fips]),
 );
 
+/** Wausau Pilot & Review's readers: a toolbar shortcut, a resting outline on the maps, and a block on the overview panel. */
+export const HOME_STATE = "WI";
+
 /** States too small to label or click comfortably on the national map; they get callout chips. */
 export const SMALL_STATES = ["MA", "RI", "CT", "NJ", "DE", "MD"];
 

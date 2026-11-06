@@ -68,6 +68,7 @@ Each district's target = vote-weighted centroid of the counties it covers (from 
 - `src/components/NationalMap.tsx` in counties mode zooms to the selected state (CSS transform on `.map-zoom`, non-scaling strokes, "All states" button to return; no animation under `prefers-reduced-motion`).
 - `src/components/HexMap.tsx`: roving tabindex, arrow keys walk the grid (skipping gaps), Enter/Space selects, focus shows the tooltip (`focusPoint` in `Tooltip.tsx`; the same `HoverHandler` serves pointer and keyboard). `SidePanel.tsx`, `RaceCard.tsx`, `CountyMap.tsx`, `RaceTable.tsx` (table view = accessible twin of the maps).
 - `src/lib/live.ts` (`useLive`) refetches results and county files every 15 minutes and when the tab becomes visible; the old render stays at reduced opacity while a refresh is in flight, and a failed refresh shows a specific notice while keeping the last good data.
+- `HOME_STATE` (`src/lib/states.ts`, "WI") drives the Wisconsin shortcut: a toolbar chip that selects it on the current tab, a resting teal outline on both maps (replaced by the selected outline once picked), and the "Wisconsin at a glance" block (statewide races plus the House delegation) at the top of every overview panel.
 - Chamber tabs are WAI-ARIA tabs (Left/Right/Home/End). `raceTitle` in `summary.ts` is the one source for race names (cards, tooltips, aria-labels).
 - Colors validated with the dataviz palette checker on cream: D `#2D63A6`, R `#C23A30`, Ind/other `#B88A1E` (below 3:1, always paired with a label). Pale tints = leading, not called. `--muted` is `#6b665a` (5.1:1 on cream, 4.7:1 on the wash); the earlier `#7d776b` was under AA.
 - WPR design system: teal `#3A867C`, cream `#F6F2E9`, Fraunces (headlines), Public Sans (UI, hero numbers), JetBrains Mono (vote counts in tables).
@@ -128,5 +129,4 @@ FL-13 nearly two days before AP. Its `percent_reporting` lags AP on several call
 ## Next steps
 
 1. Settings → Pages → Source: GitHub Actions, then run "Update results" once by hand.
-2. Wisconsin shortcut for WPR readers: design proposed in the Nov. 5 polish report, awaiting a decision. Not built.
-3. Later: statewide ballot measures as a fourth tab (~169 in civicAPI).
+2. Later: statewide ballot measures as a fourth tab (~169 in civicAPI).

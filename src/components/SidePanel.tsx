@@ -1,6 +1,6 @@
 import { PALE, PARTY, PARTY_LABEL } from "../lib/colors";
 import { apNumber, marginText, pct, timeAgo } from "../lib/format";
-import { stateName } from "../lib/states";
+import { HOME_STATE, stateName } from "../lib/states";
 import { RUNOFF, raceFill, raceStatus } from "../lib/status";
 import type { Geo } from "../lib/geo";
 import { OFFICE_NAME, OFFICE_SINGULAR, type Chamber, type PopularVote } from "../lib/summary";
@@ -70,12 +70,13 @@ function RaceRow({ race, onClick, showOffice = false, when }: RowProps) {
   );
 }
 
-function Overview({ office, chamber, popularVote, now, onSelect }: Props) {
+function Overview({ office, chamber, popularVote, races, now, onSelect }: Props) {
   const counting = chamber.uncalled.filter((r) => !r.runoff);
   const pick = (r: Race) => onSelect(office, r.state, office === "H" ? r.district : null);
   return (
     <div className="panel">
       {office === "H" && <PopularVoteBlock vote={popularVote} />}
+      <HomeGlance races={races} onSelect={onSelect} />
       <h2 className="panel__title">{OFFICE_NAME[office] === "Governors" ? "Governor" : OFFICE_NAME[office]} races still being counted</h2>
       {counting.length ? (
         <>
@@ -131,6 +132,30 @@ function Overview({ office, chamber, popularVote, now, onSelect }: Props) {
         </p>
       )}
     </div>
+  );
+}
+
+/** The home state's statewide races and House delegation, one tap from any overview. */
+function HomeGlance({ races, onSelect }: Pick<Props, "races" | "onSelect">) {
+  const statewide = races.filter((r) => r.state === HOME_STATE && r.office !== "H");
+  const house = races.filter((r) => r.state === HOME_STATE && r.office === "H");
+  return (
+    <section className="glance" aria-labelledby="glance-title">
+      <h2 id="glance-title" className="panel__title">
+        {stateName(HOME_STATE)} at a glance
+      </h2>
+      <ul className="race-rows">
+        {statewide.map((r) => (
+          <RaceRow key={r.id} race={r} showOffice onClick={() => onSelect(r.office, HOME_STATE, null)} />
+        ))}
+        <li>
+          <button type="button" className="race-row race-row--house" onClick={() => onSelect("H", HOME_STATE, null)}>
+            <span className="race-row__where">House</span>
+            <Delegation races={house} />
+          </button>
+        </li>
+      </ul>
+    </section>
   );
 }
 

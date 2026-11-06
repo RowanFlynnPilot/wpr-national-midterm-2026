@@ -12,7 +12,7 @@ import { centralTime } from "./lib/format";
 import type { Geo } from "./lib/geo";
 import { useLive } from "./lib/live";
 import { isStale } from "./lib/share";
-import { stateName } from "./lib/states";
+import { HOME_STATE, stateName } from "./lib/states";
 import { chamber, dek, headline, housePopularVote, OFFICE_NAME, OFFICE_SLUG } from "./lib/summary";
 import type { Office, Race, Selection } from "./lib/types";
 
@@ -179,6 +179,14 @@ export function App({ data }: { data: Data }) {
           <div className="map-toolbar">
             <p className="map-caption">{mapCaption}</p>
             <div className="map-controls">
+            <button
+              type="button"
+              className="home-chip"
+              aria-pressed={sel.state === HOME_STATE && !sel.district}
+              onClick={() => select({ office: sel.office, state: HOME_STATE, district: null })}
+            >
+              {stateName(HOME_STATE)}
+            </button>
             <label className="state-jump">
               <span className="visually-hidden">Jump to a state</span>
               <select value={sel.state ?? ""} onChange={(e) => select({ office: sel.office, state: e.target.value || null, district: null })}>

@@ -363,6 +363,27 @@ a {
   cursor: pointer;
 }
 
+.home-chip {
+  padding: 0.38rem 0.8rem;
+  border: 1px solid var(--teal);
+  border-radius: 7px;
+  background: var(--paper-raised);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--teal-ink);
+  cursor: pointer;
+}
+
+.home-chip:hover {
+  background: rgba(58, 134, 124, 0.1);
+}
+
+.home-chip[aria-pressed="true"] {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: #fff;
+}
+
 .copy-link {
   display: inline-flex;
   align-items: center;
@@ -624,6 +645,21 @@ a {
   stroke: var(--ink);
   stroke-width: 2.2;
   stroke-linejoin: round;
+  pointer-events: none;
+}
+
+/* the home state, findable at rest */
+.home-outline,
+.hex-home-outline {
+  fill: none;
+  stroke: var(--teal);
+  stroke-width: 1.8;
+}
+
+.hex-home-outline {
+  stroke-width: 2.8; /* sits on the ink state borders */
+  stroke-linejoin: round;
+  stroke-linecap: round;
   pointer-events: none;
 }
 
@@ -1115,7 +1151,8 @@ a {
   color: var(--ink-2);
 }
 
-.popvote {
+.popvote,
+.glance {
   margin-bottom: 1.75rem;
 }
 

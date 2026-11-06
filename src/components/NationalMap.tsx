@@ -3,7 +3,7 @@ import { NO_RACE, NO_RESULTS, inkOn, marginColor } from "../lib/colors";
 import { countyColumns, readCounty } from "../lib/data";
 import { LABEL_NUDGE, VIEW, type Geo, type StateShape } from "../lib/geo";
 
-import { SMALL_STATES, STATES } from "../lib/states";
+import { HOME_STATE, SMALL_STATES, STATES } from "../lib/states";
 import { raceFill, statusText } from "../lib/status";
 import { raceTitle } from "../lib/summary";
 import type { CountyResults, Race } from "../lib/types";
@@ -64,6 +64,7 @@ export const NationalMap = memo(function NationalMap({ geo, mode, racesByState, 
   }, [mode, racesByState, counties]);
 
   const selectedShape = selected ? geo.states.find((s) => s.code === selected) : undefined;
+  const homeShape = selected === HOME_STATE ? undefined : geo.states.find((s) => s.code === HOME_STATE);
   const focusedShape = focused ? geo.states.find((s) => s.code === focused) : undefined;
   const zoomed = mode === "counties" && selectedShape ? selectedShape : undefined;
 
@@ -138,6 +139,7 @@ export const NationalMap = memo(function NationalMap({ geo, mode, racesByState, 
 
           <path className="state-borders" d={geo.stateBorders} vectorEffect="non-scaling-stroke" />
           <path className="nation" d={geo.nation} vectorEffect="non-scaling-stroke" />
+          {homeShape && <path className="home-outline" d={homeShape.d} vectorEffect="non-scaling-stroke" />}
           {selectedShape && <path className="selected-outline" d={selectedShape.d} vectorEffect="non-scaling-stroke" />}
           {focusedShape && <path className="focus-outline" d={focusedShape.d} vectorEffect="non-scaling-stroke" />}
         </g>
