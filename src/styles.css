@@ -557,6 +557,199 @@ a {
   display: none;
 }
 
+/* replay election night */
+.replay-start {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.6rem;
+  padding: 0.38rem 0.8rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: 7px;
+  background: var(--paper-raised);
+  font: 600 0.875rem var(--sans);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.replay {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: "play scrub exit" "play readout exit";
+  align-items: center;
+  column-gap: 0.7rem;
+  row-gap: 0.2rem;
+  margin: 0 0 0.6rem;
+  padding: 0.55rem 0.8rem;
+  border-left: 3px solid var(--teal);
+  background: var(--wash);
+}
+
+.replay__play {
+  grid-area: play;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--teal);
+  border-radius: 50%;
+  background: var(--teal);
+  font-size: 0.8rem;
+  color: #fff;
+  cursor: pointer;
+}
+
+.replay__scrub {
+  grid-area: scrub;
+  width: 100%;
+  margin: 0;
+  accent-color: var(--teal);
+  cursor: pointer;
+}
+
+.replay__readout {
+  grid-area: readout;
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 0.75rem;
+  min-width: 0;
+  font-size: 0.8125rem;
+  color: var(--ink-2);
+}
+
+.replay__clock strong {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.replay__call {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.replay__exit {
+  grid-area: exit;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: 7px;
+  background: var(--paper-raised);
+  font: 500 0.8125rem var(--sans);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.map-frame.is-replay {
+  outline: 2px solid var(--teal);
+  outline-offset: 6px;
+  border-radius: 4px;
+}
+
+/* since your last visit */
+.since {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.9rem;
+  margin: 0.9rem 0 0;
+  padding: 0.65rem 2.4rem 0.65rem 0.85rem;
+  border-left: 3px solid var(--teal);
+  background: var(--wash);
+  font-size: 0.875rem;
+  color: var(--ink-2);
+}
+
+.since__lead {
+  margin: 0;
+}
+
+.since__lead strong {
+  color: var(--ink);
+}
+
+.since__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.9rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.since__race {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--rule-strong);
+  text-underline-offset: 0.15em;
+  cursor: pointer;
+}
+
+.since__who {
+  margin-left: 0.35rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.since__more {
+  color: var(--muted);
+}
+
+.since__close {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.4rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+/* House margins strip */
+.margins {
+  margin-bottom: 1rem;
+}
+
+.margin-strip {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 0.25rem;
+}
+
+.margin-strip__base {
+  stroke: var(--rule-strong);
+  stroke-width: 1;
+}
+
+.margin-strip__tick {
+  font: 600 9px var(--sans);
+  fill: var(--muted);
+  text-anchor: middle;
+}
+
+.margin-strip__bar text {
+  font: 600 9px var(--sans);
+  fill: var(--ink);
+  text-anchor: middle;
+}
+
+.margin-strip__dot {
+  cursor: pointer;
+}
+
+.margin-strip__dot.is-home {
+  stroke: var(--ink);
+  stroke-width: 1.2;
+}
+
 @media (pointer: coarse) {
   .touch-hint {
     display: inline;
@@ -2121,6 +2314,13 @@ table.races {
 }
 
 @media (max-width: 700px) {
+  .replay {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas: "play scrub" "readout readout" "exit exit";
+  }
+  .replay__exit {
+    justify-self: start;
+  }
   .county-labels {
     display: none; /* 9px labels scale down to 3px on a phone */
   }
@@ -2262,8 +2462,37 @@ table.races {
   .map-back,
   .table-controls,
   .show-all,
-  .back {
+  .back,
+  .replay,
+  .replay-start,
+  .since,
+  .tooltip,
+  .legend__clear,
+  .sponsor--open,
+  .demo-ribbon,
+  .touch-hint,
+  .expander-col,
+  .detail__open {
     display: none;
+  }
+  .legend__item {
+    border: 0;
+    background: none;
+    font-weight: 400;
+  }
+  .national-map .states--states,
+  .hex-map .hexes {
+    filter: none;
+  }
+  .table-section {
+    break-before: page;
+  }
+  .sources {
+    break-inside: avoid;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
   }
   .app {
     max-width: none;

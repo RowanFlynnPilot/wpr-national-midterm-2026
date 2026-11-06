@@ -84,6 +84,16 @@ Every office's table now expands a row into the full race card (all candidates w
 
 The key is now a spotlight filter: press "Democrat leads", "Seat flipped" or "Called in the last 3 hours" and every other state or hex dims. Hover draws an ink outline instead of darkening the fill, fills cross-fade when a refresh changes a call, the maps fade in once on load and sit on one soft shadow, fresh calls get a dashed teal ring, the tooltip leads with the leader's headshot and share bars, and a zoomed state names its five biggest counties (Dallas, Travis, Bexar, Harris, El Paso in Texas) with overlap avoidance. Proven at 390/768/1280/1600 (`senate-spotlight-*`, `senate-spotlight-legend-*`, `senate-hover-*`, `house-hover-*`, `senate-counties-tx-*`); no console errors.
 
+## Statement features (Nov. 6)
+
+**Replay election night.** A play button and scrubber above the map walk the 491 timestamped calls in order; the maps, tabs, headline, panel and table show the results as they stood after each one, the readout names the race just called, and the "called in the last 3 hours" rings follow the replay clock. Before a call a state shows today's leader in a pale tint (the count history starts Nov. 5, so there is no earlier lead to show); the 34 calls civicAPI did not timestamp land at the end. `senate-replay-*` (8:21 p.m. Nov. 3, 120 calls in), `house-replay-*` (8 p.m., 60 calls in).
+
+**Since you were last here.** A strip under the tabs lists the races called since this browser last had the page open, five named with the winner and a count of the rest; it lives in the browser alone and is dismissable. `senate-since-*` (seeded with a visit five hours before any call).
+
+**How close the House was.** All 435 districts as dots on one margin axis on the House overview, Democratic wins left, Republican right, Wisconsin's eight outlined, the 87 and 8 safe seats past 38 points as labeled bars. `house-margins-*`.
+
+**Print.** The page prints as the tallies, the map and the table, without controls, sponsor upsells or the replay.
+
 ## Lighthouse (mobile, gzip-served build, two runs per view)
 
 | View | Performance | Accessibility | Best Practices | LCP | CLS |

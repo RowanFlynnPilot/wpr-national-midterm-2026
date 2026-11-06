@@ -7,6 +7,7 @@ import { side, trend, type History } from "../lib/history";
 import { measureShortTitle, OFFICE_NAME, OFFICE_SINGULAR, type Chamber, type PopularVote } from "../lib/summary";
 import type { CountySets, Office, Race } from "../lib/types";
 import { CountyMap } from "./CountyMap";
+import { MarginStrip } from "./MarginStrip";
 import { RaceCard } from "./RaceCard";
 
 interface Props {
@@ -103,24 +104,39 @@ function RaceRow({ race, onClick, showOffice = false, when, points }: RowProps) 
   );
 }
 
+const COUNTING_LISTED = 40;
+
 function Overview({ office, chamber, popularVote, races, history, now, onSelect }: Props) {
   const counting = chamber.uncalled.filter((r) => !r.runoff);
+  const listed = counting.slice(0, COUNTING_LISTED); // mid-replay, hundreds are uncalled; the table has them all
   const pick = (r: Race) => onSelect(office, r.state, routeOf(r));
   const measures = office === "B";
   const failed = measures ? races.filter((r) => r.office === "B" && r.winner === "N") : [];
   return (
     <div className="panel">
       {office === "H" && <PopularVoteBlock vote={popularVote} />}
+      {office === "H" && (
+        <section className="margins" aria-labelledby="margins-title">
+          <h2 id="margins-title" className="panel__title">
+            How close the House was
+          </h2>
+          <p className="panel__note">
+            Each dot is one district by its margin, Democratic wins to the left and Republican to the right; pale dots are not yet called. Wisconsin’s eight are outlined.
+          </p>
+          <MarginStrip races={races} onSelect={(r) => onSelect("H", r.state, r.district)} />
+        </section>
+      )}
       <HomeGlance races={races} onSelect={onSelect} />
       <h2 className="panel__title">{measures ? "Measures" : `${OFFICE_NAME[office] === "Governors" ? "Governor" : OFFICE_NAME[office]} races`} still being counted</h2>
       {counting.length ? (
         <>
           <p className="panel__note">Closest first. Leads are in percentage points.</p>
           <ul className="race-rows">
-            {counting.map((r) => (
+            {listed.map((r) => (
               <RaceRow key={r.id} race={r} points={history[String(r.id)]} onClick={() => pick(r)} />
             ))}
           </ul>
+          {counting.length > listed.length && <p className="panel__note">And {counting.length - listed.length} more; every race is in the table below.</p>}
         </>
       ) : (
         <p className="panel__note">Every {measures ? "measure" : `${OFFICE_SINGULAR[office].toLowerCase()} race`} has been called.</p>

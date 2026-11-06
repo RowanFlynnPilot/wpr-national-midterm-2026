@@ -30,6 +30,10 @@ const VIEWS = {
   "senate-demo": { hash: "?demo#senate" },
   "senate-spotlight": { hash: "#senate", click: '.legend__item:has-text("Seat flipped")', clip: "map" },
   "senate-spotlight-legend": { hash: "#senate", click: '.legend__item:has-text("Democrat leads")', clip: "legend" },
+  "senate-replay": { hash: "#senate", click: ".replay-start", fill: [".replay__scrub", "120"], clip: "legend" },
+  "house-replay": { hash: "#house", click: ".replay-start", fill: [".replay__scrub", "60"], clip: "legend" },
+  "house-margins": { hash: "#house", clip: "panel" },
+  "senate-since": { hash: "#senate", visitHoursAgo: 5, clip: "since" },
   "senate-table": { hash: "#senate", click: ".races tbody tr:nth-child(2) .expander", clip: "table" },
   "senate-remaining": { hash: "#senate", click: 'button[role="radio"]:has-text("Still counting")' },
   "senate-counties-tx": { hash: "#senate-tx", click: 'button[role="radio"]:has-text("Counties")', settle: 900, clip: "map" },
@@ -52,6 +56,12 @@ for (const width of WIDTHS) {
     page.on("console", (m) => m.type() === "error" && problems.push(`${name}@${width}: console.error ${m.text()}`));
     page.on("pageerror", (e) => problems.push(`${name}@${width}: pageerror ${e.message}`));
     page.on("requestfailed", (r) => problems.push(`${name}@${width}: request failed ${r.url()}`));
+    if (view.visitHoursAgo) {
+      // a browser that last saw the page before any call: the strip lists every call since
+      await page.addInitScript((hours) => {
+        localStorage.setItem("wpr-midterm-2026-last-visit", JSON.stringify({ at: new Date(Date.now() - hours * 3600e3).toISOString(), called: [] }));
+      }, view.visitHoursAgo);
+    }
     await page.goto(`http://localhost:${server.port}/${view.hash}`, { waitUntil: "networkidle" });
     await page.waitForSelector(".board");
     await page.evaluate(() => document.fonts.ready);
@@ -64,6 +74,7 @@ for (const width of WIDTHS) {
       await page.locator(view.hover).first().hover();
       await page.waitForSelector(".tooltip");
     }
+    if (view.fill) await page.locator(view.fill[0]).fill(view.fill[1]);
     if (view.focus) {
       await page.locator(view.focus).first().focus();
       for (const key of view.keys ?? []) await page.keyboard.press(key);
@@ -74,6 +85,8 @@ for (const width of WIDTHS) {
     if (view.clip === "map") await page.locator(".map-frame").screenshot({ path });
     else if (view.clip === "table") await page.locator(".table-section").screenshot({ path });
     else if (view.clip === "legend") await page.locator(".board__map").screenshot({ path });
+    else if (view.clip === "panel") await page.locator(".board__panel").screenshot({ path });
+    else if (view.clip === "since") await page.locator(".since").screenshot({ path });
     else await page.screenshot({ path, fullPage: true });
     await page.close();
     console.log(path);

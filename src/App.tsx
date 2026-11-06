@@ -8,6 +8,8 @@ import { SALES_EMAIL } from "./sponsors";
 import { Legend } from "./components/Legend";
 import { NationalMap, type MapMode } from "./components/NationalMap";
 import { RaceTable } from "./components/RaceTable";
+import { Replay } from "./components/Replay";
+import { SinceVisit } from "./components/SinceVisit";
 import { SidePanel } from "./components/SidePanel";
 import { Tooltip, type HoverHandler, type HoverTarget, type MeasureSummary } from "./components/Tooltip";
 import { countyColumns, loadAtlas, loadHistory, readCounty, type Data } from "./lib/data";
@@ -15,6 +17,8 @@ import type { History } from "./lib/history";
 import { centralTime, relativeAge } from "./lib/format";
 import type { Geo } from "./lib/geo";
 import { useLive } from "./lib/live";
+import { callOrder, resultsAfter } from "./lib/replay";
+import { readVisit, writeVisit } from "./lib/visits";
 import { isStale } from "./lib/share";
 import { isFresh, noVotesYet, type LegendKey } from "./lib/status";
 import { HOME_STATE, stateName } from "./lib/states";
@@ -52,7 +56,16 @@ function MapPending({ error, what }: { error: string | null; what: "map" | "coun
 
 export function App({ data }: { data: Data }) {
   const { hexes } = data;
-  const { results, counties, refreshing, error } = useLive(data.results);
+  const live = useLive(data.results);
+  const { counties, refreshing, error } = live;
+  // Replay: position i shows the results after the first i timestamped calls; the clock follows it.
+  const calls = useMemo(() => callOrder(live.results), [live.results]);
+  const unstamped = useMemo(() => live.results.races.filter((r) => r.winner !== null && r.calledAt === null).length, [live.results]);
+  const [replay, setReplay] = useState<number | null>(null);
+  const results = useMemo(() => (replay === null ? live.results : resultsAfter(live.results, replay, calls)), [live.results, replay, calls]);
+  // What this browser had seen called last time, read before the first write below replaces it.
+  const [visit] = useState(readVisit);
+  useEffect(() => writeVisit(live.results, Date.now()), [live.results]);
   // The map shapes are the largest file. Fetching them from an effect, after the first paint,
   // keeps the headline, tabs, panel and table from ever waiting on them; the maps fill in after.
   const [geo, setGeo] = useState<Geo | null>(null);
@@ -71,6 +84,9 @@ export function App({ data }: { data: Data }) {
   const [mode, setMode] = useState<MapMode>("states");
   const [spotlight, setSpotlight] = useState<LegendKey | null>(null);
   useEffect(() => setSpotlight(null), [sel.office, mode]); // a new map, a fresh key
+  useEffect(() => {
+    if (mode !== "states") setReplay(null); // county views have no history to replay
+  }, [mode]);
   const [hover, setHover] = useState<Hover | null>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
@@ -112,6 +128,14 @@ export function App({ data }: { data: Data }) {
     const id = window.setInterval(() => setNow(Date.now()), 60_000);
     return () => window.clearInterval(id);
   }, []);
+
+  // The board's clock: the replay position's call time while replaying, else the present.
+  const clock =
+    replay === null || replay >= calls.length
+      ? now
+      : replay === 0
+        ? Date.parse((calls[0] as Race).calledAt as string) - 1
+        : Date.parse((calls[replay - 1] as Race).calledAt as string);
 
   const select = useCallback((next: Selection, scroll = true) => {
     setSel(next);
@@ -206,7 +230,7 @@ export function App({ data }: { data: Data }) {
       : `Democrats have won ${c.won.D}, Republicans ${c.won.R}${c.won.I ? `, independents ${c.won.I}` : ""}; ${c.uncalled.length} not called.`;
   const mapDescription = `${mapCaption}. ${tally}`;
   const hasNoVotes = officeRaces.some(noVotesYet);
-  const hasFresh = officeRaces.some((r) => isFresh(r, now));
+  const hasFresh = officeRaces.some((r) => isFresh(r, clock));
   const needsCounties = sel.office !== "H" && sel.office !== "B" && mode !== "states";
 
   // The browser tab names the view, so history, bookmarks and shared tabs read as the race.
@@ -250,6 +274,14 @@ export function App({ data }: { data: Data }) {
       </section>
 
       <ChamberTabs chambers={chambers} office={sel.office} onChange={(office) => select({ office, state: sel.state, district: null }, false)} />
+      {visit && replay === null && (
+        <SinceVisit
+          visit={visit}
+          results={live.results}
+          now={now}
+          onSelect={(r) => select({ office: r.office, state: r.state, district: r.office === "H" || r.office === "B" ? r.district : null })}
+        />
+      )}
 
       <section className="board" id="board">
         <div className="board__map">
@@ -290,7 +322,8 @@ export function App({ data }: { data: Data }) {
             <CopyLink hash={toHash(sel)} />
             </div>
           </div>
-          <div className="map-frame" ref={frameRef} onPointerLeave={() => setHover(null)}>
+          {(sel.office === "H" || sel.office === "B" || mode === "states") && <Replay calls={calls} unstamped={unstamped} at={replay} onChange={setReplay} />}
+          <div className={replay === null ? "map-frame" : "map-frame is-replay"} ref={frameRef} onPointerLeave={() => setHover(null)}>
             {sel.office === "H" ? (
               <HexMap
                 hexes={hexes}
@@ -298,7 +331,7 @@ export function App({ data }: { data: Data }) {
                 selectedState={sel.state}
                 selectedDistrict={sel.district}
                 spotlight={spotlight}
-                now={now}
+                now={clock}
                 description={mapDescription}
                 onHover={onHover}
                 onSelect={onHexSelect}
@@ -311,7 +344,7 @@ export function App({ data }: { data: Data }) {
                 racesByState={racesByState}
                 measureCounts={measureCounts}
                 spotlight={spotlight}
-                now={now}
+                now={clock}
                 counties={officeCounties ?? {}}
                 selected={sel.state}
                 onHover={onHover}
@@ -327,7 +360,7 @@ export function App({ data }: { data: Data }) {
                 race={hoverRace}
                 measures={hoverMeasures}
                 counties={officeCounties}
-                now={now}
+                now={clock}
                 x={hover.x}
                 y={hover.y}
                 bounds={{ width: frameRef.current.clientWidth, height: frameRef.current.clientHeight }}
@@ -359,7 +392,7 @@ export function App({ data }: { data: Data }) {
             counties={counties}
             geo={geo}
             history={history}
-            now={now}
+            now={clock}
             onSelect={(office, state, district) => select({ office, state, district })}
           />
         </aside>
@@ -369,7 +402,7 @@ export function App({ data }: { data: Data }) {
         office={sel.office}
         races={results.races}
         history={history}
-        now={now}
+        now={clock}
         onSelect={(r) => select({ office: r.office, state: r.state, district: r.office === "H" || r.office === "B" ? r.district : null })}
       />
 
