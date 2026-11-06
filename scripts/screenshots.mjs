@@ -27,6 +27,7 @@ const VIEWS = {
   "measures-wi": { hash: "#measures-wi" },
   "measure-card": { hash: "#measures-wi-179849" },
   "measures-hover": { hash: "#measures", hover: 'path.state.has-race[aria-label^="California"]', clip: "map" },
+  "senate-demo": { hash: "?demo#senate" },
   "senate-remaining": { hash: "#senate", click: 'button[role="radio"]:has-text("Still counting")' },
   "senate-counties-tx": { hash: "#senate-tx", click: 'button[role="radio"]:has-text("Counties")', settle: 900, clip: "map" },
   "house-keyboard": { hash: "#house", focus: 'polygon.hex[tabindex="0"]', keys: ["ArrowRight", "ArrowRight", "ArrowDown"], clip: "map" },

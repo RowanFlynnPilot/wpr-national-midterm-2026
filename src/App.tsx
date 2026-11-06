@@ -3,6 +3,8 @@ import { ChamberTabs } from "./components/ChamberTabs";
 import { CopyLink } from "./components/CopyLink";
 import { HexMap } from "./components/HexMap";
 import { FooterSeal, Masthead } from "./components/Masthead";
+import { DemoRibbon, TitleSlot } from "./components/Sponsor";
+import { SALES_EMAIL } from "./sponsors";
 import { Legend } from "./components/Legend";
 import { NationalMap, type MapMode } from "./components/NationalMap";
 import { RaceTable } from "./components/RaceTable";
@@ -215,6 +217,7 @@ export function App({ data }: { data: Data }) {
       <a className="skip" href="#board">
         Skip to the results
       </a>
+      <DemoRibbon />
       <Masthead now={now} />
 
       {error ? (
@@ -240,6 +243,7 @@ export function App({ data }: { data: Data }) {
         </p>
         <h1>{headline(chambers.H, chambers.S)}</h1>
         <p className="hero__dek">{dek(chambers.H, chambers.S, chambers.G, chambers.B)}</p>
+        <TitleSlot />
       </section>
 
       <ChamberTabs chambers={chambers} office={sel.office} onChange={(office) => select({ office, state: sel.state, district: null }, false)} />
@@ -369,7 +373,8 @@ export function App({ data }: { data: Data }) {
           contributors (<a href="./credits.html">photo credits</a>).
         </p>
         <p className="sources__paper">
-          <a href="https://wausaupilotandreview.com/">Wausau Pilot &amp; Review</a> · 715-301-5539
+          <a href="https://wausaupilotandreview.com/">Wausau Pilot &amp; Review</a> · 715-301-5539 ·{" "}
+          <a href={`mailto:${SALES_EMAIL}?subject=${encodeURIComponent("Sponsorship: 2026 midterm results")}`}>Advertise on this page</a>
         </p>
         </div>
       </footer>

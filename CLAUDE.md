@@ -147,6 +147,19 @@ hash into the iframe so a shared link opens on the right view, and passes the ar
 </script>
 ```
 
+## Sponsorship
+
+The WPR tracker model (wpr-brand skill, `references/sponsorship.md`). Inventory lives in `src/sponsors.ts` and nowhere else:
+`SPONSORS.title` is a `Sponsor` or `null`. Sold: `SponsorLockup` under the hero dek, a white card marked on top in teal with
+"Presented by", the logo (`public/sponsors/<file>`, drawn for white, ~50px) or the name in Fraunces, the tagline split at the
+em dash into a bold offer and a muted place, a Directions chip when there is an address (Apple Maps on Apple hardware, Google
+Maps elsewhere; a button-role span, since the card is already a link), UTM tags on the way out and
+`rel="noopener noreferrer sponsored"`. Open: `OpenSlot`, a dashed card leading with "Sponsorship available", one line of
+value, a "Book this placement →" mailto to `SALES_EMAIL` (weber.chris@wausaupilotandreview.com, the one address) with the
+placement in the subject, which also copies the address and confirms inline. `?demo` fills every open slot with "Your Brand
+Here" under a ribbon that names itself a sales preview; sold slots are never overridden. The footer carries "Advertise on this
+page". To sell the slot: fill in `SPONSORS.title`, drop the logo in `public/sponsors/`, commit.
+
 ## Compact embed
 
 `compact.html` + `src/compact.tsx`: the balance of power (four cards) and the six latest calls, for a homepage module or an

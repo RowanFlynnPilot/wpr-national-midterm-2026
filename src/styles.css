@@ -273,6 +273,121 @@ a {
   color: var(--ink-2);
 }
 
+/* ---------- sponsorship ---------- */
+
+/* A sold placement: white card, marked on top in the accent. */
+.sponsor {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: "eyebrow eyebrow eyebrow" "logo tagline chip";
+  align-items: center;
+  gap: 0.35rem 1rem;
+  margin: 1.5rem 0 0;
+  padding: 0.75rem 1rem 0.85rem;
+  border: 1px solid var(--rule);
+  border-top: 3px solid var(--teal);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.sponsor__eyebrow {
+  grid-area: eyebrow;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--teal-ink);
+}
+
+.sponsor__logo {
+  grid-area: logo;
+  height: 50px;
+  width: auto;
+  max-width: 220px;
+  object-fit: contain;
+}
+
+.sponsor__name {
+  grid-area: logo;
+  font: 600 1.5rem/1.1 var(--display);
+  font-variation-settings: "opsz" 48;
+}
+
+.sponsor__tagline {
+  grid-area: tagline;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-size: 0.9375rem;
+  line-height: 1.3;
+}
+
+.sponsor__where {
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.sponsor__chip {
+  grid-area: chip;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* An open placement: dashed, the ask first. */
+.sponsor--open {
+  grid-template-columns: 1fr auto;
+  grid-template-areas: "eyebrow eyebrow" "pitch book" "email book";
+  border: 1.5px dashed var(--rule-strong);
+  border-top: 1.5px dashed var(--rule-strong);
+  background: var(--paper-raised);
+}
+
+.sponsor__pitch {
+  grid-area: pitch;
+  margin: 0;
+  font: 600 1.05rem/1.3 var(--display);
+  font-variation-settings: "opsz" 36;
+}
+
+.sponsor__book {
+  grid-area: book;
+  align-self: center;
+  padding: 0.55rem 1rem;
+  border-radius: 7px;
+  background: var(--teal-ink);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.sponsor__email {
+  grid-area: email;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.demo-ribbon {
+  margin: 0;
+  padding: 0.5rem 1rem;
+  background: var(--teal);
+  color: #fff;
+  font-size: 0.8125rem;
+  text-align: center;
+}
+
+.demo-ribbon a {
+  color: inherit;
+  font-weight: 600;
+}
+
 /* ---------- chamber tabs ---------- */
 
 .chambers {
@@ -1645,6 +1760,15 @@ table.races {
 
 /* Hover only where the input can hover: touch would otherwise keep the first tap's hover state. */
 @media (hover: hover) and (pointer: fine) {
+  .sponsor:hover {
+    border-color: var(--rule-strong);
+    border-top-color: var(--teal-ink);
+  }
+
+  .sponsor__book:hover {
+    background: var(--ink);
+  }
+
   .chamber:hover {
     background: rgba(29, 27, 23, 0.025);
   }
@@ -1737,6 +1861,17 @@ table.races {
 @media (max-width: 700px) {
   .copy-link__label {
     display: none; /* the button keeps its name through aria-label */
+  }
+  .sponsor {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "eyebrow eyebrow" "logo chip" "tagline tagline";
+  }
+  .sponsor--open {
+    grid-template-columns: 1fr;
+    grid-template-areas: "eyebrow" "pitch" "book" "email";
+  }
+  .sponsor__book {
+    justify-self: start;
   }
   .copy-link {
     padding: 0.38rem 0.6rem;
