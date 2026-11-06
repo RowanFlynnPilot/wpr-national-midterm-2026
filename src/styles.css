@@ -2045,7 +2045,10 @@ table.races {
   }
   .races th,
   .races td {
-    padding: 0.5rem 0.35rem;
+    padding: 0.5rem 0.3rem;
+  }
+  .pill {
+    font-size: 0.75rem;
   }
   .races th:first-child,
   .races td:first-child {
@@ -2057,11 +2060,11 @@ table.races {
   }
   .cand-cell {
     grid-template-columns: 12px minmax(0, 1fr);
-    min-width: 8rem; /* room for a long surname before the status column takes it */
+    min-width: 6.5rem; /* room for a long surname without pushing the status column off a phone */
   }
   .cand-cell__name {
-    overflow-wrap: break-word; /* break only a word that cannot fit, never mid-name for convenience */
-    hyphens: auto;
+    font-size: 0.8125rem; /* a 12-letter surname fits the column whole at this size */
+    overflow-wrap: break-word;
   }
   .races .detail-row td {
     padding-left: 0;
