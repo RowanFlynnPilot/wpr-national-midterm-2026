@@ -22,6 +22,7 @@ MAJORITY_RUNOFF = {("LA", "H")}
 KEEP_MIN_PCT = 1.0
 MAX_CANDS = 5
 COUNTY_CANDS = 3
+COUNTY_TOLERANCE_PCT = 2.0  # county rows normally sum within 0.3% of the statewide total; more means a broken feed
 
 
 def party_code(party: str) -> str:
@@ -93,7 +94,26 @@ def county_rows(detail: dict, cands: list[dict], ids: set[str], by_name: dict) -
             prev = rows[fips]
             row = [min(prev[0], row[0]), *[a + b for a, b in zip(prev[1:], row[1:])]]
         rows[fips] = row
+    statewide = sum(c["votes"] for c in cands)
+    counted = sum(sum(row[1:]) for row in rows.values())
+    if statewide and abs(counted - statewide) > statewide * COUNTY_TOLERANCE_PCT / 100:
+        raise RuntimeError(f"{detail['election_name']}: counties sum to {counted} votes but the race reports {statewide}")
     return rows
+
+
+def check_race(name: str, detail: dict, cands: list[dict]) -> None:
+    """Fail the build on states the front end cannot represent."""
+    winners = [c for c in cands if c["winner"]]
+    if len(winners) > 1:
+        raise RuntimeError(f"{name}: multiple winners {[c['name'] for c in winners]}")
+    if winners and any(c["advanced"] for c in cands):
+        raise RuntimeError(f"{name}: has a winner and runoff finalists")
+    if any(c["votes"] < 0 for c in cands):
+        raise RuntimeError(f"{name}: negative vote count")
+    if sum(c["pct"] for c in cands) > 100.5:
+        raise RuntimeError(f"{name}: candidate shares sum past 100%")
+    if not 0 <= detail["percent_reporting"] <= 100:
+        raise RuntimeError(f"{name}: percent_reporting {detail['percent_reporting']}")
 
 
 def main() -> None:
@@ -106,10 +126,13 @@ def main() -> None:
         detail = json.loads((RAW / "races" / f"{r['id']}.json").read_text())
         office = OFFICE_CODE[r["type"]]
         cands = candidates(detail["candidates"])
+        check_race(r["election_name"], detail, cands)
         winners = [c for c in cands if c["winner"]]
-        if len(winners) > 1:
-            raise RuntimeError(f"{r['election_name']}: multiple winners")
-        holder = baselines[{"S": "senate", "G": "governor"}[office]]["seat_holder"][r["province"]] if office != "H" else None
+        holder = None
+        if office != "H":
+            holder = baselines[{"S": "senate", "G": "governor"}[office]]["seat_holder"].get(r["province"])
+            if holder not in ("D", "R", "I"):
+                raise RuntimeError(f"{r['election_name']}: no pre-election seat holder for {r['province']} in baselines.json")
         winner = winners[0]["party"] if winners else None
         major = [c for c in cands if c["party"] != "O"]
         runoff = not winner and (

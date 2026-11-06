@@ -1,0 +1,1037 @@
+{
+ "updated": "2026-11-06T02:07:47.915Z",
+ "fetched": "2026-11-06T02:07:51Z",
+ "baselines": {
+  "senate": {
+   "before": {
+    "D": 47,
+    "R": 53
+   },
+   "not_up": {
+    "D": 34,
+    "R": 31
+   }
+  },
+  "governor": {
+   "before": {
+    "D": 24,
+    "R": 26
+   },
+   "not_up": {
+    "D": 6,
+    "R": 8
+   }
+  },
+  "house": {
+   "before": {
+    "D": 215,
+    "R": 220
+   }
+  }
+ },
+ "races": [
+  {
+   "id": 148898,
+   "office": "G",
+   "state": "AK",
+   "district": null,
+   "num": null,
+   "special": false,
+   "pctIn": 72.8,
+   "calledAt": null,
+   "winner": null,
+   "leader": "D",
+   "prior": "R",
+   "flip": null,
+   "runoff": false,
+   "unopposed": false,
+   "partyDecided": null,
+   "margin": 19.87,
+   "marginVotes": 42095,
+   "total": 211845,
+   "cands": [
+    {
+     "name": "Jonathan S. \"JKT\" Kreiss-Tomkins",
+     "party": "D",
+     "partyName": "Democratic",
+     "votes": 104046,
+     "pct": 49.11,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Bernadette M. Wilson",
+     "party": "R",
+     "partyName": "Republican",
+     "votes": 61951,
+     "pct": 29.24,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Dave Bronson",
+     "party": "R",
+     "partyName": "Republican",
+     "votes": 30054,
+     "pct": 14.19,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Treg Taylor",
+     "party": "R",
+     "partyName": "Republican",
+     "votes": 15794,
+     "pct": 7.46,
+     "winner": false,
+     "advanced": false
+    }
+   ]
+  },
+  {
+   "id": 86908,
+   "office": "G",
+   "state": "AL",
+   "district": null,
+   "num": null,
+   "special": false,
+   "pctIn": 97.9,
+   "calledAt": "2026-11-04T06:42:37.178Z",
+   "winner": "R",
+   "leader": "R",
+   "prior": "R",
+   "flip": false,
+   "runoff": false,
+   "unopposed": false,
+   "partyDecided": null,
+   "margin": 4,
+   "marginVotes": 67069,
+   "total": 1679609,
+   "cands": [
+    {
+     "name": "Tommy Tuberville",
+     "party": "R",
+     "partyName": "Republican",
+     "votes": 873339,
+     "pct": 52,
+     "winner": true,
+     "advanced": false
+    },
+    {
+     "name": "Doug Jones",
+     "party": "D",
+     "partyName": "Democratic",
+     "votes": 806270,
+     "pct": 48,
+     "winner": false,
+     "advanced": false
+    }
+   ]
+  },
+  {
+   "id": 87260,
+   "office": "G",
+   "state": "NV",
+   "district": null,
+   "num": null,
+   "special": false,
+   "pctIn": 84,
+   "calledAt": "2026-11-04T09:52:10.203Z",
+   "winner": "D",
+   "leader": "D",
+   "prior": "R",
+   "flip": true,
+   "runoff": false,
+   "unopposed": false,
+   "partyDecided": null,
+   "margin": 7.08,
+   "marginVotes": 73276,
+   "total": 1035046,
+   "cands": [
+    {
+     "name": "Aaron Ford",
+     "party": "D",
+     "partyName": "Democratic",
+     "votes": 532083,
+     "pct": 51.41,
+     "winner": true,
+     "advanced": false
+    },
+    {
+     "name": "Joe Lombardo",
+     "party": "R",
+     "partyName": "Republican",
+     "votes": 458807,
+     "pct": 44.33,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Danielle Ford",
+     "party": "I",
+     "partyName": "No Political Party",
+     "votes": 29117,
+     "pct": 2.81,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "None of These Candidates",
+     "party": "O",
+     "partyName": "Ballot option",
+     "votes": 15039,
+     "pct": 1.45,
+     "winner": false,
+     "advanced": false
+    }
+   ]
+  },
+  {
+   "id": 55857,
+   "office": "G",
+   "state": "TX",
+   "district": null,
+   "num": null,
+   "special": false,
+   "pctIn": 99,
+   "calledAt": "2026-11-04T04:19:08.955Z",
+   "winner": "D",
+   "leader": "D",
+   "prior": "R",
+   "flip": true,
+   "runoff": false,
+   "unopposed": false,
+   "partyDecided": null,
+   "margin": 7.12,
+   "marginVotes": 705974,
+   "total": 9910298,
+   "cands": [
+    {
+     "name": "Gina Hinojosa",
+     "party": "D",
+     "partyName": "Democratic",
+     "votes": 5230929,
+     "pct": 52.78,
+     "winner": true,
+     "advanced": false
+    },
+    {
+     "name": "Greg Abbott",
+     "party": "R",
+     "partyName": "Republican",
+     "votes": 4524955,
+     "pct": 45.66,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Pat Dixon",
+     "party": "I",
+     "partyName": "Libertarian",
+     "votes": 148096,
+     "pct": 1.49,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Others",
+     "party": "O",
+     "partyName": "Other candidates",
+     "votes": 6318,
+     "pct": 0.06,
+     "winner": false,
+     "advanced": false
+    }
+   ]
+  },
+  {
+   "id": 86915,
+   "office": "H",
+   "state": "AK",
+   "district": "AK-AL",
+   "num": 0,
+   "special": false,
+   "pctIn": 73.3,
+   "calledAt": null,
+   "winner": null,
+   "leader": "R",
+   "prior": null,
+   "flip": null,
+   "runoff": false,
+   "unopposed": false,
+   "partyDecided": null,
+   "margin": 9.25,
+   "marginVotes": 19738,
+   "total": 213522,
+   "cands": [
+    {
+     "name": "Nick Begich III",
+     "party": "R",
+     "partyName": "Republican",
+     "votes": 105946,
+     "pct": 49.62,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Bill Hill",
+     "party": "I",
+     "partyName": "Nonpartisan",
+     "votes": 86208,
+     "pct": 40.37,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Eric Hafner",
+     "party": "D",
+     "partyName": "Democratic",
+     "votes": 15572,
+     "pct": 7.29,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "James C. \"Jim\" McDermott",
+     "party": "I",
+     "partyName": "Libertarian",
+     "votes": 5796,
+     "pct": 2.71,
+     "winner": false,
+     "advanced": false
+    }
+   ]
+  },
+  {
+   "id": 87001,
+   "office": "H",
+   "state": "CA",
+   "district": "CA-04",
+   "num": 4,
+   "special": false,
+   "pctIn": 100,
+   "calledAt": null,
+   "winner": null,
+   "leader": "D",
+   "prior": null,
+   "flip": null,
+   "runoff": false,
+   "unopposed": false,
+   "partyDecided": "D",
+   "margin": 2.92,
+   "marginVotes": 3629,
+   "total": 124359,
+   "cands": [
+    {
+     "name": "Eric Jones",
+     "party": "D",
+     "partyName": "Democratic",
+     "votes": 63994,
+     "pct": 51.46,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Mike Thompson",
+     "party": "D",
+     "partyName": "Democratic",
+     "votes": 60365,
+     "pct": 48.54,
+     "winner": false,
+     "advanced": false
+    }
+   ]
+  },
+  {
+   "id": 86991,
+   "office": "H",
+   "state": "CA",
+   "district": "CA-40",
+   "num": 40,
+   "special": false,
+   "pctIn": 100,
+   "calledAt": null,
+   "winner": null,
+   "leader": "R",
+   "prior": null,
+   "flip": null,
+   "runoff": false,
+   "unopposed": false,
+   "partyDecided": "R",
+   "margin": 8.38,
+   "marginVotes": 12606,
+   "total": 150334,
+   "cands": [
+    {
+     "name": "Ken Calvert",
+     "party": "R",
+     "partyName": "Republican",
+     "votes": 81470,
+     "pct": 54.19,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Young Kim",
+     "party": "R",
+     "partyName": "Republican",
+     "votes": 68864,
+     "pct": 45.81,
+     "winner": false,
+     "advanced": false
+    }
+   ]
+  },
+  {
+   "id": 87049,
+   "office": "H",
+   "state": "FL",
+   "district": "FL-10",
+   "num": 10,
+   "special": false,
+   "pctIn": 0,
+   "calledAt": null,
+   "winner": "D",
+   "leader": "D",
+   "prior": null,
+   "flip": null,
+   "runoff": false,
+   "unopposed": true,
+   "partyDecided": null,
+   "margin": 100.0,
+   "marginVotes": 0,
+   "total": 0,
+   "cands": [
+    {
+     "name": "Maxwell Frost",
+     "party": "D",
+     "partyName": "Democratic",
+     "votes": 0,
+     "pct": 0,
+     "winner": true,
+     "advanced": false
+    }
+   ]
+  },
+  {
+   "id": 87181,
+   "office": "H",
+   "state": "LA",
+   "district": "LA-05",
+   "num": 5,
+   "special": false,
+   "pctIn": 100,
+   "calledAt": null,
+   "winner": null,
+   "leader": "D",
+   "prior": null,
+   "flip": null,
+   "runoff": true,
+   "unopposed": false,
+   "partyDecided": null,
+   "margin": 0.73,
+   "marginVotes": 1658,
+   "total": 227917,
+   "cands": [
+    {
+     "name": "Patricia \"Pat\" Moore",
+     "party": "D",
+     "partyName": "Democratic",
+     "votes": 40789,
+     "pct": 17.9,
+     "winner": false,
+     "advanced": true
+    },
+    {
+     "name": "Gabe Firment",
+     "party": "R",
+     "partyName": "Republican",
+     "votes": 39131,
+     "pct": 17.17,
+     "winner": false,
+     "advanced": true
+    },
+    {
+     "name": "Misti Cordell",
+     "party": "R",
+     "partyName": "Republican",
+     "votes": 33366,
+     "pct": 14.64,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Michael Echols",
+     "party": "R",
+     "partyName": "Republican",
+     "votes": 32902,
+     "pct": 14.44,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Stewart Cathey, Jr.",
+     "party": "R",
+     "partyName": "Republican",
+     "votes": 28160,
+     "pct": 12.36,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Others",
+     "party": "O",
+     "partyName": "Other candidates",
+     "votes": 53569,
+     "pct": 23.5,
+     "winner": false,
+     "advanced": false
+    }
+   ]
+  },
+  {
+   "id": 87182,
+   "office": "H",
+   "state": "LA",
+   "district": "LA-06",
+   "num": 6,
+   "special": false,
+   "pctIn": 100,
+   "calledAt": null,
+   "winner": null,
+   "leader": "D",
+   "prior": null,
+   "flip": null,
+   "runoff": true,
+   "unopposed": false,
+   "partyDecided": null,
+   "margin": 0.25,
+   "marginVotes": 665,
+   "total": 261951,
+   "cands": [
+    {
+     "name": "Chauna Banks",
+     "party": "D",
+     "partyName": "Democratic",
+     "votes": 50878,
+     "pct": 19.42,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Blake Miguez",
+     "party": "R",
+     "partyName": "Republican",
+     "votes": 50213,
+     "pct": 19.17,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Rick Edmonds",
+     "party": "R",
+     "partyName": "Republican",
+     "votes": 49241,
+     "pct": 18.8,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Lindsay Garcia",
+     "party": "D",
+     "partyName": "Democratic",
+     "votes": 33544,
+     "pct": 12.81,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Stephen Wagley",
+     "party": "R",
+     "partyName": "Republican",
+     "votes": 28169,
+     "pct": 10.75,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Others",
+     "party": "O",
+     "partyName": "Other candidates",
+     "votes": 49906,
+     "pct": 19.05,
+     "winner": false,
+     "advanced": false
+    }
+   ]
+  },
+  {
+   "id": 87323,
+   "office": "H",
+   "state": "NY",
+   "district": "NY-21",
+   "num": 21,
+   "special": false,
+   "pctIn": 100,
+   "calledAt": null,
+   "winner": "R",
+   "leader": "R",
+   "prior": null,
+   "flip": null,
+   "runoff": false,
+   "unopposed": false,
+   "partyDecided": null,
+   "margin": 2.08,
+   "marginVotes": 5727,
+   "total": 275177,
+   "cands": [
+    {
+     "name": "Anthony Constantino",
+     "party": "R",
+     "partyName": "Republican",
+     "votes": 140126,
+     "pct": 50.92,
+     "winner": true,
+     "advanced": false
+    },
+    {
+     "name": "Blake Gendebien",
+     "party": "D",
+     "partyName": "Democratic",
+     "votes": 134399,
+     "pct": 48.84,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Others",
+     "party": "O",
+     "partyName": "Other candidates",
+     "votes": 652,
+     "pct": 0.24,
+     "winner": false,
+     "advanced": false
+    }
+   ]
+  },
+  {
+   "id": 87451,
+   "office": "H",
+   "state": "TN",
+   "district": "TN-04",
+   "num": 4,
+   "special": false,
+   "pctIn": 76,
+   "calledAt": null,
+   "winner": null,
+   "leader": "D",
+   "prior": null,
+   "flip": null,
+   "runoff": false,
+   "unopposed": false,
+   "partyDecided": null,
+   "margin": 0.14,
+   "marginVotes": 280,
+   "total": 195576,
+   "cands": [
+    {
+     "name": "Victoria Broderick",
+     "party": "D",
+     "partyName": "Democratic",
+     "votes": 95585,
+     "pct": 48.87,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Scott DesJarlais",
+     "party": "R",
+     "partyName": "Republican",
+     "votes": 95305,
+     "pct": 48.73,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Jacob Kristopher Anders",
+     "party": "I",
+     "partyName": "Independent",
+     "votes": 2833,
+     "pct": 1.45,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Others",
+     "party": "O",
+     "partyName": "Other candidates",
+     "votes": 1853,
+     "pct": 0.95,
+     "winner": false,
+     "advanced": false
+    }
+   ]
+  },
+  {
+   "id": 87485,
+   "office": "H",
+   "state": "WI",
+   "district": "WI-03",
+   "num": 3,
+   "special": false,
+   "pctIn": 87.6,
+   "calledAt": "2026-11-04T06:09:43.616Z",
+   "winner": "D",
+   "leader": "D",
+   "prior": null,
+   "flip": null,
+   "runoff": false,
+   "unopposed": false,
+   "partyDecided": null,
+   "margin": 6.65,
+   "marginVotes": 21885,
+   "total": 329463,
+   "cands": [
+    {
+     "name": "Rebecca Cooke",
+     "party": "D",
+     "partyName": "Democratic",
+     "votes": 172757,
+     "pct": 52.44,
+     "winner": true,
+     "advanced": false
+    },
+    {
+     "name": "Derrick Van Orden",
+     "party": "R",
+     "partyName": "Republican",
+     "votes": 150872,
+     "pct": 45.79,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Alexander Valiensi Kent",
+     "party": "I",
+     "partyName": "Independent",
+     "votes": 4035,
+     "pct": 1.22,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Others",
+     "party": "O",
+     "partyName": "Other candidates",
+     "votes": 1799,
+     "pct": 0.55,
+     "winner": false,
+     "advanced": false
+    }
+   ]
+  },
+  {
+   "id": 86916,
+   "office": "S",
+   "state": "AK",
+   "district": null,
+   "num": null,
+   "special": false,
+   "pctIn": 73.9,
+   "calledAt": null,
+   "winner": null,
+   "leader": "D",
+   "prior": "R",
+   "flip": null,
+   "runoff": false,
+   "unopposed": false,
+   "partyDecided": null,
+   "margin": 0.26,
+   "marginVotes": 554,
+   "total": 214246,
+   "cands": [
+    {
+     "name": "Mary Peltola",
+     "party": "D",
+     "partyName": "Democratic",
+     "votes": 103171,
+     "pct": 48.16,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Dan Sullivan",
+     "party": "R",
+     "partyName": "Republican",
+     "votes": 102617,
+     "pct": 47.9,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Gerald L. Heikes",
+     "party": "R",
+     "partyName": "Republican",
+     "votes": 4851,
+     "pct": 2.26,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Daniel J. Jr. Sullivan",
+     "party": "I",
+     "partyName": "Nonpartisan",
+     "votes": 3607,
+     "pct": 1.68,
+     "winner": false,
+     "advanced": false
+    }
+   ]
+  },
+  {
+   "id": 86907,
+   "office": "S",
+   "state": "AL",
+   "district": null,
+   "num": null,
+   "special": false,
+   "pctIn": 97.7,
+   "calledAt": "2026-11-04T03:42:08.969Z",
+   "winner": "R",
+   "leader": "R",
+   "prior": "R",
+   "flip": false,
+   "runoff": false,
+   "unopposed": false,
+   "partyDecided": null,
+   "margin": 9.42,
+   "marginVotes": 158011,
+   "total": 1676683,
+   "cands": [
+    {
+     "name": "Barry Moore",
+     "party": "R",
+     "partyName": "Republican",
+     "votes": 917347,
+     "pct": 54.71,
+     "winner": true,
+     "advanced": false
+    },
+    {
+     "name": "Everett Wess",
+     "party": "D",
+     "partyName": "Democratic",
+     "votes": 759336,
+     "pct": 45.29,
+     "winner": false,
+     "advanced": false
+    }
+   ]
+  },
+  {
+   "id": 87068,
+   "office": "S",
+   "state": "FL",
+   "district": null,
+   "num": null,
+   "special": true,
+   "pctIn": 100,
+   "calledAt": "2026-11-04T02:23:25.538Z",
+   "winner": "R",
+   "leader": "R",
+   "prior": "R",
+   "flip": false,
+   "runoff": false,
+   "unopposed": false,
+   "partyDecided": null,
+   "margin": 2.88,
+   "marginVotes": 238733,
+   "total": 8271813,
+   "cands": [
+    {
+     "name": "Ashley Moody",
+     "party": "R",
+     "partyName": "Republican",
+     "votes": 4208004,
+     "pct": 50.87,
+     "winner": true,
+     "advanced": false
+    },
+    {
+     "name": "Angie Nixon",
+     "party": "D",
+     "partyName": "Democratic",
+     "votes": 3969271,
+     "pct": 47.99,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Neil J. Gillespie",
+     "party": "I",
+     "partyName": "Independent",
+     "votes": 94538,
+     "pct": 1.14,
+     "winner": false,
+     "advanced": false
+    }
+   ]
+  },
+  {
+   "id": 87188,
+   "office": "S",
+   "state": "ME",
+   "district": null,
+   "num": null,
+   "special": false,
+   "pctIn": 95.6,
+   "calledAt": "2026-11-04T06:45:05.269Z",
+   "winner": "D",
+   "leader": "D",
+   "prior": "R",
+   "flip": true,
+   "runoff": false,
+   "unopposed": false,
+   "partyDecided": null,
+   "margin": 6.12,
+   "marginVotes": 43452,
+   "total": 709460,
+   "cands": [
+    {
+     "name": "Troy Jackson",
+     "party": "D",
+     "partyName": "Democratic",
+     "votes": 376015,
+     "pct": 53,
+     "winner": true,
+     "advanced": false
+    },
+    {
+     "name": "Susan Collins",
+     "party": "R",
+     "partyName": "Republican",
+     "votes": 332563,
+     "pct": 46.88,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Others",
+     "party": "O",
+     "partyName": "Other candidates",
+     "votes": 882,
+     "pct": 0.12,
+     "winner": false,
+     "advanced": false
+    }
+   ]
+  },
+  {
+   "id": 81004,
+   "office": "S",
+   "state": "MS",
+   "district": null,
+   "num": null,
+   "special": false,
+   "pctIn": 98,
+   "calledAt": null,
+   "winner": null,
+   "leader": "D",
+   "prior": "R",
+   "flip": null,
+   "runoff": false,
+   "unopposed": false,
+   "partyDecided": null,
+   "margin": 0.2,
+   "marginVotes": 1884,
+   "total": 951893,
+   "cands": [
+    {
+     "name": "Scott Colom",
+     "party": "D",
+     "partyName": "Democratic",
+     "votes": 466877,
+     "pct": 49.05,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Cindy Hyde-Smith",
+     "party": "R",
+     "partyName": "Republican",
+     "votes": 464993,
+     "pct": 48.85,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Ty Pinkins",
+     "party": "I",
+     "partyName": "Independent",
+     "votes": 20023,
+     "pct": 2.1,
+     "winner": false,
+     "advanced": false
+    }
+   ]
+  },
+  {
+   "id": 87438,
+   "office": "S",
+   "state": "TX",
+   "district": null,
+   "num": null,
+   "special": false,
+   "pctIn": 98.9,
+   "calledAt": "2026-11-04T03:42:08.969Z",
+   "winner": "D",
+   "leader": "D",
+   "prior": "R",
+   "flip": true,
+   "runoff": false,
+   "unopposed": false,
+   "partyDecided": null,
+   "margin": 12.08,
+   "marginVotes": 1195394,
+   "total": 9894840,
+   "cands": [
+    {
+     "name": "James Talarico",
+     "party": "D",
+     "partyName": "Democratic",
+     "votes": 5445156,
+     "pct": 55.03,
+     "winner": true,
+     "advanced": false
+    },
+    {
+     "name": "Ken Paxton",
+     "party": "R",
+     "partyName": "Republican",
+     "votes": 4249762,
+     "pct": 42.95,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Ted Brown",
+     "party": "I",
+     "partyName": "Libertarian",
+     "votes": 190259,
+     "pct": 1.92,
+     "winner": false,
+     "advanced": false
+    },
+    {
+     "name": "Others",
+     "party": "O",
+     "partyName": "Other candidates",
+     "votes": 9663,
+     "pct": 0.1,
+     "winner": false,
+     "advanced": false
+    }
+   ]
+  }
+ ]
+}

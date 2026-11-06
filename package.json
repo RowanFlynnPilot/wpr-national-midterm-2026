@@ -9,7 +9,8 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "screens": "node scripts/screenshots.mjs screens"
+    "screens": "node scripts/screenshots.mjs screens",
+    "test": "vitest run"
   },
   "dependencies": {
     "d3-force": "^3.0.0",
@@ -29,6 +30,7 @@
     "@vitejs/plugin-react": "^6.2.1",
     "playwright": "^1.65.0",
     "typescript": "^5.9.3",
-    "vite": "^8.3.6"
+    "vite": "^8.3.6",
+    "vitest": "^4.1.12"
   }
 }

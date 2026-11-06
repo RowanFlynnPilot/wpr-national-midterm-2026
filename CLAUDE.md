@@ -13,6 +13,7 @@ npm install
 npm run data      # fetch civicAPI + rebuild public/data/{results,counties-S,counties-G}.json
 npm run dev       # local server
 npm run build     # type-check + production build to dist/
+npm test          # Vitest: src/lib/*.test.ts against src/lib/__fixtures__/races.json (19 real races frozen Nov. 5)
 npm run hexmap    # ONLY when district maps change (run `npm run data` first): regenerates public/data/house-hex.json
 npm run screens   # Playwright screenshots of every view at 390/768/1280/1600 into screens/ (build first); fails on console errors
 ```
@@ -34,7 +35,7 @@ for county centroids. It is not in the JS bundle (JS is ~62 KB gzipped). `index.
 ## Pipeline
 
 - `pipeline/fetch.py` — writes `pipeline/raw/` (gitignored). Fails if counts are not exactly 35 Senate / 435 House / 36 governor.
-- `pipeline/build.py` — normalizes to the front-end schema (`src/lib/types.ts`). Party codes: Democratic→D, Republican→R, everything else→I (the panel shows the real party name). Candidates under 1% fold into "Others" (max 5 kept).
+- `pipeline/build.py` — normalizes to the front-end schema (`src/lib/types.ts`). Fails the build on impossible states (`check_race`): two winners, a winner plus runoff finalists, negative votes, shares past 100%, reporting outside 0–100, a Senate/governor race with no seat holder in baselines, or county rows summing more than 2% away from the statewide total. Party codes: Democratic→D, Republican→R, everything else→I (the panel shows the real party name). Candidates under 1% fold into "Others" (max 5 kept).
 - County rows: `[pctReporting, votes for race.cands[0..2] (excluding Others), all other votes]`. New England and Alaska use civicAPI's County/Borough aggregate rows, not towns or House districts.
 - Alaska: civicAPI uses the 2019 split census areas (02063, 02066); us-atlas still draws Valdez-Cordova (02261), so they're merged (`FIPS_MERGE`).
 - A few counties come without FIPS (Le Flore OK, Lewis and Clark MT, Oglala Lakota SD, three MN); resolved by name against us-atlas. Any unresolved county fails the build.
@@ -70,10 +71,14 @@ Each district's target = vote-weighted centroid of the counties it covers (from 
 
 `.github/workflows/update-results.yml` fetches, builds and deploys to Pages hourly (each run makes ~500 civicAPI requests; keep it gentle on a free API). Enable Pages → Source: "GitHub Actions" in repo settings, and run the workflow once by hand to publish. If a fetch or build fails, nothing deploys and the last good version stays up. Stop the cron once states certify (late November into December).
 
-## Next steps (first Claude Code session)
+## AP cross-check (Nov. 5, 2026)
 
-1. `gh repo create RowanFlynnPilot/wpr-national-midterm-2026 --public --source . --push` (free GitHub Pages needs a public repo; nothing here is secret).
-2. Settings → Pages → Source: GitHub Actions, then run "Update results" once by hand.
-3. iframe auto-height: post the document height to the parent with a ResizeObserver, matching the other WPR embeds' listener.
-4. Spot-check the close races civicAPI called without a timestamp against AP: TN-09 (R +1.1), OH-10, NJ-02, NC-01/06/09/13/14.
-5. Later: statewide ballot measures as a fourth tab (~169 in civicAPI); move us-atlas (~830 KB) out of the JS bundle into `public/data`.
+Every race civicAPI called by under 3 points (27 races) was checked against AP reporting. 26 agree. **NY-21** (Constantino R +2.1)
+is called by civicAPI and Decision Desk HQ but was not called by AP as of Nov. 5; left as civicAPI reports it. civicAPI called
+FL-13 nearly two days before AP. Its `percent_reporting` lags AP on several called races (TN-09, NJ-02, NY-02, TN-07, TN governor).
+
+## Next steps
+
+1. Settings → Pages → Source: GitHub Actions, then run "Update results" once by hand.
+2. iframe auto-height: post the document height to the parent with a ResizeObserver, matching the other WPR embeds' listener.
+3. Later: statewide ballot measures as a fourth tab (~169 in civicAPI).
