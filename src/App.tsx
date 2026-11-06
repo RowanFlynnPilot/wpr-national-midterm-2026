@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChamberTabs } from "./components/ChamberTabs";
+import { CopyLink } from "./components/CopyLink";
 import { HexMap } from "./components/HexMap";
 import { Legend } from "./components/Legend";
 import { NationalMap, type MapMode } from "./components/NationalMap";
@@ -8,6 +9,7 @@ import { SidePanel } from "./components/SidePanel";
 import { Tooltip, type HoverTarget } from "./components/Tooltip";
 import { countyColumns, readCounty, type Data } from "./lib/data";
 import { centralTime } from "./lib/format";
+import { isStale } from "./lib/share";
 import { stateName } from "./lib/states";
 import { chamber, dek, headline, housePopularVote, OFFICE_NAME, OFFICE_SLUG } from "./lib/summary";
 import type { Office, Race, Selection } from "./lib/types";
@@ -44,6 +46,13 @@ export function App({ data }: { data: Data }) {
     const onHash = () => setSel(parseHash(window.location.hash));
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  // A tab left open should notice when the hourly data run has stalled.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 60_000);
+    return () => window.clearInterval(id);
   }, []);
 
   const select = useCallback((next: Selection, scroll = true) => {
@@ -117,6 +126,12 @@ export function App({ data }: { data: Data }) {
         </span>
       </header>
 
+      {isStale(results.fetched, now) && (
+        <p className="stale" role="status">
+          These results may be out of date. They were last fetched {centralTime(results.fetched)} and are normally refreshed every hour.
+        </p>
+      )}
+
       <section className="hero">
         <h1>{headline(chambers.H, chambers.S)}</h1>
         <p className="hero__dek">{dek(chambers.H, chambers.S, chambers.G)}</p>
@@ -149,6 +164,7 @@ export function App({ data }: { data: Data }) {
                 ))}
               </div>
             )}
+            <CopyLink hash={toHash(sel)} />
             </div>
           </div>
           <div className="map-frame" ref={frameRef} onPointerLeave={() => setHover(null)}>

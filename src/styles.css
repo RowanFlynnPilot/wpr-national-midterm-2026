@@ -104,6 +104,15 @@ a {
   color: var(--muted);
 }
 
+.stale {
+  margin: 0.9rem 0 0;
+  padding: 0.6rem 0.85rem;
+  border-left: 3px solid var(--teal);
+  background: var(--wash);
+  font-size: 0.875rem;
+  color: var(--ink-2);
+}
+
 .hero {
   padding: clamp(1.75rem, 4vw, 3rem) 0 clamp(1.25rem, 3vw, 2rem);
 }
@@ -315,6 +324,55 @@ a {
   color: var(--ink);
   appearance: none;
   cursor: pointer;
+}
+
+.copy-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.38rem 0.7rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: 7px;
+  background: var(--paper-raised);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.copy-link:hover {
+  border-color: var(--ink-2);
+}
+
+.copy-link.is-copied {
+  border-color: var(--teal);
+  color: var(--teal-ink);
+}
+
+.copy-link svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.copy-link--failed {
+  flex-wrap: wrap;
+  cursor: auto;
+  font-weight: 400;
+  color: var(--ink-2);
+}
+
+.copy-link--failed input {
+  width: 18rem;
+  max-width: 100%;
+  padding: 0.2rem 0.4rem;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  font: 0.8125rem var(--mono);
 }
 
 .segmented {

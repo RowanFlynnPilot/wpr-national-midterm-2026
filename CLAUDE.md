@@ -67,9 +67,44 @@ Each district's target = vote-weighted centroid of the counties it covers (from 
 - Colors validated with the dataviz palette checker on cream: D `#2D63A6`, R `#C23A30`, Ind/other `#B88A1E` (below 3:1, always paired with a label). Pale tints = leading, not called.
 - WPR design system: teal `#3A867C`, cream `#F6F2E9`, Fraunces (headlines), Public Sans (UI, hero numbers), JetBrains Mono (vote counts in tables).
 
+## WordPress embed
+
+`src/lib/embed.ts` posts `{type: "wpr-embed-height", id: "wpr-national-midterm-2026", height}` to the parent whenever
+`document.body` resizes (standard WPR shape, same as wpr-auto-loan and wpr-tip-desk). The snippet forwards the article's
+hash into the iframe so a shared link opens on the right view, and passes the article URL as `?host=` so "Copy link"
+(`src/lib/share.ts`) produces an article link, not the Pages URL. Only `https://*.wausaupilotandreview.com` is accepted as a host.
+`allow="clipboard-write"` is what lets the copy button work inside the frame.
+
+```html
+<div id="wpr-national-midterm-2026"></div>
+<script>
+(function () {
+  var f = document.createElement('iframe');
+  f.src = 'https://rowanflynnpilot.github.io/wpr-national-midterm-2026/?host='
+    + encodeURIComponent(location.origin + location.pathname) + location.hash;
+  f.style.cssText = 'width:100%;border:0;min-height:900px';
+  f.allow = 'clipboard-write';
+  f.title = '2026 midterm election results';
+  window.addEventListener('message', function (e) {
+    if (e.origin !== 'https://rowanflynnpilot.github.io') return;
+    if (e.data && e.data.type === 'wpr-embed-height' && e.data.id === 'wpr-national-midterm-2026')
+      f.style.height = e.data.height + 'px';
+  });
+  document.getElementById('wpr-national-midterm-2026').appendChild(f);
+})();
+</script>
+```
+
+## Sharing and freshness
+
+- `share.html` + `src/share.tsx` render `ShareCard` (balance of power, 1200×630). `scripts/share-image.mjs` screenshots it to
+  `dist/share.png` as the last step of `npm run build` and stamps `?v=<fetched>` onto the og:image URL in `dist/index.html`
+  so crawlers refetch after each data run. Open Graph and Twitter tags live in `index.html`.
+- `.stale` notice appears when `results.fetched` is more than three hours old (`isStale`, re-checked every minute).
+
 ## Deploy
 
-`.github/workflows/update-results.yml` fetches, builds and deploys to Pages hourly (each run makes ~500 civicAPI requests; keep it gentle on a free API). Enable Pages → Source: "GitHub Actions" in repo settings, and run the workflow once by hand to publish. If a fetch or build fails, nothing deploys and the last good version stays up. Stop the cron once states certify (late November into December).
+`.github/workflows/update-results.yml` fetches, tests, builds (including share.png via a cached Playwright Chromium) and deploys to Pages hourly (each run makes ~500 civicAPI requests; keep it gentle on a free API). Enable Pages → Source: "GitHub Actions" in repo settings, and run the workflow once by hand to publish. If a fetch or build fails, nothing deploys and the last good version stays up. Stop the cron once states certify (late November into December).
 
 ## AP cross-check (Nov. 5, 2026)
 
@@ -80,5 +115,4 @@ FL-13 nearly two days before AP. Its `percent_reporting` lags AP on several call
 ## Next steps
 
 1. Settings → Pages → Source: GitHub Actions, then run "Update results" once by hand.
-2. iframe auto-height: post the document height to the parent with a ResizeObserver, matching the other WPR embeds' listener.
-3. Later: statewide ballot measures as a fourth tab (~169 in civicAPI).
+2. Later: statewide ballot measures as a fourth tab (~169 in civicAPI).

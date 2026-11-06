@@ -7,7 +7,7 @@
     "data": "python pipeline/fetch.py && python pipeline/build.py",
     "hexmap": "node scripts/hexmap.mjs",
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && vite build && node scripts/share-image.mjs",
     "preview": "vite preview",
     "screens": "node scripts/screenshots.mjs screens",
     "test": "vitest run"
