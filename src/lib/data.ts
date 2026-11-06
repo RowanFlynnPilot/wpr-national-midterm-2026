@@ -1,9 +1,11 @@
+import { buildGeo, type Atlas, type Geo } from "./geo";
 import type { CountyResults, HexCell, Race, Results } from "./types";
 
 export interface Data {
   results: Results;
   counties: { S: CountyResults; G: CountyResults };
   hexes: HexCell[];
+  geo: Geo;
 }
 
 async function getJson<T>(file: string): Promise<T> {
@@ -13,13 +15,14 @@ async function getJson<T>(file: string): Promise<T> {
 }
 
 export async function loadData(): Promise<Data> {
-  const [results, S, G, hexes] = await Promise.all([
+  const [results, S, G, hexes, atlas] = await Promise.all([
     getJson<Results>("results.json"),
     getJson<CountyResults>("counties-S.json"),
     getJson<CountyResults>("counties-G.json"),
     getJson<HexCell[]>("house-hex.json"),
+    getJson<Atlas>("us-albers-10m.json"),
   ]);
-  return { results, counties: { S, G }, hexes };
+  return { results, counties: { S, G }, hexes, geo: buildGeo(atlas) };
 }
 
 /** The party code of each candidate column in a county row (race.cands minus the "Others" bucket). */

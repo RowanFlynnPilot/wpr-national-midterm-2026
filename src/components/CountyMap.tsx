@@ -2,17 +2,17 @@ import { useMemo, useState } from "react";
 import { MARGIN_BINS, MARGIN_RAMP, NO_RESULTS, marginColor } from "../lib/colors";
 import { countyColumns, readCounty } from "../lib/data";
 import { pct } from "../lib/format";
-import { COUNTIES_BY_STATE, stateShape } from "../lib/geo";
+import { stateShape, type Geo } from "../lib/geo";
 import type { CountyResults, Party, Race } from "../lib/types";
 
 /** A single state's counties, shaded by the county winner's margin. */
-export function CountyMap({ race, counties }: { race: Race; counties: CountyResults }) {
+export function CountyMap({ race, counties, geo }: { race: Race; counties: CountyResults; geo: Geo }) {
   const [hover, setHover] = useState<string | null>(null);
   const rows = counties[String(race.id)];
   if (!rows) throw new Error(`no county results for race ${race.id}`);
   const cols = countyColumns(race);
-  const shapes = COUNTIES_BY_STATE.get(race.state) ?? [];
-  const state = stateShape(race.state);
+  const shapes = geo.countiesByState.get(race.state) ?? [];
+  const state = stateShape(geo, race.state);
 
   const view = useMemo(() => {
     const [[x0, y0], [x1, y1]] = state.bounds;

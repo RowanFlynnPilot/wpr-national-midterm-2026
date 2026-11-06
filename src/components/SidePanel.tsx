@@ -2,6 +2,7 @@ import { PALE, PARTY, PARTY_LABEL } from "../lib/colors";
 import { apNumber, marginText, pct } from "../lib/format";
 import { stateName } from "../lib/states";
 import { RUNOFF, raceFill, raceStatus } from "../lib/status";
+import type { Geo } from "../lib/geo";
 import { OFFICE_NAME, OFFICE_SINGULAR, type Chamber, type PopularVote } from "../lib/summary";
 import type { CountyResults, Office, Race } from "../lib/types";
 import { CountyMap } from "./CountyMap";
@@ -15,6 +16,7 @@ interface Props {
   chamber: Chamber;
   popularVote: PopularVote;
   counties: { S: CountyResults; G: CountyResults };
+  geo: Geo;
   onSelect: (office: Office, state: string | null, district: string | null) => void;
 }
 
@@ -152,7 +154,7 @@ function Back({ label, onClick }: { label: string; onClick: () => void }) {
   );
 }
 
-function StateView({ office, state, races, counties, onSelect }: Props & { state: string }) {
+function StateView({ office, state, races, counties, geo, onSelect }: Props & { state: string }) {
   const race = races.find((r) => r.office === office && r.state === state);
   const others = races.filter((r) => r.state === state && r.office !== office && r.office !== "H");
   const house = races.filter((r) => r.state === state && r.office === "H");
@@ -163,7 +165,7 @@ function StateView({ office, state, races, counties, onSelect }: Props & { state
       {race ? (
         <>
           <RaceCard race={race} heading="h2" />
-          <CountyMap race={race} counties={countyData} />
+          <CountyMap race={race} counties={countyData} geo={geo} />
         </>
       ) : (
         <h2 className="panel__title panel__title--state">

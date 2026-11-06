@@ -1,7 +1,7 @@
 import { memo, useMemo } from "react";
 import { NO_RACE, NO_RESULTS, inkOn, marginColor } from "../lib/colors";
 import { countyColumns, readCounty } from "../lib/data";
-import { COUNTIES, LABEL_NUDGE, NATION, STATE_BORDERS, STATE_SHAPES, VIEW } from "../lib/geo";
+import { LABEL_NUDGE, VIEW, type Geo } from "../lib/geo";
 import { SMALL_STATES, STATES } from "../lib/states";
 import { raceFill } from "../lib/status";
 import type { CountyResults, Race } from "../lib/types";
@@ -10,6 +10,7 @@ import type { HoverTarget } from "./Tooltip";
 export type MapMode = "states" | "counties";
 
 interface Props {
+  geo: Geo;
   mode: MapMode;
   racesByState: Map<string, Race>;
   counties: CountyResults;
@@ -26,7 +27,7 @@ const CHIP_X = 930;
 const CHIP_Y0 = 198;
 const CHIP_STEP = 22;
 
-export const NationalMap = memo(function NationalMap({ mode, racesByState, counties, selected, onHover, onSelect }: Props) {
+export const NationalMap = memo(function NationalMap({ geo, mode, racesByState, counties, selected, onHover, onSelect }: Props) {
   const countyFills = useMemo(() => {
     if (mode !== "counties") return null;
     const fills = new Map<string, string>();
@@ -43,13 +44,13 @@ export const NationalMap = memo(function NationalMap({ mode, racesByState, count
     return fills;
   }, [mode, racesByState, counties]);
 
-  const selectedShape = selected ? STATE_SHAPES.find((s) => s.code === selected) : undefined;
+  const selectedShape = selected ? geo.states.find((s) => s.code === selected) : undefined;
 
   return (
     <svg className="national-map" viewBox={`0 0 ${VIEW.width} ${VIEW.height}`} role="group" aria-label="Map of results by state">
       {mode === "counties" && countyFills && (
         <g className="counties" aria-hidden="true">
-          {COUNTIES.map((c) => {
+          {geo.counties.map((c) => {
             const fill = countyFills.get(c.id);
             const code = STATES[c.id.slice(0, 2)]?.code;
             return (
@@ -67,7 +68,7 @@ export const NationalMap = memo(function NationalMap({ mode, racesByState, count
       )}
 
       <g className={`states states--${mode}`}>
-        {STATE_SHAPES.map((s) => {
+        {geo.states.map((s) => {
           const race = racesByState.get(s.code);
           const label = race ? `${s.name}: ${race.winner ? "won by" : "led by"} ${race.cands[0]?.name}` : `${s.name}: no race this year`;
           return (
@@ -88,12 +89,12 @@ export const NationalMap = memo(function NationalMap({ mode, racesByState, count
         })}
       </g>
 
-      <path className="state-borders" d={STATE_BORDERS} />
-      <path className="nation" d={NATION} />
+      <path className="state-borders" d={geo.stateBorders} />
+      <path className="nation" d={geo.nation} />
 
       {mode === "states" && (
         <g className="state-labels" aria-hidden="true">
-          {STATE_SHAPES.filter((s) => !SMALL_STATES.includes(s.code)).map((s) => {
+          {geo.states.filter((s) => !SMALL_STATES.includes(s.code)).map((s) => {
             const race = racesByState.get(s.code);
             const [dx, dy] = LABEL_NUDGE[s.code] ?? [0, 0];
             const [x, y] = [s.centroid[0] + dx, s.centroid[1] + dy];
@@ -111,7 +112,7 @@ export const NationalMap = memo(function NationalMap({ mode, racesByState, count
 
       <g className="chips">
         {SMALL_STATES.map((code, i) => {
-          const s = STATE_SHAPES.find((x) => x.code === code);
+          const s = geo.states.find((x) => x.code === code);
           if (!s) return null;
           const race = racesByState.get(code);
           const fill = stateFill(race);

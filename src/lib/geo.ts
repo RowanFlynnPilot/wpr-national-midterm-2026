@@ -1,17 +1,16 @@
 import { geoPath } from "d3-geo";
 import { feature, mesh } from "topojson-client";
 import type { GeometryCollection, Topology } from "topojson-specification";
-import us from "us-atlas/counties-albers-10m.json";
 import { STATES } from "./states";
 
-// us-atlas ships Census cartographic boundaries pre-projected to Albers USA in a 975x610 frame,
-// so paths need no projection at runtime.
-const topo = us as unknown as Topology<{
+// public/data/us-albers-10m.json is us-atlas's counties-albers-10m.json (Census cartographic
+// boundaries pre-projected to Albers USA in a 975x610 frame), fetched alongside the results
+// rather than bundled. Paths need no projection at runtime.
+export type Atlas = Topology<{
   counties: GeometryCollection<{ name: string }>;
   states: GeometryCollection<{ name: string }>;
   nation: GeometryCollection;
 }>;
-const path = geoPath(null);
 
 export const VIEW = { width: 975, height: 610 };
 
@@ -23,7 +22,21 @@ export interface Shape {
   bounds: [[number, number], [number, number]];
 }
 
-function shapes(object: GeometryCollection<{ name: string }>): Shape[] {
+export interface StateShape extends Shape {
+  code: string;
+}
+
+export interface Geo {
+  counties: Shape[];
+  states: StateShape[];
+  stateBorders: string;
+  nation: string;
+  countiesByState: Map<string, Shape[]>;
+}
+
+const path = geoPath(null);
+
+function shapes(topo: Atlas, object: GeometryCollection<{ name: string }>): Shape[] {
   return feature(topo, object).features.map((f) => ({
     id: String(f.id),
     name: f.properties.name,
@@ -33,25 +46,30 @@ function shapes(object: GeometryCollection<{ name: string }>): Shape[] {
   }));
 }
 
-export const COUNTIES: Shape[] = shapes(topo.objects.counties);
-export const STATE_SHAPES: (Shape & { code: string })[] = shapes(topo.objects.states)
-  .filter((s) => s.id in STATES && s.id !== "11")
-  .map((s) => ({ ...s, code: (STATES[s.id] as { code: string }).code }));
-
-export const STATE_BORDERS = path(mesh(topo, topo.objects.states, (a, b) => a !== b)) ?? "";
-export const NATION = path(mesh(topo, topo.objects.nation)) ?? "";
-
-export const COUNTIES_BY_STATE: Map<string, Shape[]> = new Map();
-for (const c of COUNTIES) {
-  const code = STATES[c.id.slice(0, 2)]?.code;
-  if (!code) continue;
-  const list = COUNTIES_BY_STATE.get(code) ?? [];
-  list.push(c);
-  COUNTIES_BY_STATE.set(code, list);
+export function buildGeo(topo: Atlas): Geo {
+  const counties = shapes(topo, topo.objects.counties);
+  const states = shapes(topo, topo.objects.states)
+    .filter((s) => s.id in STATES && s.id !== "11")
+    .map((s) => ({ ...s, code: (STATES[s.id] as { code: string }).code }));
+  const countiesByState = new Map<string, Shape[]>();
+  for (const c of counties) {
+    const code = STATES[c.id.slice(0, 2)]?.code;
+    if (!code) continue;
+    const list = countiesByState.get(code) ?? [];
+    list.push(c);
+    countiesByState.set(code, list);
+  }
+  return {
+    counties,
+    states,
+    stateBorders: path(mesh(topo, topo.objects.states, (a, b) => a !== b)) ?? "",
+    nation: path(mesh(topo, topo.objects.nation)) ?? "",
+    countiesByState,
+  };
 }
 
-export function stateShape(code: string) {
-  const s = STATE_SHAPES.find((x) => x.code === code);
+export function stateShape(geo: Geo, code: string): StateShape {
+  const s = geo.states.find((x) => x.code === code);
   if (!s) throw new Error(`no shape for ${code}`);
   return s;
 }

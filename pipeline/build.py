@@ -42,7 +42,7 @@ def norm_name(name: str) -> str:
 
 
 def load_county_index() -> tuple[set[str], dict[tuple[str, str], str]]:
-    topo = json.loads((ROOT / "node_modules" / "us-atlas" / "counties-10m.json").read_text())
+    topo = json.loads((OUT / "us-albers-10m.json").read_text())
     geoms = topo["objects"]["counties"]["geometries"]
     ids = {g["id"] for g in geoms}
     by_name = {(g["id"][:2], norm_name(g["properties"]["name"])): g["id"] for g in geoms}

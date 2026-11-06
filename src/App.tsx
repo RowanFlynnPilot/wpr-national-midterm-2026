@@ -33,7 +33,7 @@ interface Hover {
 }
 
 export function App({ data }: { data: Data }) {
-  const { results, counties, hexes } = data;
+  const { results, counties, hexes, geo } = data;
   const [sel, setSel] = useState<Selection>(() => parseHash(window.location.hash));
   const [mode, setMode] = useState<MapMode>("states");
   const [hover, setHover] = useState<Hover | null>(null);
@@ -163,6 +163,7 @@ export function App({ data }: { data: Data }) {
               />
             ) : (
               <NationalMap
+                geo={geo}
                 mode={mode}
                 racesByState={racesByState}
                 counties={officeCounties ?? {}}
@@ -193,6 +194,7 @@ export function App({ data }: { data: Data }) {
             chamber={chambers[sel.office]}
             popularVote={popularVote}
             counties={counties}
+            geo={geo}
             onSelect={(office, state, district) => select({ office, state, district })}
           />
         </aside>

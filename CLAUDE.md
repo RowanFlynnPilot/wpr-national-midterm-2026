@@ -5,7 +5,7 @@ Built Nov. 5, 2026, two days after the election, while ~34 races were still unca
 
 ## Stack
 
-Python fetch/build → static JSON in `public/data/` → React + TypeScript + Vite + D3 → GitHub Pages → WordPress iframe.
+Python fetch/build → static JSON in `public/data/` → React + TypeScript + Vite + d3-geo → GitHub Pages → WordPress iframe.
 No Python dependencies (stdlib only). Node 22.
 
 ```
@@ -14,7 +14,15 @@ npm run data      # fetch civicAPI + rebuild public/data/{results,counties-S,cou
 npm run dev       # local server
 npm run build     # type-check + production build to dist/
 npm run hexmap    # ONLY when district maps change (run `npm run data` first): regenerates public/data/house-hex.json
+npm run screens   # Playwright screenshots of every view at 390/768/1280/1600 into screens/ (build first); fails on console errors
 ```
+
+## Map shapes
+
+`public/data/us-albers-10m.json` is a committed copy of us-atlas 3.0.1's `counties-albers-10m.json` (Census boundaries
+pre-projected to Albers USA, 975×610). It is the single copy: the front end fetches it in parallel with the results
+(`src/lib/data.ts` → `buildGeo`), `pipeline/build.py` reads it for the county FIPS/name index, and `scripts/hexmap.mjs`
+for county centroids. It is not in the JS bundle (JS is ~62 KB gzipped). `index.html` preloads all five data files.
 
 ## Data source: civicAPI only
 

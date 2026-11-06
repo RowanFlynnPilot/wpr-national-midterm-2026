@@ -35,7 +35,7 @@ const key = (q, r) => `${q},${r}`;
 const dist2 = (a, b) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2;
 
 // --- district targets -------------------------------------------------------
-const topo = JSON.parse(readFileSync("node_modules/us-atlas/counties-albers-10m.json", "utf8"));
+const topo = JSON.parse(readFileSync("public/data/us-albers-10m.json", "utf8"));
 const path = geoPath(null);
 const countyCentroid = new Map(
   feature(topo, topo.objects.counties).features.map((f) => [f.id, path.centroid(f)]),
