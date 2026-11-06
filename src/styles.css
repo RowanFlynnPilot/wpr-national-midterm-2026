@@ -1785,6 +1785,9 @@ table.races {
     align-items: flex-start;
     gap: 0.5rem;
   }
+  .map-caption {
+    flex: none; /* in a column, the row's flex-basis would become a 12rem height */
+  }
   .races .phone-hide {
     display: none;
   }
