@@ -388,6 +388,43 @@ a {
   font-weight: 600;
 }
 
+/* ---------- the vote in depth (band under the board) ---------- */
+
+.analysis {
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--rule);
+}
+
+.analysis__title {
+  margin: 0 0 0.75rem;
+  font: 600 1.4rem/1.15 var(--display);
+  font-variation-settings: "opsz" 72;
+}
+
+.analysis__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 2.5rem;
+  align-items: start;
+}
+
+.analysis__grid--one {
+  grid-template-columns: minmax(0, 36rem);
+}
+
+.analysis .panel__title {
+  margin-top: 0;
+}
+
+.analysis .scatter {
+  margin-top: 1rem;
+}
+
+.shift-block__moves {
+  margin-top: 0.75rem;
+}
+
 /* ---------- embed this race (newsroom) ---------- */
 
 .embed-race {
@@ -668,11 +705,16 @@ a {
 
 .patterns__pcts {
   display: flex;
+  flex-wrap: wrap; /* a narrow column stacks the two sides rather than breaking "Yes 63.4%" in two */
   justify-content: space-between;
   margin-top: 0.2rem;
   font-size: 0.6875rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+}
+
+.patterns__pcts span {
+  white-space: nowrap;
 }
 
 /* ---------- chamber tabs ---------- */
@@ -2685,6 +2727,10 @@ table.races {
 }
 
 @media (max-width: 959px) {
+  .analysis__grid,
+  .analysis__grid--one {
+    grid-template-columns: minmax(0, 1fr);
+  }
   .races .tablet-hide {
     display: none; /* reporting, votes and the call time are in the expanded row; with them the table scrolled sideways on tablets */
   }

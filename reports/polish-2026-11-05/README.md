@@ -234,3 +234,11 @@ card, the county map and the shift line, sized by the standard height message wi
 views grew an "Embed this race in an article" button that copies the WordPress snippet. The hash routing moved into
 `src/lib/route.ts` for both pages.
 
+## The vote in depth (Nov. 7, evening)
+
+A fresh look at the whole page at 1280 showed the side panel had grown to two and a half times the map's height, with
+the column under the map empty. The 2024 comparison, the county scatter and the county patterns moved into a
+full-width band between the board and the table, two columns at laptop width and one on phones, following the
+selection (office, statewide race or measure). The panel is back to its quick lists, and the scatter gets the width it
+needed.
+

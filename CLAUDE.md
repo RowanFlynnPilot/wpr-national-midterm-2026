@@ -158,6 +158,16 @@ Two sources beyond civicAPI, both static, fetched by hand and committed; neither
   the Senate and governor overview panels (`officeShift`: the races with both parties, vote-weighted against their states;
   `biggestShifts`: the three largest moves toward each party). House races have no shift: a district has no statewide baseline.
 
+## The vote in depth (`Analysis.tsx`, Nov. 7 evening)
+
+The analysis blocks had made the side panel two and a half times the map's height at laptop width, leaving the column under the
+map empty. They now form a full-width band between the board and the table that follows the selection: for a Senate or governor
+overview, "Compared with 2024" (the vote-weighted aggregate and the three biggest moves each way) with the county scatter on the
+left and "How counties voted" on the right; for a selected statewide race, that race's shift sentence, scatter and patterns; for a
+selected measure, its Yes/No patterns alone. The House has no band (no district baseline, no district county rows). The panel
+keeps the glance, the still-counting list, the latest calls and the flips. The CLAUDE.md paragraphs above that place the scatter
+and patterns "on the panel" predate this move.
+
 ## Statement pass (Nov. 7, 2026)
 
 - **Things to know** (`src/lib/takeaways.ts`, `Takeaways.tsx`): up to five sentences written from the data under the chamber

@@ -38,6 +38,9 @@ const VIEWS = {
   "senate-shift-legend": { hash: "#senate", click: 'button[role="radio"]:has-text("Shift since 2024")', clip: "legend" },
   "senate-shift-fill": { hash: "#senate", click: 'button[role="radio"]:has-text("Shift since 2024")', then: 'button[role="radio"]:has-text("Shading")', clip: "legend" },
   "takeaways": { hash: "#senate", clip: "takeaways" },
+  "senate-analysis": { hash: "#senate", clip: "analysis" },
+  "governors-wi-analysis": { hash: "#governors-wi", clip: "analysis" },
+  "measure-analysis": { hash: "#measures-wi-179849", clip: "analysis" },
   "governors-shift-wi": { hash: "#governors-wi", click: 'button[role="radio"]:has-text("Shift since 2024")', beforeHover: 700, hover: "g.counties path:not(.is-out) >> nth=40", clip: "map" },
   "governors-wi": { hash: "#governors-wi", clip: "panel" },
   "senate-since": { hash: "#senate", visitHoursAgo: 5, clip: "since" },
@@ -54,7 +57,7 @@ const aborted = (r) => r.failure()?.errorText === "net::ERR_ABORTED";
 
 // clip: screenshot one region instead of the page. It is scrolled into view before any hover, because an element
 // screenshot scrolls to its target, and a pointer left behind by that scroll would leave the hovered element.
-const CLIPS = { map: ".map-frame", table: ".table-section", legend: ".board__map", panel: ".board__panel", since: ".since", chambers: ".chambers-frame", takeaways: ".takeaways" };
+const CLIPS = { map: ".map-frame", table: ".table-section", legend: ".board__map", panel: ".board__panel", since: ".since", chambers: ".chambers-frame", takeaways: ".takeaways", analysis: ".analysis" };
 
 const [outDir = "screens", ...only] = process.argv.slice(2);
 const names = only.length ? only.filter((n) => n !== "compact" && n !== "race") : Object.keys(VIEWS);

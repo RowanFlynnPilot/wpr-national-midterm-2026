@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Analysis } from "./components/Analysis";
 import { ChamberTabs } from "./components/ChamberTabs";
 import { CopyLink } from "./components/CopyLink";
 import { HexMap } from "./components/HexMap";
@@ -419,6 +420,18 @@ export function App({ data }: { data: Data }) {
           />
         </aside>
       </section>
+
+      <Analysis
+        office={sel.office}
+        state={sel.state}
+        district={sel.district}
+        races={results.races}
+        counties={counties}
+        demographics={demographics}
+        baseline={baseline}
+        geo={geo}
+        onSelect={selectRace}
+      />
 
       <RaceTable
         office={sel.office}
