@@ -103,9 +103,13 @@ for (const width of WIDTHS) {
       await page.waitForSelector(".tooltip");
     }
     if (!view.clip) {
-      // the analysis band renders when scrolled near: sweep to the bottom and back so a full-page capture includes it
-      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-      await page.waitForTimeout(400);
+      // the analysis band renders when scrolled near: step down the whole page and back so a full-page capture includes it
+      const height = await page.evaluate(() => document.body.scrollHeight);
+      for (let y = 0; y < height; y += 700) {
+        await page.evaluate((top) => window.scrollTo(0, top), y);
+        await page.waitForTimeout(80);
+      }
+      await page.waitForTimeout(300);
       await page.evaluate(() => window.scrollTo(0, 0));
     }
     await page.waitForTimeout(view.settle ?? 1200); // the seat arcs stagger in over about a second
