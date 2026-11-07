@@ -161,6 +161,7 @@ export function App({ data }: { data: Data }) {
     () => ({ S: chamber(results, "S"), H: chamber(results, "H"), G: chamber(results, "G"), B: chamber(results, "B") }),
     [results],
   );
+  const toKnow = useMemo(() => takeaways(results, chambers, baseline), [results, chambers, baseline]);
 
   const popularVote = useMemo(() => housePopularVote(results), [results]);
   const officeRaces = useMemo(() => results.races.filter((r) => r.office === sel.office), [results, sel.office]);
@@ -289,7 +290,7 @@ export function App({ data }: { data: Data }) {
       </section>
 
       <ChamberTabs chambers={chambers} office={sel.office} baseline={baseline} now={clock} onChange={(office) => select({ office, state: sel.state, district: null }, false)} onSelectRace={selectRace} />
-      <Takeaways items={takeaways(results, chambers, baseline)} onSelect={(to) => select(to)} />
+      <Takeaways items={toKnow} onSelect={select} />
       {visit && replay === null && (
         <SinceVisit
           visit={visit}

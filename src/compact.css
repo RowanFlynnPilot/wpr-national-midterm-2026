@@ -35,6 +35,18 @@
   color: var(--muted);
 }
 
+.compact .takeaways {
+  margin-top: 0.9rem;
+}
+
+.compact .takeaways__title {
+  font-size: 0.95rem;
+}
+
+.compact .takeaway {
+  text-decoration: none;
+}
+
 .compact__cards {
   display: grid;
   grid-template-columns: 1fr;

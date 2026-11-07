@@ -19,7 +19,9 @@ body{margin:0;background:#fff;color:#222;font:16px/1.6 Georgia,serif}
 <p id="log">waiting for wpr-embed-height…</p>
 </div>
 <div class="frame" id="wpr-national-midterm-2026"></div>
-<div class="article"><p>Text after the embed, to show the page flows around it.</p></div>
+<div class="article"><p>Text after the embed, to show the page flows around it. Below, a single race embedded the way an article would carry it (the "Embed this race in an article" snippet, pointed at this build).</p></div>
+<div class="article frame" id="wpr-national-midterm-2026-race-governors-wi"></div>
+<div class="article"><p>Text after the race embed.</p></div>
 <script>
 (function () {
   var f = document.createElement('iframe');
@@ -35,6 +37,17 @@ body{margin:0;background:#fff;color:#222;font:16px/1.6 Georgia,serif}
     }
   });
   document.getElementById('wpr-national-midterm-2026').appendChild(f);
+  var r = document.createElement('iframe');
+  r.src = './race.html?host=' + encodeURIComponent('https://wausaupilotandreview.com/embed-test/') + '#governors-wi';
+  r.style.cssText = 'width:100%;border:0;min-height:520px;display:block';
+  r.title = 'Wisconsin Governor: 2026 result';
+  window.addEventListener('message', function (e) {
+    if (e.data && e.data.type === 'wpr-embed-height' && e.data.id === 'wpr-national-midterm-2026-race-governors-wi') {
+      r.style.height = e.data.height + 'px';
+      log.textContent = new Date().toLocaleTimeString() + '  race height ' + e.data.height + 'px\n' + log.textContent;
+    }
+  });
+  document.getElementById('wpr-national-midterm-2026-race-governors-wi').appendChild(r);
 })();
 </script>
 </body>

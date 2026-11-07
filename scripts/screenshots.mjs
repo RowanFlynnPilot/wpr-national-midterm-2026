@@ -102,6 +102,12 @@ for (const width of WIDTHS) {
       for (const key of view.keys ?? []) await page.keyboard.press(key);
       await page.waitForSelector(".tooltip");
     }
+    if (!view.clip) {
+      // the analysis band renders when scrolled near: sweep to the bottom and back so a full-page capture includes it
+      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+      await page.waitForTimeout(400);
+      await page.evaluate(() => window.scrollTo(0, 0));
+    }
     await page.waitForTimeout(view.settle ?? 1200); // the seat arcs stagger in over about a second
     const path = join(outDir, `${name}-${width}.png`);
     if (view.clip) await page.locator(CLIPS[view.clip]).screenshot({ path });

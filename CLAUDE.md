@@ -160,6 +160,11 @@ Two sources beyond civicAPI, both static, fetched by hand and committed; neither
 
 ## The vote in depth (`Analysis.tsx`, Nov. 7 evening)
 
+The band renders only once it comes within 600px of the viewport (`useInView`, `src/lib/inView.ts`): its thousands of
+scatter dots had put about 250 ms of blocking time into the load (Lighthouse TBT 273–324 ms, from under 90). The screenshot
+script sweeps a page to the bottom and back before a full-page capture so the band is in the picture. Inside the auto-height
+iframe the frame's viewport is the whole document, so there the band renders at once.
+
 The analysis blocks had made the side panel two and a half times the map's height at laptop width, leaving the column under the
 map empty. They now form a full-width band between the board and the table that follows the selection: for a Senate or governor
 overview, "Compared with 2024" (the vote-weighted aggregate and the three biggest moves each way) with the county scatter on the
@@ -228,8 +233,9 @@ page". To sell the slot: fill in `SPONSORS.title`, drop the logo in `public/spon
 
 ## Compact embed
 
-`compact.html` + `src/compact.tsx`: the balance of power (four cards) and the six latest calls, for a homepage module or an
-article sidebar. One `results.json` fetch, no maps, refreshed every 15 minutes. Container queries lay the cards 1, 2 or 4
+`compact.html` + `src/compact.tsx`: the balance of power (four cards), the first three "things to know" (as links to the full
+page at the view behind each; it loads the 2024 baseline for the shift sentence) and the six latest calls, for a homepage module
+or an article sidebar. One `results.json` fetch, no maps, refreshed every 15 minutes. Container queries lay the cards 1, 2 or 4
 across (280px sidebar to a full-width band). Every card and row links to the full page with `target="_top"`; with
 `?host=<article URL>` the links point at the article's hash instead (`shareUrl`, same rule as Copy link). It posts
 `{type: "wpr-embed-height", id: "wpr-national-midterm-2026-compact", height}` so both embeds can share a page.
@@ -266,7 +272,8 @@ whole); it is for the newsroom and does not print. `parseHash`/`toHash` moved to
 
 ## Sharing and freshness
 
-- `share.html` + `src/share.tsx` render `ShareCard` (balance of power with the parliament arcs, 1200×630). `scripts/share-image.mjs` screenshots it to
+- `share.html` + `src/share.tsx` render `ShareCard` (balance of power with the parliament arcs, 1200×630; the bottom line carries
+  the measures tally and, from the 2024 baseline, how far the Senate vote moved). `scripts/share-image.mjs` screenshots it to
   `dist/share.png` as the last step of `npm run build` and stamps `?v=<fetched>` onto the og:image URL in `dist/index.html`
   so crawlers refetch after each data run. Open Graph and Twitter tags live in `index.html`.
 - `.stale` notice appears when `results.fetched` is more than three hours old (`isStale`, re-checked every minute).
@@ -300,7 +307,8 @@ TBT under 90 ms. The mono font is not preloaded (tables only, below the fold). `
 
 ## Deploy
 
-`public/embed-test.html` wraps the build in the CLAUDE.md snippet so auto-height can be checked locally (`/embed-test.html` on Pages).
+`public/embed-test.html` wraps the build in the CLAUDE.md snippet, and below it one race through the race snippet, so both
+auto-heights can be checked locally (`/embed-test.html` on Pages).
 `.github/workflows/update-results.yml` checks out the branch tip (`ref: main`, not the pushed commit: runs are serialized by the
 `pages` concurrency group, and a queued push-triggered run must see the snapshot the run before it committed, or its own snapshot
 commit conflicts in `pipeline/history.json`; that failed once on Nov. 7), fetches, tests, builds (including share.png via a cached Playwright Chromium) and deploys to Pages hourly (each run makes ~500 civicAPI requests; keep it gentle on a free API). Enable Pages → Source: "GitHub Actions" in repo settings, and run the workflow once by hand to publish. If a fetch or build fails, nothing deploys and the last good version stays up. Stop the cron once states certify (late November into December).

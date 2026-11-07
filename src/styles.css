@@ -390,6 +390,10 @@ a {
 
 /* ---------- the vote in depth (band under the board) ---------- */
 
+.analysis-slot {
+  min-height: 1px; /* an observed element must have a box; the band itself brings its height */
+}
+
 .analysis {
   margin-top: 1.75rem;
   padding-top: 1.25rem;

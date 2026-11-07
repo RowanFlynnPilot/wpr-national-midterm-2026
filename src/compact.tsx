@@ -3,8 +3,12 @@
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { SeatBar } from "./components/SeatBar";
+import { Takeaways } from "./components/Takeaways";
 import { PARTY } from "./lib/colors";
-import { loadResults } from "./lib/data";
+import { loadBaseline, loadResults } from "./lib/data";
+import { toHash } from "./lib/route";
+import type { Baseline } from "./lib/shift";
+import { takeaways } from "./lib/takeaways";
 import { EMBED_ID, initEmbedHeight } from "./lib/embed";
 import { apNumber, centralTime, relativeAge, timeAgo } from "./lib/format";
 import { shareUrl } from "./lib/share";
@@ -15,6 +19,7 @@ import "./compact.css";
 
 const ORDER: Office[] = ["S", "H", "G", "B"];
 const CALLS = 6;
+const TO_KNOW = 3; // a module, not the page: the first three sentences
 const REFRESH_MS = 15 * 60 * 1000;
 
 /** The full page, or the article hosting it, at a view hash. */
@@ -45,14 +50,15 @@ function Card({ c }: { c: Chamber }) {
   );
 }
 
-function raceHash(r: Race): string {
-  const tail = r.office === "H" || r.office === "B" ? `-${(r.district as string).split("-")[1]?.toLowerCase()}` : "";
-  return `#${OFFICE_SLUG[r.office]}-${r.state.toLowerCase()}${tail}`;
-}
+const raceHash = (r: Race) => `#${toHash({ office: r.office, state: r.state, district: r.office === "H" || r.office === "B" ? r.district : null })}`;
 
 function Compact({ initial }: { initial: Results }) {
   const [results, setResults] = useState(initial);
+  const [baseline, setBaseline] = useState<Baseline | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    loadBaseline().then(setBaseline);
+  }, []);
   useEffect(() => {
     const tick = window.setInterval(() => setNow(Date.now()), 60_000);
     const refresh = window.setInterval(() => loadResults().then((r) => r.fetched !== results.fetched && setResults(r), () => undefined), REFRESH_MS);
@@ -63,6 +69,8 @@ function Compact({ initial }: { initial: Results }) {
   }, [results.fetched]);
 
   const chambers = ORDER.map((o) => chamber(results, o));
+  const byOffice = Object.fromEntries(chambers.map((c) => [c.office, c])) as Record<Office, Chamber>;
+  const toKnow = takeaways(results, byOffice, baseline).slice(0, TO_KNOW);
   const calls = results.races
     .filter((r): r is Race & { calledAt: string } => r.calledAt !== null)
     .sort((a, z) => z.calledAt.localeCompare(a.calledAt))
@@ -84,6 +92,7 @@ function Compact({ initial }: { initial: Results }) {
           <Card key={c.office} c={c} />
         ))}
       </div>
+      <Takeaways items={toKnow} link={(to) => fullPage(`#${toHash(to)}`)} />
       {calls.length > 0 && (
         <section className="compact__calls" aria-labelledby="compact-calls">
           <h2 id="compact-calls" className="compact__title">

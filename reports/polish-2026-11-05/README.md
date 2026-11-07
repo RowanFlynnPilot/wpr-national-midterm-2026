@@ -242,3 +242,10 @@ full-width band between the board and the table, two columns at laptop width and
 selection (office, statewide race or measure). The panel is back to its quick lists, and the scatter gets the width it
 needed.
 
+## Carrying the new material to the other surfaces (Nov. 7, evening)
+
+The analysis band and the takeaways are memoized, so a pointer moving over the map no longer re-renders 4,300 scatter
+dots on every hover. The compact homepage module gained the first three "things to know" as links into the full page,
+the share image's bottom line now carries the Senate's move since 2024 beside the measures tally, and the embed test
+page carries a single-race embed under the full one.
+

@@ -1,4 +1,5 @@
-import { Fragment } from "react";
+import { Fragment, memo } from "react";
+import { useInView } from "../lib/inView";
 import { PARTY, PARTY_PLURAL } from "../lib/colors";
 import type { Geo } from "../lib/geo";
 import type { Demographics } from "../lib/patterns";
@@ -27,7 +28,17 @@ interface Props {
  * selected statewide race or measure. It follows the selection; the side panel keeps the quick lists. House races have
  * no band: a district has no 2024 baseline and no county rows of its own.
  */
-export function Analysis({ office, state, district, races, counties, demographics, baseline, geo, onSelect }: Props) {
+export const Analysis = memo(function Analysis(props: Props) {
+  // The band sits below the board; its dots and tables render once the reader approaches, so the load is not charged for them.
+  const [ref, inView] = useInView<HTMLDivElement>();
+  return (
+    <div ref={ref} className="analysis-slot">
+      {inView && <AnalysisBand {...props} />}
+    </div>
+  );
+});
+
+function AnalysisBand({ office, state, district, races, counties, demographics, baseline, geo, onSelect }: Props) {
   if (office === "H") return null;
   const set = counties ? counties[office] : null;
   if (office === "B") {
