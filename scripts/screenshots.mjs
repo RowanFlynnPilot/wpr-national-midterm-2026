@@ -57,7 +57,7 @@ const aborted = (r) => r.failure()?.errorText === "net::ERR_ABORTED";
 
 // clip: screenshot one region instead of the page. It is scrolled into view before any hover, because an element
 // screenshot scrolls to its target, and a pointer left behind by that scroll would leave the hovered element.
-const CLIPS = { map: ".map-frame", table: ".table-section", legend: ".board__map", panel: ".board__panel", since: ".since", chambers: ".chambers-frame", takeaways: ".takeaways", analysis: ".analysis" };
+const CLIPS = { map: ".map-frame", table: ".table-section", legend: ".board__map", panel: ".board__panel", since: ".since", chambers: ".chambers-frame", takeaways: ".takeaways", analysis: ".analysis-slot" };
 
 const [outDir = "screens", ...only] = process.argv.slice(2);
 const names = only.length ? only.filter((n) => n !== "compact" && n !== "race") : Object.keys(VIEWS);
