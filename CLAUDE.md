@@ -287,6 +287,25 @@ and no text selection; form controls are 16px on coarse pointers; a skip link; t
 strip (sticky does not work inside the auto-height iframe), a needle or probabilities (no model), swing vs. 2024 (no county
 baselines under the new maps), incumbent markers (civicAPI flags only ~50).
 
+## Phone pass (Nov. 7, 2026, evening)
+
+Found by walking every view in 844px slices under Playwright's iPhone 14 emulation (touch, coarse pointer, no hover) at 390
+and 360 wide; the committed gate's full-page captures are too small to show phone-width faults. Under 700px the map-mode
+control had wrapped two of its four labels onto two lines, so each button carries a long and a short label (`.seg-long`,
+`.seg-short`: "Counting", "vs. 2024") and the control takes a row of its own, full width, after the Copy link (`order: 1`),
+which joins the Wisconsin chip and the state picker on the first row. A zoomed county map painted past the map's box over
+the page around it (`.national-map` has `overflow: visible` for its shadow): `.is-zoomed` clips it. The county map's
+readout ("Point at or tap a county") lost the tapped county as the finger lifted, since a touch pointer leaves on
+pointerup; a touch pointerleave is ignored, so the tap's county stays until the next. Stacked under 960px the board's
+bottom rule sat 1.5rem under the panel's last list rule and read as an empty band, so the stacked board has no bottom
+rule and the analysis band brings no rule of its own at any width (the board's rule is the separator on wide screens).
+Coarse pointers get 40px-tall chip controls, 16px on every select (the patterns picker had 13px and would zoom iOS Safari),
+and wider hit areas on the sort headers and key entries through padding offset by negative margins so no row moves; the
+scatter's "Point at a dot" sentence is hidden there (`.fine-hint`). The margin key's third row is "Ind." (it was
+clipped at every width). At tablet width the toolbar's controls ran past their column and clipped the Copy link:
+`.map-controls` may now shrink (`flex: 0 1 auto`) so its children wrap inside the column; it still drops to its own line
+whole, since the toolbar breaks lines by the unshrunk basis. Verified under emulation; sticky hover, rubber-banding, safe areas and the keyboard still want a phone.
+
 ## Device checks
 
 Touch behavior is verified under Playwright's Pixel 7 (Chromium) and iPhone 14 (WebKit) emulation against the live site:

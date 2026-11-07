@@ -186,7 +186,7 @@ export const NationalMap = memo(function NationalMap({ geo, mode, baseline, shif
   return (
     <>
       <svg
-        className="national-map"
+        className={zoomed ? "national-map is-zoomed" : "national-map"}
         viewBox={`0 0 ${VIEW.width} ${VIEW.height}`}
         role="group"
         aria-label={description}

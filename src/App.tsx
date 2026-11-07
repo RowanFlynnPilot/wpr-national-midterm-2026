@@ -305,7 +305,7 @@ export function App({ data }: { data: Data }) {
           <div className="map-toolbar">
             <p className="map-caption">
               {mapCaption}
-              {sel.office === "H" && <span className="touch-hint"> Tap a state for its districts.</span>}
+              {sel.office === "H" && <span className="touch-hint">. Tap a state for its districts</span>}
             </p>
             <div className="map-controls">
             <button
@@ -329,9 +329,11 @@ export function App({ data }: { data: Data }) {
             </label>
             {sel.office !== "H" && sel.office !== "B" && (
               <div className="segmented" role="radiogroup" aria-label="Map detail">
-                {([["states", "States"], ["counties", "Counties"], ["remaining", "Still counting"], ...(baseline ? [["shift", "Shift since 2024"]] : [])] as [MapMode, string][]).map(([m, label]) => (
+                {/* the short label shows under 700px, where the four full names wrapped to two lines each */}
+                {([["states", "States", "States"], ["counties", "Counties", "Counties"], ["remaining", "Still counting", "Counting"], ...(baseline ? [["shift", "Shift since 2024", "vs. 2024"]] : [])] as [MapMode, string, string][]).map(([m, label, short]) => (
                   <button key={m} type="button" role="radio" aria-checked={mode === m} className={mode === m ? "is-on" : undefined} onClick={() => setMode(m)}>
-                    {label}
+                    <span className="seg-long">{label}</span>
+                    <span className="seg-short">{short}</span>
                   </button>
                 ))}
               </div>

@@ -111,7 +111,7 @@ export function ShiftScatter({ races, counties, demographics, baseline, geo }: P
       </svg>
       <figcaption className="panel__note">
         Each dot is a county, sized by its vote: further right is denser, higher is a bigger move toward Democrats since the 2024
-        presidential vote. Lighter dots are under {COUNTED}% counted. Point at a dot for its county.
+        presidential vote. Lighter dots are under {COUNTED}% counted.<span className="fine-hint"> Point at a dot for its county.</span>
       </figcaption>
     </figure>
   );

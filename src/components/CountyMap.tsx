@@ -42,7 +42,9 @@ export function CountyMap({ race, counties, geo }: { race: Race; counties: Count
               fill={r && col ? marginColor(col.party, r.margin) : NO_RESULTS}
               className={hover === s.id ? "is-hover" : undefined}
               onPointerEnter={() => setHover(s.id)}
-              onPointerLeave={() => setHover(null)}
+              onPointerLeave={(e) => {
+                if (e.pointerType !== "touch") setHover(null); // a finger leaves as it lifts; its county stays in the readout until the next tap
+              }}
             />
           );
         })}
@@ -78,7 +80,7 @@ export function MarginLegend({ parties }: { parties: Party[] }) {
       <div className="margin-legend__title">County margin, points</div>
       {parties.map((p) => (
         <div className="margin-legend__row" key={p}>
-          <span className="margin-legend__party">{p === "D" ? "Dem." : p === "R" ? "Rep." : p === "Y" ? "Yes" : p === "N" ? "No" : "Ind./other"}</span>
+          <span className="margin-legend__party">{p === "D" ? "Dem." : p === "R" ? "Rep." : p === "Y" ? "Yes" : p === "N" ? "No" : "Ind."}</span>
           {MARGIN_RAMP[p].map((c, i) => (
             <span key={c} className="margin-legend__step" style={{ background: c }} title={`${labels[i]}${i === 4 ? "+" : ""}`} />
           ))}

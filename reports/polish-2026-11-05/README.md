@@ -249,3 +249,16 @@ dots on every hover. The compact homepage module gained the first three "things 
 the share image's bottom line now carries the Senate's move since 2024 beside the measures tally, and the embed test
 page carries a single-race embed under the full one.
 
+## Phone pass (Nov. 7, evening)
+
+Rowan saw visual bugs on a phone. Every view was walked in viewport slices under iPhone 14 emulation at 390 and 360 wide,
+with an audit of horizontal overflow, elements past the right edge and tap targets under 32px, plus taps on states, counties,
+hexes and the county map. Fixed: the four-mode map control wrapping two labels onto two lines (short labels and a row of its
+own on phones, the Copy link moved up beside the chip and picker); the zoomed county map painting over the page around it;
+the county map's readout losing the tapped county as the finger lifted; the empty double-rule band between the panel and
+the analysis band; "D 36.4%R 61.2%" run together in the patterns table (a gap, so the two now stack); the hex caption
+"voters live Tap a state" missing its period; the "Ind./other" key label clipped; the patterns picker at 13px (iOS zoom);
+40px controls and wider hit areas on the sort headers and key entries for coarse pointers; the scatter's "point at a dot"
+hint hidden where nothing can point. Left as designed: taps on the national map select rather than show a tooltip (a finger
+cannot hover), a hex tap opens the state list, and the table row is the expander's tap target.
+

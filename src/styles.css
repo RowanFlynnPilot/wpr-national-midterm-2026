@@ -395,9 +395,7 @@ a {
 }
 
 .analysis {
-  margin-top: 1.75rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid var(--rule);
+  margin-top: 1.75rem; /* the board's bottom rule is the separator; a rule of its own left an empty band between two lines */
 }
 
 .analysis__title {
@@ -711,6 +709,7 @@ a {
   display: flex;
   flex-wrap: wrap; /* a narrow column stacks the two sides rather than breaking "Yes 63.4%" in two */
   justify-content: space-between;
+  gap: 0 0.5rem;
   margin-top: 0.2rem;
   font-size: 0.6875rem;
   font-weight: 600;
@@ -1144,11 +1143,31 @@ a {
   .touch-hint {
     display: inline;
   }
+  .fine-hint {
+    display: none; /* "point at a dot" is for a pointer that can point */
+  }
+  /* finger-sized controls: 40px tall where a mouse needs 30 */
+  .home-chip,
+  .copy-link,
+  .state-jump select,
+  .replay-start,
+  .replay__exit,
+  .back,
+  .embed-race,
+  .map-back,
+  .show-all,
+  .segmented button {
+    min-height: 2.5rem;
+  }
+  .segmented--small button {
+    min-height: 2.1rem;
+  }
 }
 
 .map-controls {
   display: flex;
-  flex: none;
+  flex: 0 1 auto; /* a row's worth of controls wraps inside the column (at tablet width they ran past it); the item still moves to its own line whole, since the break goes by the unshrunk basis */
+  min-width: 0;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.6rem;
@@ -1253,6 +1272,10 @@ a {
   color: var(--paper);
 }
 
+.seg-short {
+  display: none;
+}
+
 .map-frame {
   position: relative;
   isolation: isolate; /* the tooltip's z-index stays local */
@@ -1272,6 +1295,10 @@ a {
 .map-zoom {
   transform-origin: 0 0;
   transition: transform 650ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.national-map.is-zoomed {
+  overflow: hidden; /* the map's overflow is visible for its shadow; zoomed, the counties would paint over the page around it */
 }
 
 .map-back {
@@ -2749,9 +2776,12 @@ table.races {
     padding: 0 0 1.25rem;
   }
   .board__panel {
-    padding: 1.25rem 0 1.5rem;
+    padding: 1.25rem 0 0.5rem;
     border-left: 0;
     border-top: 1px solid var(--rule);
+  }
+  .board {
+    border-bottom: 0; /* stacked, the panel's last list row already ends in a rule; a second one 1.5rem under it read as an empty band */
   }
 }
 
@@ -2829,6 +2859,26 @@ table.races {
   }
   .map-caption {
     flex: none; /* in a column, the row's flex-basis would become a 12rem height */
+  }
+  .map-controls {
+    width: 100%;
+  }
+  .map-controls .segmented {
+    order: 1; /* after the copy link, so the chip, the picker and the link share the first row */
+    display: flex;
+    width: 100%;
+  }
+  .map-controls .segmented button {
+    flex: 1 1 0;
+    padding: 0.3rem 0.3rem;
+    font-size: 0.8125rem;
+    white-space: nowrap;
+  }
+  .map-controls .seg-long {
+    display: none;
+  }
+  .map-controls .seg-short {
+    display: inline;
   }
   .races .phone-hide {
     display: none;
@@ -2959,8 +3009,18 @@ table.races {
 
 @media (pointer: coarse) {
   .search input,
-  .state-jump select {
+  .state-jump select,
+  .patterns__pick select {
     font-size: 16px; /* under 16px iOS Safari zooms into the field and never zooms back */
+  }
+  /* finger-sized hit areas on the text-like controls, without moving their rows (after their base rules, so they win) */
+  .sort {
+    padding: 0.5rem 0;
+    margin: -0.5rem 0;
+  }
+  .legend__item {
+    padding: 0.45rem 0.45rem;
+    margin: -0.45rem -0.45rem;
   }
 }
 
