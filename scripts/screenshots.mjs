@@ -57,7 +57,7 @@ const aborted = (r) => r.failure()?.errorText === "net::ERR_ABORTED";
 const CLIPS = { map: ".map-frame", table: ".table-section", legend: ".board__map", panel: ".board__panel", since: ".since", chambers: ".chambers-frame", takeaways: ".takeaways" };
 
 const [outDir = "screens", ...only] = process.argv.slice(2);
-const names = only.length ? only.filter((n) => n !== "compact") : Object.keys(VIEWS);
+const names = only.length ? only.filter((n) => n !== "compact" && n !== "race") : Object.keys(VIEWS);
 mkdirSync(outDir, { recursive: true });
 
 const server = serveDist();
@@ -107,6 +107,25 @@ for (const width of WIDTHS) {
     console.log(path);
   }
   await context.close();
+}
+const RACE_PAGES = ["governors-wi", "house-wi-03", "measures-wi-179849"];
+if (!only.length || only.includes("race")) {
+  for (const width of COMPACT_WIDTHS) {
+    for (const hash of RACE_PAGES) {
+      const page = await browser.newPage({ viewport: { width, height: 800 } });
+      page.on("console", (m) => m.type() === "error" && problems.push(`race ${hash}@${width}: console.error ${m.text()}`));
+      page.on("pageerror", (e) => problems.push(`race ${hash}@${width}: pageerror ${e.message}`));
+      page.on("requestfailed", (r) => aborted(r) || problems.push(`race ${hash}@${width}: request failed ${r.url()}`));
+      await page.goto(`http://localhost:${server.port}/race.html#${hash}`, { waitUntil: "networkidle" });
+      await page.waitForSelector(".race-card");
+      await page.evaluate(() => document.fonts.ready);
+      await page.waitForTimeout(600);
+      const path = join(outDir, `race-${hash}-${width}.png`);
+      await page.screenshot({ path, fullPage: true });
+      await page.close();
+      console.log(path);
+    }
+  }
 }
 if (!only.length || only.includes("compact")) {
   for (const width of COMPACT_WIDTHS) {

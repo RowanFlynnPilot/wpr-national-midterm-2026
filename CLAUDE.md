@@ -243,6 +243,17 @@ across (280px sidebar to a full-width band). Every card and row links to the ful
 </script>
 ```
 
+## Single-race embed
+
+`race.html` + `src/race.tsx`: one race for an article, at any view hash that names a race (`race.html#governors-wi`,
+`#house-wi-03`, `#measures-wi-179849`): the compact masthead, the race card as an `h1` (with the shift line once the
+baseline loads), the county map for a statewide race or measure (it loads only that office's county file, `loadCountySet`),
+and a link to the full page at the same hash (the article's hash when `?host=` is passed). Refreshes every 15 minutes.
+It posts `{type: "wpr-embed-height", id: "wpr-national-midterm-2026-race-<hash>", height}`, one id per race so several
+can share an article. The panel's race views carry an "Embed this race in an article" button (`EmbedRace.tsx`) that
+copies the snippet (`raceEmbedSnippet` in `src/lib/embed.ts`, single-quoted so it pastes into a WordPress HTML block
+whole); it is for the newsroom and does not print. `parseHash`/`toHash` moved to `src/lib/route.ts` so both pages share them.
+
 ## Sharing and freshness
 
 - `share.html` + `src/share.tsx` render `ShareCard` (balance of power with the parliament arcs, 1200×630). `scripts/share-image.mjs` screenshots it to

@@ -18,9 +18,12 @@ async function getJson<T>(file: string): Promise<T> {
 
 export const loadResults = () => getJson<Results>("results.json");
 
+/** One office's county breakdowns (the single-race embed loads only the file its race needs). */
+export const loadCountySet = (office: "S" | "G" | "B") => getJson<CountyResults>(`counties-${office}.json`);
+
 /** County breakdowns for the Senate, governor and measure maps: a third of the page's data, needed only once a county map shows. */
 export async function loadCounties(): Promise<CountySets> {
-  const [S, G, B] = await Promise.all([getJson<CountyResults>("counties-S.json"), getJson<CountyResults>("counties-G.json"), getJson<CountyResults>("counties-B.json")]);
+  const [S, G, B] = await Promise.all([loadCountySet("S"), loadCountySet("G"), loadCountySet("B")]);
   return { S, G, B };
 }
 

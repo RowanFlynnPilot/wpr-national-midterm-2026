@@ -227,3 +227,10 @@ counted counties drawn lighter (the Boston Globe read 2026 swings only where ove
 American Politics notes how arrow maps can overwhelm, hence the toggle); and a county scatter of density against the
 move since 2024 in the "Compared with 2024" block and on each state's panel.
 
+## Single-race embed (Nov. 7)
+
+A newsroom feature: any race can be dropped into an article on its own. `race.html` at a view hash renders the race
+card, the county map and the shift line, sized by the standard height message with one id per race; the panel's race
+views grew an "Embed this race in an article" button that copies the WordPress snippet. The hash routing moved into
+`src/lib/route.ts` for both pages.
+

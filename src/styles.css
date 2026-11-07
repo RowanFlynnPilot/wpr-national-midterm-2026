@@ -388,6 +388,38 @@ a {
   font-weight: 600;
 }
 
+/* ---------- embed this race (newsroom) ---------- */
+
+.embed-race {
+  display: inline-block;
+  margin: 0.4rem 0 0.2rem;
+  padding: 0.3rem 0.7rem;
+  border: 1px dashed var(--rule-strong);
+  border-radius: 6px;
+  background: none;
+  font: 500 0.75rem/1.3 var(--sans);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.embed-race.is-copied {
+  border-style: solid;
+  border-color: var(--teal);
+  color: var(--teal-ink);
+}
+
+.embed-race--failed {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.embed-race--failed textarea {
+  width: 100%;
+  font: 0.6875rem/1.3 var(--mono);
+}
+
 /* ---------- things to know ---------- */
 
 .takeaways {
@@ -2834,7 +2866,8 @@ table.races {
   .expander-col,
   .detail__open,
   .patterns__pick,
-  .margin-legend .segmented {
+  .margin-legend .segmented,
+  .embed-race {
     display: none;
   }
   .legend__item {

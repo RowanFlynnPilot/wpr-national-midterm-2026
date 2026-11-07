@@ -35,10 +35,10 @@ function RaceEmbed({ initial, sel }: { initial: Results; sel: Selection }) {
   const [baseline, setBaseline] = useState<Baseline | null>(null);
   const [history, setHistory] = useState<History>({});
   const [now, setNow] = useState(() => Date.now());
-  const mapped = sel.office !== "H";
+  const countyOffice = sel.office === "H" ? null : sel.office; // a House district has no county file
   useEffect(() => {
-    if (mapped) {
-      loadCountySet(sel.office).then(setCounties);
+    if (countyOffice) {
+      loadCountySet(countyOffice).then(setCounties);
       loadAtlas().then(setGeo);
     }
     loadBaseline().then(setBaseline);
@@ -48,14 +48,14 @@ function RaceEmbed({ initial, sel }: { initial: Results; sel: Selection }) {
       loadResults().then((r) => {
         if (r.fetched === results.fetched) return;
         setResults(r);
-        if (mapped) loadCountySet(sel.office).then(setCounties);
+        if (countyOffice) loadCountySet(countyOffice).then(setCounties);
       }, () => undefined);
     }, REFRESH_MS);
     return () => {
       window.clearInterval(tick);
       window.clearInterval(refresh);
     };
-  }, [mapped, sel.office, results.fetched]);
+  }, [countyOffice, results.fetched]);
 
   const race = findRace(results, sel);
   if (!race) return <p className="load-error">No race matches this link.</p>;
@@ -72,7 +72,7 @@ function RaceEmbed({ initial, sel }: { initial: Results; sel: Selection }) {
         </span>
       </header>
       <RaceCard race={race} heading="h1" points={history[String(race.id)]} baseline={baseline} />
-      {mapped && counties && geo && <CountyMap race={race} counties={counties} geo={geo} />}
+      {countyOffice && counties && geo && <CountyMap race={race} counties={counties} geo={geo} />}
       <a className="compact__more" href={full} target="_top">
         Every race, every state, every county →
       </a>

@@ -7,7 +7,7 @@ import { Sparkline } from "./Sparkline";
 import { raceTitle } from "../lib/summary";
 import type { Race } from "../lib/types";
 
-export function RaceCard({ race, heading = "h3", points, baseline = null }: { race: Race; heading?: "h2" | "h3"; points?: HistoryPoint[]; baseline?: Baseline | null }) {
+export function RaceCard({ race, heading = "h3", points, baseline = null }: { race: Race; heading?: "h1" | "h2" | "h3"; points?: HistoryPoint[]; baseline?: Baseline | null }) {
   const H = heading;
   const shift = baseline ? raceShift(race, baseline) : null;
   const noVotes = race.total === 0;

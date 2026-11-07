@@ -23,26 +23,13 @@ import { centralTime, relativeAge } from "./lib/format";
 import type { Geo } from "./lib/geo";
 import { useLive } from "./lib/live";
 import { callOrder, resultsAfter } from "./lib/replay";
+import { parseHash, toHash } from "./lib/route";
 import { readVisit, writeVisit } from "./lib/visits";
 import { isStale } from "./lib/share";
 import { isFresh, noVotesYet, type LegendKey } from "./lib/status";
 import { HOME_STATE, stateName } from "./lib/states";
-import { chamber, dek, headline, housePopularVote, OFFICE_NAME, OFFICE_SLUG, raceTitle } from "./lib/summary";
-import type { Office, Race, Selection } from "./lib/types";
-
-const OFFICE_BY_SLUG: Record<string, Office> = { senate: "S", house: "H", governors: "G", measures: "B" };
-
-function parseHash(hash: string): Selection {
-  const [slug = "", st, dist] = hash.replace(/^#/, "").toLowerCase().split("-");
-  const office = OFFICE_BY_SLUG[slug] ?? "S";
-  const state = st && /^[a-z]{2}$/.test(st) ? st.toUpperCase() : null;
-  const district = (office === "H" || office === "B") && state && dist ? `${state}-${dist.toUpperCase()}` : null; // a measure's key is its id
-  return { office, state, district };
-}
-
-function toHash({ office, state, district }: Selection): string {
-  return [OFFICE_SLUG[office], state?.toLowerCase(), district?.split("-")[1]?.toLowerCase()].filter(Boolean).join("-");
-}
+import { chamber, dek, headline, housePopularVote, OFFICE_NAME, raceTitle } from "./lib/summary";
+import type { Race, Selection } from "./lib/types";
 
 interface Hover {
   target: HoverTarget;

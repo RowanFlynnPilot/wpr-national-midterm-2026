@@ -11,6 +11,7 @@ import type { Demographics } from "../lib/patterns";
 import { biggestShifts, marginLabel, officeShift, type Baseline } from "../lib/shift";
 import { CountyMap } from "./CountyMap";
 import { CountyPatterns } from "./CountyPatterns";
+import { EmbedRace } from "./EmbedRace";
 import { ShiftScatter } from "./ShiftScatter";
 import { MarginStrip } from "./MarginStrip";
 import { RaceCard } from "./RaceCard";
@@ -345,6 +346,7 @@ function StateView({ office, state, races, counties, geo, history, demographics,
       {race ? (
         <>
           <RaceCard race={race} heading="h2" points={history[String(race.id)]} baseline={baseline} />
+          <EmbedRace race={race} />
           {geo && countyData && <CountyMap race={race} counties={countyData} geo={geo} />}
           {countyData && demographics && baseline && <ShiftScatter races={[race]} counties={countyData} demographics={demographics} baseline={baseline} geo={geo} />}
           {countyData && demographics && <CountyPatterns races={[race]} counties={countyData} demographics={demographics} baseline={baseline} scope={raceTitle(race)} />}
@@ -465,6 +467,7 @@ function MeasureView({ races, district, counties, geo, history, demographics, on
     <div className="panel">
       <Back label={`All ${stateName(race.state)} measures`} onClick={() => onSelect("B", race.state, null)} />
       <RaceCard race={race} heading="h2" points={history[String(race.id)]} />
+      <EmbedRace race={race} />
       {geo && counties && <CountyMap race={race} counties={counties.B} geo={geo} />}
       {counties && demographics && <CountyPatterns races={[race]} counties={counties.B} demographics={demographics} baseline={null} scope={measureShortTitle(race)} />}
     </div>
@@ -478,6 +481,7 @@ function DistrictView({ races, district, history, onSelect }: Props & { district
     <div className="panel">
       <Back label={`All ${stateName(race.state)} districts`} onClick={() => onSelect("H", race.state, null)} />
       <RaceCard race={race} heading="h2" points={history[String(race.id)]} />
+      <EmbedRace race={race} />
       {raceStatus(race) === "leading" && (
         <p className="panel__note">
           {PARTY_LABEL[race.leader]} {race.cands[0]?.name} leads by {race.marginVotes.toLocaleString("en-US")} votes.
