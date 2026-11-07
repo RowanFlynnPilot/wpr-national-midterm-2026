@@ -199,3 +199,15 @@ demographics: a hand-run pipeline from the Census FTP (no key needed; the 2021 v
 share and summing the vote in each group. The 2024 baseline pipeline and the shift math are written and tested; the MIT
 file sits behind a Dataverse guestbook, so the shift layer waits for Rowan to download it.
 
+## Swing and demographics, part two (Nov. 7)
+
+With the MIT county returns in hand (Rowan cleared the Dataverse guestbook), `pipeline/baseline.py` builds the 2024
+baseline: it uses a county's TOTAL vote-mode rows where they exist, keeps Alaska and Connecticut at state level
+(Alaska's rows are legislative districts whose numbers collide with borough codes; Connecticut's counties did come
+through), aliases the renamed Oglala Lakota County, and checks the national totals against the certified count.
+Wisconsin's state line matches the certified 1,668,229 to 1,697,626. The front end gained the "Shift since 2024"
+county mode with a diverging key, the shift line on race cards and tooltips, the "vs. 2024" table and CSV column, the
+shift column in the county patterns, and a "Compared with 2024" block on the overview with the vote-weighted
+aggregate and the three biggest moves toward each party. The deploy workflow now checks out the branch tip, after a
+push-triggered run lost a rebase to the hourly run's snapshot commit.
+

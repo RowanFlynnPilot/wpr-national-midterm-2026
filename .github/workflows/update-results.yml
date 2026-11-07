@@ -25,6 +25,8 @@ jobs:
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main # the branch tip, not the pushed commit: a queued run must see the snapshot the run before it committed
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"

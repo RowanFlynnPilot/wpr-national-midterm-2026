@@ -88,7 +88,7 @@ export function CountyPatterns({ races, counties, demographics, baseline, scope 
         </tbody>
       </table>
       <p className="panel__note">
-        {usable.length === 1 ? `${scope}, every county.` : `${scope}: ${usable.length} with both a Democrat and a Republican${skipped ? `, ${skipped} without one left out` : ""}.`}{" "}
+        {usable.length === 1 ? `${scope}, every county.` : `${scope}: ${usable.length} where a Democrat and a Republican finished first and second${skipped ? `, ${skipped} with an independent in the top two left out` : ""}.`}{" "}
         Counties are grouped by Census estimates ({demographics.vintage}) and their votes summed, so these are patterns of places, not a
         survey of voters.
         {hasShift && " “vs. 2024” compares the two-party margin with the 2024 presidential vote in the same counties."}

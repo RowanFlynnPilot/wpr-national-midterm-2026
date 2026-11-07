@@ -51,8 +51,9 @@ export function marginColor(party: Party, margin: number): string {
   return ramp[idx === -1 ? ramp.length - 1 : idx] as string;
 }
 
-// Shift since 2024: points moved toward a party, on that party's margin ramp (the lightest step for under 2 points).
-export const SHIFT_BINS = [2, 5, 10];
+// Shift since 2024: points moved toward a party, on that party's margin ramp (the lightest step for under 5 points).
+// Cut against the 2026 county distribution (median 14 points, quartiles 8 and 19), so the map grades rather than saturates.
+export const SHIFT_BINS = [5, 10, 20];
 
 export function shiftColor(shift: number): string {
   const idx = SHIFT_BINS.findIndex((b) => Math.abs(shift) < b);

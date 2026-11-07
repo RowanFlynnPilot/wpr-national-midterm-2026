@@ -1,4 +1,4 @@
-import { countyPartyVotes, type Baseline } from "./shift";
+import { countyPartyVotes, twoPartyRace, type Baseline } from "./shift";
 import type { CountyResults, Race } from "./types";
 
 /** County demographics (pipeline/demographics.py): [population, collegePct, medianIncome | null, whiteNhPct, density]. */
@@ -41,8 +41,8 @@ export interface Bin {
 }
 
 /**
- * The vote in every county of the given races, grouped by one Census variable. A race counts only when both a
- * Democrat and a Republican are among its county columns; a county only when it has votes and the variable.
+ * The vote in every county of the given races, grouped by one Census variable. Give it `patternRaces`: a race counts
+ * only with a Democrat and a Republican first and second; a county only when it has votes and the variable.
  */
 export function countyPatterns(races: Race[], counties: CountyResults, demographics: Demographics, variable: Variable, baseline: Baseline | null): Bin[] {
   const { index, edges } = VARIABLES[variable];
@@ -86,7 +86,7 @@ export function countyPatterns(races: Race[], counties: CountyResults, demograph
   });
 }
 
-/** Races that can enter the patterns: statewide, with county rows loaded and both major parties on the ballot. */
+/** Races that can enter the patterns: county rows loaded, and a Democrat and a Republican first and second. */
 export function patternRaces(races: Race[], counties: CountyResults): Race[] {
-  return races.filter((r) => counties[String(r.id)] && r.cands.some((c) => c.party === "D") && r.cands.some((c) => c.party === "R"));
+  return races.filter((r) => counties[String(r.id)] && twoPartyRace(r));
 }

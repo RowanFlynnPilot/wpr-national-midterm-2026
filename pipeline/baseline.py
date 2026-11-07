@@ -25,6 +25,8 @@ SOURCE = "MIT Election Data and Science Lab, County Presidential Election Return
 YEAR = "2024"
 CERTIFIED = {"DEMOCRAT": 75_017_613, "REPUBLICAN": 77_303_568}  # Harris, Trump; the check allows 1%
 TOLERANCE = 0.01
+DISTRICT_STATES = {"AK"}  # reported by state House district, not borough; state totals only
+FIPS_ALIAS = {"46113": "46102"}  # Shannon County, S.D., became Oglala Lakota County in 2015; the atlas uses the new code
 
 
 def source_file() -> Path:
@@ -61,8 +63,8 @@ def main() -> None:
     for (state, _name, raw_fips), group in by_county.items():
         if any(r["mode"] == "TOTAL" for r in group):
             group = [r for r in group if r["mode"] == "TOTAL"]
-        dem = sum(int(r["candidate_votes"]) for r in group if r["party"] == "DEMOCRAT")
-        rep = sum(int(r["candidate_votes"]) for r in group if r["party"] == "REPUBLICAN")
+        dem = sum(int(r["candidatevotes"]) for r in group if r["party"] == "DEMOCRAT")
+        rep = sum(int(r["candidatevotes"]) for r in group if r["party"] == "REPUBLICAN")
         total = max(int(r["totalvotes"]) for r in group)
         if dem > total or rep > total:
             raise RuntimeError(f"{state} {_name}: party votes exceed the total")
@@ -71,7 +73,9 @@ def main() -> None:
         s[1] += rep
         s[2] += total
         fips = fips_of(raw_fips)
-        fips = FIPS_MERGE.get(fips, fips) if fips else None
+        fips = FIPS_MERGE.get(fips, FIPS_ALIAS.get(fips, fips)) if fips else None
+        if state in DISTRICT_STATES:
+            fips = None  # the "county_fips" of a legislative district collides with real borough codes
         if fips in ids:
             c = counties.setdefault(fips, [0, 0, 0])
             c[0] += dem

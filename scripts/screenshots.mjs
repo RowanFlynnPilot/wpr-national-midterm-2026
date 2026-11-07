@@ -34,6 +34,8 @@ const VIEWS = {
   "house-replay": { hash: "#house", click: ".replay-start", fill: [".replay__scrub", "60"], clip: "legend" },
   "house-margins": { hash: "#house", clip: "panel" },
   "senate-patterns": { hash: "#senate", clip: "panel" },
+  "senate-shift": { hash: "#senate", click: 'button[role="radio"]:has-text("Shift since 2024")', clip: "map" },
+  "governors-shift-wi": { hash: "#governors-wi", click: 'button[role="radio"]:has-text("Shift since 2024")', beforeHover: 700, hover: "g.counties path:not(.is-out) >> nth=40", clip: "map" },
   "governors-wi": { hash: "#governors-wi", clip: "panel" },
   "senate-since": { hash: "#senate", visitHoursAgo: 5, clip: "since" },
   "senate-table": { hash: "#senate", click: ".races tbody tr:nth-child(2) .expander", clip: "table" },
@@ -83,6 +85,7 @@ for (const width of WIDTHS) {
     await page.waitForFunction(() => !document.querySelector(".map-pending"), null, { timeout: 15000 });
     if (view.clip) await page.locator(CLIPS[view.clip]).scrollIntoViewIfNeeded();
     if (view.hover) {
+      if (view.beforeHover) await page.waitForTimeout(view.beforeHover); // a zoom still moving would slide out from under the pointer
       await page.locator(view.hover).first().hover();
       await page.waitForSelector(".tooltip");
     }

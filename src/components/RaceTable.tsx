@@ -3,6 +3,7 @@ import { PARTY } from "../lib/colors";
 import { racesCsv } from "../lib/csv";
 import { apNumber, marginText, pct, timeAgo, votes } from "../lib/format";
 import { side, trend, type History } from "../lib/history";
+import { marginLabel, raceShift, type Baseline } from "../lib/shift";
 import { stateName } from "../lib/states";
 import { noVotesYet, raceFill, raceStatus } from "../lib/status";
 import { measureShortTitle, OFFICE_NAME, OFFICE_SLUG } from "../lib/summary";
@@ -10,12 +11,13 @@ import type { Office, Race } from "../lib/types";
 import { RaceCard } from "./RaceCard";
 
 type Filter = "all" | "open" | "flips" | "close";
-type Sort = "place" | "leader" | "margin" | "reporting" | "votes" | "called";
+type Sort = "place" | "leader" | "margin" | "reporting" | "votes" | "called" | "shift";
 
 interface Props {
   office: Office;
   races: Race[];
   history: History;
+  baseline: Baseline | null; // the 2024 presidential vote, for the "vs. 2024" column; null until it loads
   now: number;
   onSelect: (race: Race) => void;
 }
@@ -26,7 +28,8 @@ const CLOSE_PTS = 5;
 const TREND_GLYPH = { widening: "▲", narrowing: "▼", flipped: "⇅" } as const;
 const TREND_TEXT = { widening: "lead widening since the last update", narrowing: "lead narrowing since the last update", flipped: "lead changed hands since the last update" } as const;
 
-export function RaceTable({ office, races, history, now, onSelect }: Props) {
+export function RaceTable({ office, races, history, baseline, now, onSelect }: Props) {
+  const shiftOf = (r: Race) => (baseline ? raceShift(r, baseline)?.shift ?? null : null);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [sort, setSort] = useState<Sort>("place");
@@ -72,9 +75,10 @@ export function RaceTable({ office, races, history, now, onSelect }: Props) {
       reporting: (a: Race, b: Race) => a.pctIn - b.pctIn || a.margin - b.margin,
       votes: (a: Race, b: Race) => b.total - a.total,
       called: (a: Race, b: Race) => (b.calledAt ?? "").localeCompare(a.calledAt ?? ""),
+      shift: (a: Race, b: Race) => (shiftOf(b) ?? -Infinity) - (shiftOf(a) ?? -Infinity), // most Democratic move first; no baseline last
     }[sort];
     return sort === "place" && office === "H" ? list : [...list].sort(by);
-  }, [all, office, query, filter, sort]);
+  }, [all, office, query, filter, sort, baseline]);
 
   const visible = showAll || query ? rows : rows.slice(0, PAGE);
   const filters: [Filter, string][] = [
@@ -86,7 +90,8 @@ export function RaceTable({ office, races, history, now, onSelect }: Props) {
   const heading = measures ? "Every statewide ballot measure" : `Every ${OFFICE_NAME[office] === "Governors" ? "governor" : OFFICE_NAME[office]} race`;
   const called = all.filter((r) => r.winner).length;
   const summary = `${all.length} ${measures ? "measures" : "races"} · ${called} called · ${all.length - called} not called`;
-  const columns = measures ? 9 : 8;
+  const shifts = !measures && office !== "H" && baseline !== null; // the "vs. 2024" column
+  const columns = measures ? 9 : shifts ? 9 : 8;
 
   const toggle = (id: number) =>
     setExpanded((s) => {
@@ -97,7 +102,7 @@ export function RaceTable({ office, races, history, now, onSelect }: Props) {
     });
 
   const download = () => {
-    const blob = new Blob([racesCsv(rows)], { type: "text/csv;charset=utf-8" });
+    const blob = new Blob([racesCsv(rows, baseline)], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -163,6 +168,7 @@ export function RaceTable({ office, races, history, now, onSelect }: Props) {
                 </>
               )}
               <SortHeader label="Margin" value="margin" sort={sort} onSort={setSort} num />
+              {shifts && <SortHeader label="vs. 2024" value="shift" sort={sort} onSort={setSort} num phoneHide />}
               <SortHeader label="Reporting" value="reporting" sort={sort} onSort={setSort} num tabletHide />
               <SortHeader label="Votes" value="votes" sort={sort} onSort={setSort} num tabletHide />
               <SortHeader label="Called" value="called" sort={sort} onSort={setSort} tabletHide />
@@ -227,6 +233,7 @@ export function RaceTable({ office, races, history, now, onSelect }: Props) {
                     )}
                     {r.unopposed ? "Unopposed" : marginText(r.margin)}
                   </td>
+                  {shifts && <ShiftCell shift={shiftOf(r)} />}
                   <td className="num tablet-hide">{Math.round(r.pctIn)}%</td>
                   <td className="num tablet-hide">{votes(r.total)}</td>
                   <td className="tablet-hide called-cell">{r.calledAt ? timeAgo(r.calledAt, now) : r.winner ? "No time given" : "—"}</td>
@@ -240,7 +247,7 @@ export function RaceTable({ office, races, history, now, onSelect }: Props) {
                   <tr key={`${r.id}-detail`} className="detail-row">
                     <td colSpan={columns} id={`race-detail-${r.id}`}>
                       <div className="detail">
-                        <RaceCard race={r} heading="h3" points={points} />
+                        <RaceCard race={r} heading="h3" points={points} baseline={baseline} />
                         <button type="button" className="detail__open" onClick={() => onSelect(r)}>
                           Open on the map →
                         </button>
@@ -265,6 +272,16 @@ export function RaceTable({ office, races, history, now, onSelect }: Props) {
         </p>
       )}
     </section>
+  );
+}
+
+/** The race's move against the 2024 presidential vote: "D +4.2" in the party's color; a dash without both parties. */
+function ShiftCell({ shift }: { shift: number | null }) {
+  if (shift === null) return <td className="num phone-hide">—</td>;
+  return (
+    <td className="num phone-hide" style={{ color: shift > 0 ? PARTY.D : shift < 0 ? PARTY.R : undefined }}>
+      {marginLabel(shift)}
+    </td>
   );
 }
 

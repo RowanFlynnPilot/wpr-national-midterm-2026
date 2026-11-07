@@ -388,6 +388,24 @@ a {
   font-weight: 600;
 }
 
+/* ---------- shift since 2024 ---------- */
+
+.race-card__shift {
+  margin: 0.6rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+
+.tooltip__shift {
+  margin-top: 0.45rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--ink-2);
+}
+
 /* ---------- how counties voted (panel) ---------- */
 
 .patterns__head {
@@ -1550,6 +1568,18 @@ a {
 .margin-legend__row--remaining,
 .margin-legend__ticks--remaining {
   grid-template-columns: repeat(5, 56px);
+}
+
+.margin-legend__row--shift {
+  grid-template-columns: repeat(8, 30px);
+}
+
+.margin-legend__ends {
+  display: flex;
+  justify-content: space-between;
+  width: calc(8 * 30px + 7 * 2px);
+  margin-top: 0.2rem;
+  color: var(--muted);
 }
 
 .margin-legend__ticks--remaining span {

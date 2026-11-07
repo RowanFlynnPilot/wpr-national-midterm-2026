@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { race } from "./fixture";
 import { binLabels, countyPatterns, patternRaces, type Demographics } from "./patterns";
-import type { CountyResults } from "./types";
+import type { Candidate, CountyResults } from "./types";
 
 const tx = race("S", "TX");
 const cols = tx.cands.filter((c) => c.party !== "O").slice(0, 3);
@@ -45,5 +45,7 @@ describe("patternRaces", () => {
     expect(patternRaces([tx], counties)).toEqual([tx]);
     expect(patternRaces([tx], {})).toEqual([]);
     expect(patternRaces([{ ...tx, cands: tx.cands.filter((c) => c.party !== "D") }], counties)).toEqual([]);
+    const [a, b, ...rest] = tx.cands as [Candidate, Candidate, ...Candidate[]];
+    expect(patternRaces([{ ...tx, cands: [a, { ...b, party: "I" }, ...rest] }], counties)).toEqual([]); // an independent second
   });
 });

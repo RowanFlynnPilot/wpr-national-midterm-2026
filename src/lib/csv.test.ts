@@ -10,7 +10,7 @@ describe("toCsv", () => {
 
 describe("racesCsv", () => {
   it("spells out the top two candidates with the race's status and timing", () => {
-    const csv = racesCsv([race("S", "TX"), race("H", "LA-05")]);
+    const csv = racesCsv([race("S", "TX"), race("H", "LA-05")], null);
     const [header, tx, la] = csv.trim().split("\r\n") as [string, string, string];
     expect(header.startsWith("office,state,race,status,leader,leader_party,leader_pct,leader_votes")).toBe(true);
     expect(tx).toContain("S,Texas,Texas Senate,Winner called. Flipped from Republican,James Talarico,D,55.03,5445156,Ken Paxton,R,42.95,4249762,12.08,98.9");

@@ -138,8 +138,8 @@ Two sources beyond civicAPI, both static, fetched by hand and committed; neither
   is the counties the maps and civicAPI use (from 2022 the Census reports Connecticut by planning region). Alaska's split census
   areas are merged like the vote. The build fails if any atlas county lacks a row; one county (Loving, TX) has no median income.
   Public domain; credited in the footer. Front end: `src/lib/patterns.ts` (`countyPatterns`: the vote of the given races summed
-  over counties grouped by one variable into four bins; a race counts only with both a Democrat and a Republican among its county
-  columns, a county only with votes and the variable) and `CountyPatterns.tsx`, on the Senate and governor overview panels (every
+  over counties grouped by one variable into four bins; a race counts only when a Democrat and a Republican finished first and
+  second (`twoPartyRace` in `shift.ts`; six 2026 races had an independent in the top two), a county only with votes and the variable) and `CountyPatterns.tsx`, on the Senate and governor overview panels (every
   race of the office) and on a state's panel (that race): a menu of four variables (people per square mile, bachelor's share,
   median household income, white non-Hispanic share), each bin's share of the vote, D/R result and, once the 2024 baseline is
   loaded, the shift. The note says these are patterns of places, not a survey of voters.
@@ -149,9 +149,13 @@ Two sources beyond civicAPI, both static, fetched by hand and committed; neither
   `[dem, rep, total]` by county FIPS (where the atlas draws the county; Alaska and Connecticut have state totals only) and by
   state. It uses a county's TOTAL vote-mode rows where they exist and fails unless the national totals land within 1% of the
   certified count. `src/lib/shift.ts`: `raceShift` and `countyShift` compare a race's or a county's Democratic-minus-Republican
-  share of all votes with 2024 (null without both parties on the ballot), `shiftText` words it, `shiftColor` in `colors.ts`
-  steps the party margin ramps at 2, 5 and 10 points. The shift map mode, race-card line, table column and tooltip line land
-  once the file is in place.
+  share of all votes with 2024 (null unless `twoPartyRace`), `shiftText` words it, `shiftColor` in `colors.ts` steps the party
+  margin ramps at 5, 10 and 20 points (cut against the 2026 county distribution: median 14, quartiles 8 and 19). Once the file loads (after first paint, with the demographics): a
+  fourth map mode "Shift since 2024" for Senate and governor races (counties on the margin ramps by how far they moved, with a
+  diverging key), a line on every statewide race card and tooltip (`shiftText`), a sortable "vs. 2024" column in the table
+  and a `shift_vs_2024_pts` CSV column, the shift column in the county-patterns block, and a "Compared with 2024" block on
+  the Senate and governor overview panels (`officeShift`: the races with both parties, vote-weighted against their states;
+  `biggestShifts`: the three largest moves toward each party). House races have no shift: a district has no statewide baseline.
 
 ## WordPress embed
 
@@ -258,7 +262,9 @@ TBT under 90 ms. The mono font is not preloaded (tables only, below the fold). `
 ## Deploy
 
 `public/embed-test.html` wraps the build in the CLAUDE.md snippet so auto-height can be checked locally (`/embed-test.html` on Pages).
-`.github/workflows/update-results.yml` fetches, tests, builds (including share.png via a cached Playwright Chromium) and deploys to Pages hourly (each run makes ~500 civicAPI requests; keep it gentle on a free API). Enable Pages → Source: "GitHub Actions" in repo settings, and run the workflow once by hand to publish. If a fetch or build fails, nothing deploys and the last good version stays up. Stop the cron once states certify (late November into December).
+`.github/workflows/update-results.yml` checks out the branch tip (`ref: main`, not the pushed commit: runs are serialized by the
+`pages` concurrency group, and a queued push-triggered run must see the snapshot the run before it committed, or its own snapshot
+commit conflicts in `pipeline/history.json`; that failed once on Nov. 7), fetches, tests, builds (including share.png via a cached Playwright Chromium) and deploys to Pages hourly (each run makes ~500 civicAPI requests; keep it gentle on a free API). Enable Pages → Source: "GitHub Actions" in repo settings, and run the workflow once by hand to publish. If a fetch or build fails, nothing deploys and the last good version stays up. Stop the cron once states certify (late November into December).
 
 ## AP cross-check (Nov. 5, 2026)
 

@@ -1,4 +1,5 @@
-import { PALE, PARTY, PARTY_LABEL } from "../lib/colors";
+import { Fragment } from "react";
+import { PALE, PARTY, PARTY_LABEL, PARTY_PLURAL } from "../lib/colors";
 import { apNumber, marginText, pct, timeAgo } from "../lib/format";
 import { HOME_STATE, stateName } from "../lib/states";
 import { RUNOFF, noVotesYet, raceFill, raceStatus } from "../lib/status";
@@ -7,6 +8,7 @@ import { side, trend, type History } from "../lib/history";
 import { measureShortTitle, OFFICE_NAME, OFFICE_SINGULAR, raceTitle, type Chamber, type PopularVote } from "../lib/summary";
 import type { CountySets, Office, Race } from "../lib/types";
 import type { Demographics } from "../lib/patterns";
+import { biggestShifts, marginLabel, officeShift, type Baseline } from "../lib/shift";
 import { CountyMap } from "./CountyMap";
 import { CountyPatterns } from "./CountyPatterns";
 import { MarginStrip } from "./MarginStrip";
@@ -23,6 +25,7 @@ interface Props {
   geo: Geo | null; // null until the map shapes load
   history: History;
   demographics: Demographics | null; // null until the Census file loads
+  baseline: Baseline | null; // the 2024 presidential vote; null until it loads
   now: number;
   onSelect: (office: Office, state: string | null, district: string | null) => void;
 }
@@ -109,7 +112,7 @@ function RaceRow({ race, onClick, showOffice = false, when, points }: RowProps) 
 
 const COUNTING_LISTED = 40;
 
-function Overview({ office, chamber, popularVote, races, counties, demographics, history, now, onSelect }: Props) {
+function Overview({ office, chamber, popularVote, races, counties, demographics, baseline, history, now, onSelect }: Props) {
   const counting = chamber.uncalled.filter((r) => !r.runoff);
   const listed = counting.slice(0, COUNTING_LISTED); // mid-replay, hundreds are uncalled; the table has them all
   const pick = (r: Race) => onSelect(office, r.state, routeOf(r));
@@ -190,12 +193,13 @@ function Overview({ office, chamber, popularVote, races, counties, demographics,
           )}
         </>
       )}
+      {office !== "H" && !measures && baseline && <ShiftBlock office={office} races={races.filter((r) => r.office === office)} baseline={baseline} onSelect={pick} />}
       {office !== "H" && !measures && counties && demographics && (
         <CountyPatterns
           races={races.filter((r) => r.office === office)}
           counties={office === "S" ? counties.S : counties.G}
           demographics={demographics}
-          baseline={null}
+          baseline={baseline}
           scope={`Across the ${races.filter((r) => r.office === office).length} ${office === "S" ? "Senate" : "governor"} races`}
         />
       )}
@@ -230,6 +234,55 @@ function HomeGlance({ races, onSelect }: Pick<Props, "races" | "onSelect">) {
           </button>
         </li>
       </ul>
+    </section>
+  );
+}
+
+/** The office's races against the 2024 presidential vote in their states, and the biggest moves each way. */
+function ShiftBlock({ office, races, baseline, onSelect }: { office: Office; races: Race[]; baseline: Baseline; onSelect: (r: Race) => void }) {
+  const all = officeShift(races, baseline);
+  if (!all) return null;
+  const s = all.shift.shift;
+  return (
+    <section className="shift-block" aria-labelledby="shift-title">
+      <h2 id="shift-title" className="panel__title">
+        Compared with 2024
+      </h2>
+      <p className="panel__lede">
+        Across the {all.races} {office === "S" ? "Senate" : "governor"} races where a Democrat and a Republican finished first and second, the vote ran{" "}
+        <strong style={{ color: s > 0 ? PARTY.D : PARTY.R }}>
+          {Math.abs(s).toFixed(1)} points more {s > 0 ? "Democratic" : "Republican"}
+        </strong>{" "}
+        than the 2024 presidential vote in the same states ({marginLabel(all.shift.then)} then, {marginLabel(all.shift.now)} now).
+      </p>
+      {(["D", "R"] as const).map((p) => {
+        const list = biggestShifts(races, baseline, p, 3);
+        if (!list.length) return null;
+        return (
+          <Fragment key={p}>
+            <h3 className="panel__subtitle">Biggest moves toward {PARTY_PLURAL[p]}</h3>
+            <ul className="race-rows">
+              {list.map(({ race, shift }) => (
+                <li key={race.id}>
+                  <button type="button" className="race-row" onClick={() => onSelect(race)}>
+                    <span className="race-row__swatch" style={{ background: raceFill(race) }} />
+                    <span className="race-row__where">{shortTitle(race)}</span>
+                    <span className="race-row__who">{race.cands[0]?.name}</span>
+                    <span className="race-row__margin">
+                      <span style={{ color: PARTY[p] }}>{marginLabel(shift.shift)}</span>
+                      <small>2024: {marginLabel(shift.then)}</small>
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </Fragment>
+        );
+      })}
+      <p className="panel__note">
+        Democratic minus Republican share of every vote, this race against the 2024 presidential vote in the state, in points. Races with an
+        independent in the top two are left out.
+      </p>
     </section>
   );
 }
@@ -273,7 +326,7 @@ function Back({ label, onClick }: { label: string; onClick: () => void }) {
   );
 }
 
-function StateView({ office, state, races, counties, geo, history, demographics, onSelect }: Props & { state: string }) {
+function StateView({ office, state, races, counties, geo, history, demographics, baseline, onSelect }: Props & { state: string }) {
   const race = races.find((r) => r.office === office && r.state === state);
   const others = races.filter((r) => r.state === state && r.office !== office && r.office !== "H");
   const house = races.filter((r) => r.state === state && r.office === "H");
@@ -283,9 +336,9 @@ function StateView({ office, state, races, counties, geo, history, demographics,
       <Back label={`All ${OFFICE_NAME[office].toLowerCase()} races`} onClick={() => onSelect(office, null, null)} />
       {race ? (
         <>
-          <RaceCard race={race} heading="h2" points={history[String(race.id)]} />
+          <RaceCard race={race} heading="h2" points={history[String(race.id)]} baseline={baseline} />
           {geo && countyData && <CountyMap race={race} counties={countyData} geo={geo} />}
-          {countyData && demographics && <CountyPatterns races={[race]} counties={countyData} demographics={demographics} baseline={null} scope={raceTitle(race)} />}
+          {countyData && demographics && <CountyPatterns races={[race]} counties={countyData} demographics={demographics} baseline={baseline} scope={raceTitle(race)} />}
         </>
       ) : (
         <h2 className="panel__title panel__title--state">

@@ -1,5 +1,6 @@
 import { memo, useMemo, useState } from "react";
-import { NO_RACE, NO_RESULTS, inkOn, marginColor, measureCountColor, remainingColor } from "../lib/colors";
+import { NO_RACE, NO_RESULTS, inkOn, marginColor, measureCountColor, remainingColor, shiftColor } from "../lib/colors";
+import { countyShift, type Baseline } from "../lib/shift";
 import { countyColumns, readCounty } from "../lib/data";
 import { LABEL_NUDGE, VIEW, type Geo, type Shape, type StateShape } from "../lib/geo";
 
@@ -11,11 +12,12 @@ import { focusPoint, type HoverHandler } from "./Tooltip";
 
 /** states: one fill per race; counties: county margins; remaining: how much of each county's vote is still out;
  *  measures: how many statewide ballot measures each state has. */
-export type MapMode = "states" | "counties" | "remaining" | "measures";
+export type MapMode = "states" | "counties" | "remaining" | "shift" | "measures";
 
 interface Props {
   geo: Geo;
   mode: MapMode;
+  baseline: Baseline | null; // the 2024 presidential vote, for the shift mode; null until it loads
   description: string; // the map's accessible name, with the tallies
   racesByState: Map<string, Race>;
   measureCounts: Map<string, number>; // measures mode: statewide measures per state
@@ -51,7 +53,7 @@ function zoomTransform(s: StateShape): string {
   return `translate(${VIEW.width / 2}px, ${VIEW.height / 2}px) scale(${k}) translate(${-cx}px, ${-cy}px)`;
 }
 
-export const NationalMap = memo(function NationalMap({ geo, mode, description, racesByState, measureCounts, spotlight, now, counties, selected, onHover, onSelect, onClear }: Props) {
+export const NationalMap = memo(function NationalMap({ geo, mode, baseline, description, racesByState, measureCounts, spotlight, now, counties, selected, onHover, onSelect, onClear }: Props) {
   const [focused, setFocused] = useState<string | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
   const measures = mode === "measures";
@@ -76,6 +78,11 @@ export const NationalMap = memo(function NationalMap({ geo, mode, description, r
       const cols = countyColumns(race);
       for (const [fips, row] of Object.entries(rows)) {
         const reading = readCounty(row);
+        if (mode === "shift") {
+          const s = baseline ? countyShift(race, row, fips, baseline) : null;
+          fills.set(fips, s ? shiftColor(s.shift) : NO_RESULTS);
+          continue;
+        }
         if (mode === "remaining") {
           fills.set(fips, remainingColor(reading?.pctIn ?? 0));
           continue;
@@ -85,7 +92,7 @@ export const NationalMap = memo(function NationalMap({ geo, mode, description, r
       }
     }
     return fills;
-  }, [mode, racesByState, counties]);
+  }, [mode, racesByState, counties, baseline]);
 
   const selectedShape = selected ? geo.states.find((s) => s.code === selected) : undefined;
   const homeShape = selected === HOME_STATE ? undefined : geo.states.find((s) => s.code === HOME_STATE);

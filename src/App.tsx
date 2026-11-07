@@ -13,7 +13,8 @@ import { Replay } from "./components/Replay";
 import { SinceVisit } from "./components/SinceVisit";
 import { SidePanel } from "./components/SidePanel";
 import { Tooltip, type HoverHandler, type HoverTarget, type MeasureSummary } from "./components/Tooltip";
-import { afterPaint, countyColumns, loadAtlas, loadDemographics, loadHistory, readCounty, type Data } from "./lib/data";
+import { afterPaint, countyColumns, loadAtlas, loadBaseline, loadDemographics, loadHistory, readCounty, type Data } from "./lib/data";
+import type { Baseline } from "./lib/shift";
 import type { Demographics } from "./lib/patterns";
 import type { History } from "./lib/history";
 import { centralTime, relativeAge } from "./lib/format";
@@ -114,13 +115,16 @@ export function App({ data }: { data: Data }) {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // County demographics: static, fetched once after first paint; the panel's "how counties voted" block waits on it.
+  // County demographics and the 2024 presidential vote: static, fetched once after first paint. The "how counties
+  // voted" block, the shift map mode, the race-card and tooltip lines and the table column wait on them.
   const [demographics, setDemographics] = useState<Demographics | null>(null);
+  const [baseline, setBaseline] = useState<Baseline | null>(null);
   useEffect(() => {
     let cancelled = false;
-    afterPaint()
-      .then(loadDemographics)
-      .then((d) => !cancelled && setDemographics(d));
+    afterPaint().then(() => {
+      loadDemographics().then((d) => !cancelled && setDemographics(d));
+      loadBaseline().then((b) => !cancelled && setBaseline(b));
+    });
     return () => {
       cancelled = true;
     };
@@ -238,7 +242,9 @@ export function App({ data }: { data: Data }) {
         ? `${OFFICE_NAME[sel.office]} results by state`
         : mode === "counties"
           ? `County results in the ${raceNoun}`
-          : `Where votes are still being counted in the ${raceNoun}`;
+          : mode === "shift"
+            ? `How each county moved since the 2024 presidential vote, in the ${raceNoun}`
+            : `Where votes are still being counted in the ${raceNoun}`;
   const c = chambers[sel.office];
   const tally =
     sel.office === "B"
@@ -291,7 +297,7 @@ export function App({ data }: { data: Data }) {
         <TitleSlot />
       </section>
 
-      <ChamberTabs chambers={chambers} office={sel.office} now={clock} onChange={(office) => select({ office, state: sel.state, district: null }, false)} onSelectRace={selectRace} />
+      <ChamberTabs chambers={chambers} office={sel.office} baseline={baseline} now={clock} onChange={(office) => select({ office, state: sel.state, district: null }, false)} onSelectRace={selectRace} />
       {visit && replay === null && (
         <SinceVisit
           visit={visit}
@@ -330,7 +336,7 @@ export function App({ data }: { data: Data }) {
             </label>
             {sel.office !== "H" && sel.office !== "B" && (
               <div className="segmented" role="radiogroup" aria-label="Map detail">
-                {([["states", "States"], ["counties", "Counties"], ["remaining", "Still counting"]] as const).map(([m, label]) => (
+                {([["states", "States"], ["counties", "Counties"], ["remaining", "Still counting"], ...(baseline ? [["shift", "Shift since 2024"]] : [])] as [MapMode, string][]).map(([m, label]) => (
                   <button key={m} type="button" role="radio" aria-checked={mode === m} className={mode === m ? "is-on" : undefined} onClick={() => setMode(m)}>
                     {label}
                   </button>
@@ -365,6 +371,7 @@ export function App({ data }: { data: Data }) {
                 now={clock}
                 counties={officeCounties ?? {}}
                 selected={sel.state}
+                baseline={baseline}
                 onHover={onHover}
                 onSelect={onStateSelect}
                 onClear={onStateClear}
@@ -377,6 +384,7 @@ export function App({ data }: { data: Data }) {
                 target={hover.target}
                 race={hoverRace}
                 measures={hoverMeasures}
+                baseline={baseline}
                 counties={officeCounties}
                 now={clock}
                 x={hover.x}
@@ -411,6 +419,7 @@ export function App({ data }: { data: Data }) {
             geo={geo}
             history={history}
             demographics={demographics}
+            baseline={baseline}
             now={clock}
             onSelect={(office, state, district) => select({ office, state, district })}
           />
@@ -421,6 +430,7 @@ export function App({ data }: { data: Data }) {
         office={sel.office}
         races={results.races}
         history={history}
+        baseline={baseline}
         now={clock}
         onSelect={selectRace}
       />
@@ -441,7 +451,8 @@ export function App({ data }: { data: Data }) {
           same party, the seat counts for that party before a winner is called. Louisiana House races without a majority go to a
           Dec. 12 runoff. On the House map, district positions within each state are approximate. Map boundaries from the U.S.
           Census Bureau via us-atlas. County demographics are U.S. Census Bureau estimates from the 2017–2021 American
-          Community Survey. Candidate photos are official congressional portraits or come from Wikimedia Commons
+          Community Survey. The 2024 presidential vote, for every “since 2024” comparison, is from the MIT Election Data and
+          Science Lab’s county presidential returns (CC0); Alaska and Connecticut carry state totals only. Candidate photos are official congressional portraits or come from Wikimedia Commons
           contributors (<a href="./credits.html">photo credits</a>).
         </p>
         <p className="sources__paper">

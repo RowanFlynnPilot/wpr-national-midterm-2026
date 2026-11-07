@@ -1,4 +1,4 @@
-import { MEASURE_BINS, MEASURE_RAMP, NO_RACE, NO_RESULTS, PALE, PARTY, REMAINING_BINS, REMAINING_RAMP } from "../lib/colors";
+import { MARGIN_RAMP, MEASURE_BINS, MEASURE_RAMP, NO_RACE, NO_RESULTS, PALE, PARTY, REMAINING_BINS, REMAINING_RAMP, SHIFT_BINS } from "../lib/colors";
 import { RUNOFF, type LegendKey } from "../lib/status";
 import type { Office } from "../lib/types";
 import { MarginLegend } from "./CountyMap";
@@ -37,6 +37,25 @@ export function Legend({ office, mode, hasIndependent, hasRunoff, hasNoVotes, ha
   }
   if (office !== "H" && mode === "counties") {
     return <MarginLegend parties={hasIndependent ? ["D", "R", "I"] : ["D", "R"]} />;
+  }
+  if (office !== "H" && mode === "shift") {
+    const [b1, b2, b3] = SHIFT_BINS as [number, number, number];
+    const bins = [`under ${b1}`, `${b1}–${b2}`, `${b2}–${b3}`, `${b3} or more`];
+    const steps = [...MARGIN_RAMP.R.slice(0, 4).reverse().map((c, i) => ({ c, name: `${bins[3 - i]} points more Republican` })), ...MARGIN_RAMP.D.slice(0, 4).map((c, i) => ({ c, name: `${bins[i]} points more Democratic` }))];
+    return (
+      <div className="margin-legend">
+        <div className="margin-legend__title">Points each county moved since the 2024 presidential vote (steps at {b1}, {b2} and {b3})</div>
+        <div className="margin-legend__row margin-legend__row--shift">
+          {steps.map((s) => (
+            <span key={s.name} className="margin-legend__step" style={{ background: s.c }} title={s.name} />
+          ))}
+        </div>
+        <div className="margin-legend__ends" aria-hidden="true">
+          <span>More Republican than 2024</span>
+          <span>More Democratic than 2024</span>
+        </div>
+      </div>
+    );
   }
   if (office !== "H" && mode === "remaining") {
     const [b1, b2, b3] = REMAINING_BINS as [number, number, number];

@@ -1,6 +1,7 @@
 import { PARTY, PARTY_LABEL } from "../lib/colors";
 import { countyColumns, readCounty } from "../lib/data";
 import { pct, timeAgo, votes } from "../lib/format";
+import { countyShift, raceShift, shiftText, type Baseline } from "../lib/shift";
 import { stateName } from "../lib/states";
 import { statusText } from "../lib/status";
 import { raceTitle } from "../lib/summary";
@@ -41,6 +42,7 @@ interface Props {
   race: Race | undefined;
   measures?: MeasureSummary; // set on the measures tab instead of a race
   counties: CountyResults | null;
+  baseline: Baseline | null; // the 2024 presidential vote; null until it loads
   now: number;
   x: number;
   y: number;
@@ -49,12 +51,12 @@ interface Props {
 
 const W = 272;
 
-export function Tooltip({ target, race, measures, counties, now, x, y, bounds }: Props) {
+export function Tooltip({ target, race, measures, counties, baseline, now, x, y, bounds }: Props) {
   const left = x + 16 + W > bounds.width ? Math.max(4, x - 16 - W) : x + 16;
   const top = Math.min(Math.max(4, y - 24), Math.max(4, bounds.height - 210));
   return (
     <div className="tooltip" style={{ left, top, width: W }} role="presentation">
-      {race ? <TipBody target={target} race={race} counties={counties} now={now} /> : <NoRace target={target} measures={measures} />}
+      {race ? <TipBody target={target} race={race} counties={counties} baseline={baseline} now={now} /> : <NoRace target={target} measures={measures} />}
     </div>
   );
 }
@@ -91,11 +93,12 @@ function NoRace({ target, measures }: { target: TipTarget; measures?: MeasureSum
   );
 }
 
-function TipBody({ target, race, counties, now }: { target: TipTarget; race: Race; counties: CountyResults | null; now: number }) {
+function TipBody({ target, race, counties, baseline, now }: { target: TipTarget; race: Race; counties: CountyResults | null; baseline: Baseline | null; now: number }) {
   if (target.kind === "county") {
     const row = counties?.[String(race.id)]?.[target.fips];
     const reading = row ? readCounty(row) : null;
     const cols = countyColumns(race);
+    const shift = row && baseline ? countyShift(race, row, target.fips, baseline) : null;
     return (
       <>
         <div className="tooltip__title">
@@ -121,9 +124,11 @@ function TipBody({ target, race, counties, now }: { target: TipTarget; race: Rac
               ))}
           </ul>
         )}
+        {shift && <div className="tooltip__shift">{shiftText(shift)}</div>}
       </>
     );
   }
+  const shift = baseline ? raceShift(race, baseline) : null;
   const lead = race.cands[0];
   const photo = lead?.photo && lead.party !== "O" ? `./headshots/${lead.photo}` : null;
   const timing = race.winner && race.calledAt ? `Called ${timeAgo(race.calledAt, now)}` : !race.winner && !race.runoff ? `${Math.round(race.pctIn)}% reporting` : null;
@@ -155,6 +160,7 @@ function TipBody({ target, race, counties, now }: { target: TipTarget; race: Rac
             </li>
           ))}
       </ul>
+      {shift && <div className="tooltip__shift">{shiftText(shift)}</div>}
     </>
   );
 }

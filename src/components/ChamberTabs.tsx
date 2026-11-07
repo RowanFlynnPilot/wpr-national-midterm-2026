@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from "react";
 import { PARTY } from "../lib/colors";
 import { apNumber } from "../lib/format";
 import type { Seat } from "../lib/seats";
+import type { Baseline } from "../lib/shift";
 import { OFFICE_NAME, secured, type Chamber } from "../lib/summary";
 import type { Office, Race } from "../lib/types";
 import { useCountUp } from "../lib/countUp";
@@ -11,6 +12,7 @@ import { Tooltip, type HoverPoint, type TipTarget } from "./Tooltip";
 interface Props {
   chambers: Record<Office, Chamber>;
   office: Office;
+  baseline: Baseline | null; // the 2024 presidential vote, for the seat tooltip's shift line
   now: number;
   onChange: (office: Office) => void;
   onSelectRace: (race: Race) => void;
@@ -24,7 +26,7 @@ interface SeatHover {
   y: number;
 }
 
-export function ChamberTabs({ chambers, office, now, onChange, onSelectRace }: Props) {
+export function ChamberTabs({ chambers, office, baseline, now, onChange, onSelectRace }: Props) {
   const frameRef = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState<SeatHover | null>(null);
   // A seat under the pointer names its race in the same tooltip the maps use; a finger never hovers.
@@ -60,6 +62,7 @@ export function ChamberTabs({ chambers, office, now, onChange, onSelectRace }: P
           target={seatTarget(hover.seat)}
           race={hover.seat.race ?? undefined}
           counties={null}
+          baseline={baseline}
           now={now}
           x={hover.x}
           y={hover.y}
