@@ -1,5 +1,5 @@
 import { memo, useMemo, useState } from "react";
-import { NO_RACE, NO_RESULTS, inkOn, marginColor, measureCountColor, remainingColor, shiftColor } from "../lib/colors";
+import { ARROW_BASE, NO_RACE, NO_RESULTS, PARTY, inkOn, marginColor, measureCountColor, remainingColor, shiftColor } from "../lib/colors";
 import { countyShift, type Baseline } from "../lib/shift";
 import { countyColumns, readCounty } from "../lib/data";
 import { LABEL_NUDGE, VIEW, type Geo, type Shape, type StateShape } from "../lib/geo";
@@ -13,11 +13,18 @@ import { focusPoint, type HoverHandler } from "./Tooltip";
 /** states: one fill per race; counties: county margins; remaining: how much of each county's vote is still out;
  *  measures: how many statewide ballot measures each state has. */
 export type MapMode = "states" | "counties" | "remaining" | "shift" | "measures";
+/** How the shift mode draws: each county shaded by its move, or an arrow per county the way swing maps do. */
+export type ShiftStyle = "arrows" | "fill";
+export const COUNTED = 90; // percent reporting under which a county's shift is drawn lighter: it will still move
+const ARROW_MAX = 17; // map units for a move of ARROW_CAP points or more, at the national scale
+const ARROW_ZOOMED = 2.4; // a zoomed state has room for longer arrows, and its moves are often under 10 points
+const ARROW_CAP = 30;
 
 interface Props {
   geo: Geo;
   mode: MapMode;
   baseline: Baseline | null; // the 2024 presidential vote, for the shift mode; null until it loads
+  shiftStyle: ShiftStyle;
   description: string; // the map's accessible name, with the tallies
   racesByState: Map<string, Race>;
   measureCounts: Map<string, number>; // measures mode: statewide measures per state
@@ -53,7 +60,7 @@ function zoomTransform(s: StateShape): string {
   return `translate(${VIEW.width / 2}px, ${VIEW.height / 2}px) scale(${k}) translate(${-cx}px, ${-cy}px)`;
 }
 
-export const NationalMap = memo(function NationalMap({ geo, mode, baseline, description, racesByState, measureCounts, spotlight, now, counties, selected, onHover, onSelect, onClear }: Props) {
+export const NationalMap = memo(function NationalMap({ geo, mode, baseline, shiftStyle, description, racesByState, measureCounts, spotlight, now, counties, selected, onHover, onSelect, onClear }: Props) {
   const [focused, setFocused] = useState<string | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
   const measures = mode === "measures";
@@ -69,6 +76,16 @@ export const NationalMap = memo(function NationalMap({ geo, mode, baseline, desc
     return race ? `${raceTitle(race)}: ${statusText(race)}` : undefined;
   };
 
+  const arrows = mode === "shift" && shiftStyle === "arrows";
+  // Counties under COUNTED percent reporting in the shift mode: their move is drawn lighter.
+  const partial = useMemo(() => {
+    if (mode !== "shift") return new Set<string>();
+    const set = new Set<string>();
+    for (const race of racesByState.values()) {
+      for (const [fips, row] of Object.entries(counties[String(race.id)] ?? {})) if ((readCounty(row)?.pctIn ?? 0) < COUNTED) set.add(fips);
+    }
+    return set;
+  }, [mode, racesByState, counties]);
   const countyFills = useMemo(() => {
     if (mode === "states" || mode === "measures") return null;
     const fills = new Map<string, string>();
@@ -80,7 +97,7 @@ export const NationalMap = memo(function NationalMap({ geo, mode, baseline, desc
         const reading = readCounty(row);
         if (mode === "shift") {
           const s = baseline ? countyShift(race, row, fips, baseline) : null;
-          fills.set(fips, s ? shiftColor(s.shift) : NO_RESULTS);
+          fills.set(fips, arrows ? (s ? ARROW_BASE : NO_RESULTS) : s ? shiftColor(s.shift) : NO_RESULTS);
           continue;
         }
         if (mode === "remaining") {
@@ -92,7 +109,37 @@ export const NationalMap = memo(function NationalMap({ geo, mode, baseline, desc
       }
     }
     return fills;
-  }, [mode, racesByState, counties, baseline]);
+  }, [mode, racesByState, counties, baseline, arrows]);
+
+  // One arrow per county: from its center, up and to the left for a move toward Democrats, up and right toward
+  // Republicans, as long as the move up to ARROW_CAP points; lighter where the count is under COUNTED percent.
+  const arrowPaths = useMemo(() => {
+    if (!arrows || !baseline) return [];
+    const zoomedState = selected ? geo.states.find((s) => s.code === selected) : undefined;
+    const k = zoomedState ? zoomScale(zoomedState) : 1;
+    const centroid = new Map(geo.counties.map((c) => [c.id, c.centroid]));
+    const out: { fips: string; d: string; color: string; partial: boolean }[] = [];
+    for (const race of racesByState.values()) {
+      for (const [fips, row] of Object.entries(counties[String(race.id)] ?? {})) {
+        const s = countyShift(race, row, fips, baseline);
+        const c = centroid.get(fips);
+        if (!s || !c || Math.abs(s.shift) < 0.05) continue;
+        const len = ((zoomedState ? ARROW_MAX * ARROW_ZOOMED : ARROW_MAX) * Math.min(Math.abs(s.shift), ARROW_CAP)) / ARROW_CAP / k;
+        const dir = s.shift > 0 ? -1 : 1; // x direction: left for Democrats
+        const ux = dir * Math.SQRT1_2, uy = -Math.SQRT1_2;
+        const [x0, y0] = c;
+        const tx = x0 + ux * len, ty = y0 + uy * len;
+        const h = Math.max(1.6 / k, len * 0.32);
+        // the head: two strokes back from the tip, 28 degrees off the shaft
+        const back = (sign: number) => {
+          const a = Math.atan2(uy, ux) + Math.PI + sign * 0.49;
+          return `${(tx + h * Math.cos(a)).toFixed(2)} ${(ty + h * Math.sin(a)).toFixed(2)}`;
+        };
+        out.push({ fips, d: `M${x0.toFixed(2)} ${y0.toFixed(2)}L${tx.toFixed(2)} ${ty.toFixed(2)}M${back(1)}L${tx.toFixed(2)} ${ty.toFixed(2)}L${back(-1)}`, color: s.shift > 0 ? PARTY.D : PARTY.R, partial: partial.has(fips) });
+      }
+    }
+    return out;
+  }, [arrows, baseline, racesByState, counties, geo, selected, partial]);
 
   const selectedShape = selected ? geo.states.find((s) => s.code === selected) : undefined;
   const homeShape = selected === HOME_STATE ? undefined : geo.states.find((s) => s.code === HOME_STATE);
@@ -155,7 +202,7 @@ export const NationalMap = memo(function NationalMap({ geo, mode, baseline, desc
                     key={c.id}
                     d={c.d}
                     fill={fill ?? NO_RACE}
-                    className={zoomed && code !== zoomed.code ? "is-out" : undefined}
+                    className={[zoomed && code !== zoomed.code ? "is-out" : "", !arrows && partial.has(c.id) ? "is-partial" : ""].filter(Boolean).join(" ") || undefined}
                     vectorEffect="non-scaling-stroke"
                     onPointerMove={(e) => (fill && code ? onHover({ kind: "county", state: code, fips: c.id, name: c.name }, e) : onHover(null))}
                     onPointerLeave={() => onHover(null)}
@@ -200,6 +247,13 @@ export const NationalMap = memo(function NationalMap({ geo, mode, baseline, desc
 
           <path className="state-borders" d={geo.stateBorders} vectorEffect="non-scaling-stroke" />
           <path className="nation" d={geo.nation} vectorEffect="non-scaling-stroke" />
+          {arrowPaths.length > 0 && (
+            <g className={zoomed ? "shift-arrows is-zoomed" : "shift-arrows"} aria-hidden="true">
+              {arrowPaths.map((a) => (
+                <path key={a.fips} d={a.d} stroke={a.color} className={[zoomed && STATES[a.fips.slice(0, 2)]?.code !== zoomed.code ? "is-out" : "", a.partial ? "is-partial" : ""].filter(Boolean).join(" ") || undefined} vectorEffect="non-scaling-stroke" />
+              ))}
+            </g>
+          )}
           {flat && !measures && (
             <g className="fresh-outlines" aria-hidden="true">
               {geo.states.map((s) => {

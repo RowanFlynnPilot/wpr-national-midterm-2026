@@ -158,6 +158,23 @@ Two sources beyond civicAPI, both static, fetched by hand and committed; neither
   the Senate and governor overview panels (`officeShift`: the races with both parties, vote-weighted against their states;
   `biggestShifts`: the three largest moves toward each party). House races have no shift: a district has no statewide baseline.
 
+## Statement pass (Nov. 7, 2026)
+
+- **Things to know** (`src/lib/takeaways.ts`, `Takeaways.tsx`): up to five sentences written from the data under the chamber
+  cards, each a button into the view behind it: the closest race still being counted (statewide, else House), the seats that
+  changed parties with the widest flip, the House popular vote beside the seat count, the move since 2024 (once the baseline
+  loads; Senate first) and the home state (its statewide winner, delegation and questions). Derived from the results in hand, so
+  it replays with them.
+- **Swing arrows** (`NationalMap.tsx`, `ShiftStyle`): the shift mode draws arrows by default, one per county from its center,
+  up-left toward Democrats and up-right toward Republicans, length by the move up to 30 points (`ARROW_MAX` 17 map units,
+  divided by the zoom so they hold their size in a zoomed state, and `ARROW_ZOOMED` 2.4 times longer and bolder there, where moves are often under 10 points), over a flat `ARROW_BASE` fill; "Shading" in the key returns
+  the choropleth. In both drawings a county under `COUNTED` (90) percent reporting is lighter (`is-partial`), after the Boston
+  Globe's rule of reading swings only where the count is nearly done. Arrows take no pointer events; the county underneath
+  keeps the tooltip.
+- **Where the vote moved** (`ShiftScatter.tsx`): every county of the office's comparable races (or of one race on its state
+  panel) as a dot, x people per square mile on a log axis, y the move since 2024, area by votes, lighter under 90% counted;
+  a native title names the county. Inside the "Compared with 2024" block and under a state's county map.
+
 ## WordPress embed
 
 `src/lib/embed.ts` posts `{type: "wpr-embed-height", id: "wpr-national-midterm-2026", height}` to the parent whenever

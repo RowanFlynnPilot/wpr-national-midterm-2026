@@ -388,6 +388,151 @@ a {
   font-weight: 600;
 }
 
+/* ---------- things to know ---------- */
+
+.takeaways {
+  margin: 1.25rem 0 0;
+}
+
+.takeaways__title {
+  margin: 0 0 0.6rem;
+  font: 600 1.05rem/1.2 var(--display);
+  font-variation-settings: "opsz" 48;
+}
+
+.takeaways__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13.5rem, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.takeaway {
+  display: grid;
+  grid-template-columns: 1.6rem minmax(0, 1fr);
+  gap: 0.6rem;
+  width: 100%;
+  height: 100%;
+  padding: 0.7rem 0.8rem 0.75rem;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--paper-raised);
+  font: inherit;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease-out, transform 120ms ease-out;
+}
+
+.takeaway:active {
+  transform: scale(0.99);
+}
+
+.takeaway__n {
+  font: 600 1.5rem/1 var(--display);
+  font-variation-settings: "opsz" 72;
+  color: var(--teal-ink);
+}
+
+.takeaway__text {
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
+/* ---------- shift arrows ---------- */
+
+.shift-arrows path {
+  fill: none;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.shift-arrows path.is-partial,
+.counties path.is-partial {
+  opacity: 0.45;
+}
+
+.shift-arrows path.is-out {
+  opacity: 0.18;
+}
+
+.shift-arrows.is-zoomed path {
+  stroke-width: 1.9;
+}
+
+.margin-legend__arrows {
+  display: grid;
+  grid-template-columns: repeat(3, 60px);
+  margin-top: 0.3rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+.margin-legend__arrows svg {
+  grid-column: 1 / -1;
+  width: 180px;
+  height: 33px;
+}
+
+.margin-legend__arrows path {
+  fill: none;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.margin-legend .segmented--small {
+  margin-top: 0.5rem;
+}
+
+.segmented--small button {
+  padding: 0.2rem 0.6rem;
+  font-size: 0.75rem;
+}
+
+/* ---------- where the vote moved (scatter) ---------- */
+
+.scatter {
+  margin: 0.75rem 0 0.5rem;
+}
+
+.scatter svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.scatter__grid line {
+  stroke: var(--rule);
+  stroke-width: 0.6;
+}
+
+.scatter__grid--zero line {
+  stroke: var(--ink);
+  stroke-width: 0.9;
+}
+
+.scatter__grid text,
+.scatter__axis {
+  font: 500 7.5px var(--sans);
+  fill: var(--muted);
+}
+
+.scatter__dot {
+  opacity: 0.72;
+  stroke: var(--paper);
+  stroke-width: 0.35;
+}
+
+.scatter__dot.is-partial {
+  opacity: 0.3;
+}
+
 /* ---------- shift since 2024 ---------- */
 
 .race-card__shift {
@@ -2434,6 +2579,16 @@ table.races {
     stroke-width: 1.5;
   }
 
+  .takeaway:hover {
+    border-color: var(--teal);
+  }
+
+  .scatter__dot:hover {
+    opacity: 1;
+    stroke: var(--ink);
+    stroke-width: 0.8;
+  }
+
   .home-chip:hover {
     background: rgba(58, 134, 124, 0.1);
   }
@@ -2678,7 +2833,8 @@ table.races {
   .touch-hint,
   .expander-col,
   .detail__open,
-  .patterns__pick {
+  .patterns__pick,
+  .margin-legend .segmented {
     display: none;
   }
   .legend__item {

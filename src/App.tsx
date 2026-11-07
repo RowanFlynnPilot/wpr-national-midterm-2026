@@ -6,7 +6,9 @@ import { FooterSeal, Masthead } from "./components/Masthead";
 import { DemoRibbon, TitleSlot } from "./components/Sponsor";
 import { SALES_EMAIL } from "./sponsors";
 import { Legend } from "./components/Legend";
-import { NationalMap, type MapMode } from "./components/NationalMap";
+import { NationalMap, type MapMode, type ShiftStyle } from "./components/NationalMap";
+import { Takeaways } from "./components/Takeaways";
+import { takeaways } from "./lib/takeaways";
 import { PartyWords } from "./components/PartyWords";
 import { RaceTable } from "./components/RaceTable";
 import { Replay } from "./components/Replay";
@@ -85,6 +87,7 @@ export function App({ data }: { data: Data }) {
   }, []);
   const [sel, setSel] = useState<Selection>(() => parseHash(window.location.hash));
   const [mode, setMode] = useState<MapMode>("states");
+  const [shiftStyle, setShiftStyle] = useState<ShiftStyle>("arrows");
   const [spotlight, setSpotlight] = useState<LegendKey | null>(null);
   useEffect(() => setSpotlight(null), [sel.office, mode]); // a new map, a fresh key
   useEffect(() => {
@@ -298,6 +301,7 @@ export function App({ data }: { data: Data }) {
       </section>
 
       <ChamberTabs chambers={chambers} office={sel.office} baseline={baseline} now={clock} onChange={(office) => select({ office, state: sel.state, district: null }, false)} onSelectRace={selectRace} />
+      <Takeaways items={takeaways(results, chambers, baseline)} onSelect={(to) => select(to)} />
       {visit && replay === null && (
         <SinceVisit
           visit={visit}
@@ -372,6 +376,7 @@ export function App({ data }: { data: Data }) {
                 counties={officeCounties ?? {}}
                 selected={sel.state}
                 baseline={baseline}
+                shiftStyle={shiftStyle}
                 onHover={onHover}
                 onSelect={onStateSelect}
                 onClear={onStateClear}
@@ -402,6 +407,8 @@ export function App({ data }: { data: Data }) {
             hasFresh={hasFresh}
             spotlight={spotlight}
             onSpotlight={setSpotlight}
+            shiftStyle={shiftStyle}
+            onShiftStyle={setShiftStyle}
           />
         </div>
         <p className="visually-hidden" role="status">

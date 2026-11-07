@@ -1,0 +1,20 @@
+/* The single-race embed: one column, article width. The masthead and the link reuse the compact embed's styles. */
+.race-embed {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 0.75rem 1rem 1rem;
+}
+
+.race-embed .race-card {
+  margin-top: 0.9rem;
+}
+
+.race-embed .race-card h1 {
+  margin: 0;
+  font: 600 1.5rem/1.15 var(--display);
+  font-variation-settings: "opsz" 48;
+}
+
+.race-embed .county-map {
+  margin-top: 0.75rem;
+}

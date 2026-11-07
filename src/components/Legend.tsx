@@ -2,7 +2,7 @@ import { MARGIN_RAMP, MEASURE_BINS, MEASURE_RAMP, NO_RACE, NO_RESULTS, PALE, PAR
 import { RUNOFF, type LegendKey } from "../lib/status";
 import type { Office } from "../lib/types";
 import { MarginLegend } from "./CountyMap";
-import type { MapMode } from "./NationalMap";
+import { COUNTED, type MapMode, type ShiftStyle } from "./NationalMap";
 
 interface Props {
   office: Office;
@@ -13,10 +13,12 @@ interface Props {
   hasFresh: boolean;
   spotlight: LegendKey | null;
   onSpotlight: (key: LegendKey | null) => void;
+  shiftStyle?: ShiftStyle; // the shift mode's drawing, with its setter
+  onShiftStyle?: (style: ShiftStyle) => void;
 }
 
 /** The map key. In the states and hex views each entry is a button: pressing one dims everything else on the map. */
-export function Legend({ office, mode, hasIndependent, hasRunoff, hasNoVotes, hasFresh, spotlight, onSpotlight }: Props) {
+export function Legend({ office, mode, hasIndependent, hasRunoff, hasNoVotes, hasFresh, spotlight, onSpotlight, shiftStyle = "fill", onShiftStyle }: Props) {
   if (office === "B") {
     const [b1, b2, b3] = MEASURE_BINS as [number, number, number];
     const labels = ["1 measure", `${b1}–${b2 - 1}`, `${b2}–${b3 - 1}`, `${b3} or more`];
@@ -42,9 +44,43 @@ export function Legend({ office, mode, hasIndependent, hasRunoff, hasNoVotes, ha
     const [b1, b2, b3] = SHIFT_BINS as [number, number, number];
     const bins = [`under ${b1}`, `${b1}–${b2}`, `${b2}–${b3}`, `${b3} or more`];
     const steps = [...MARGIN_RAMP.R.slice(0, 4).reverse().map((c, i) => ({ c, name: `${bins[3 - i]} points more Republican` })), ...MARGIN_RAMP.D.slice(0, 4).map((c, i) => ({ c, name: `${bins[i]} points more Democratic` }))];
+    const toggle = onShiftStyle && (
+      <div className="segmented segmented--small" role="radiogroup" aria-label="How to draw the shift">
+        {(["arrows", "fill"] as const).map((s) => (
+          <button key={s} type="button" role="radio" aria-checked={shiftStyle === s} className={shiftStyle === s ? "is-on" : undefined} onClick={() => onShiftStyle(s)}>
+            {s === "arrows" ? "Arrows" : "Shading"}
+          </button>
+        ))}
+      </div>
+    );
+    if (shiftStyle === "arrows") {
+      return (
+        <div className="margin-legend margin-legend--arrows">
+          <div className="margin-legend__title">
+            Each county moved since the 2024 presidential vote: an arrow to the left is toward Democrats, to the right toward Republicans, as long as the move
+            (up to 30 points). Lighter arrows are under {COUNTED}% counted.
+          </div>
+          <div className="margin-legend__arrows" aria-hidden="true">
+            <svg viewBox="0 0 120 22">
+              <path d="M30 20 L14 4 M14 11 L14 4 L21 4" stroke={PARTY.D} />
+              <path d="M62 20 L54 12 M54 16 L54 12 L58 12" stroke={PARTY.D} />
+              <path d="M90 20 L106 4 M106 11 L106 4 L99 4" stroke={PARTY.R} />
+            </svg>
+            <span>30 points</span>
+            <span>10</span>
+            <span>30 points</span>
+          </div>
+          <div className="margin-legend__row margin-legend__row--note">
+            <span className="margin-legend__step" style={{ background: NO_RESULTS }} />
+            <span>No county figures for 2024 (Alaska), or an independent in the top two</span>
+          </div>
+          {toggle}
+        </div>
+      );
+    }
     return (
       <div className="margin-legend">
-        <div className="margin-legend__title">Points each county moved since the 2024 presidential vote (steps at {b1}, {b2} and {b3})</div>
+        <div className="margin-legend__title">Points each county moved since the 2024 presidential vote (steps at {b1}, {b2} and {b3}); lighter counties are under {COUNTED}% counted</div>
         <div className="margin-legend__row margin-legend__row--shift">
           {steps.map((s) => (
             <span key={s.name} className="margin-legend__step" style={{ background: s.c }} title={s.name} />
@@ -58,6 +94,7 @@ export function Legend({ office, mode, hasIndependent, hasRunoff, hasNoVotes, ha
           <span className="margin-legend__step" style={{ background: NO_RESULTS }} />
           <span>No county figures for 2024 (Alaska), or an independent in the top two</span>
         </div>
+        {toggle}
       </div>
     );
   }

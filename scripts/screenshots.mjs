@@ -36,6 +36,8 @@ const VIEWS = {
   "senate-patterns": { hash: "#senate", clip: "panel" },
   "senate-shift": { hash: "#senate", click: 'button[role="radio"]:has-text("Shift since 2024")', clip: "map" },
   "senate-shift-legend": { hash: "#senate", click: 'button[role="radio"]:has-text("Shift since 2024")', clip: "legend" },
+  "senate-shift-fill": { hash: "#senate", click: 'button[role="radio"]:has-text("Shift since 2024")', then: 'button[role="radio"]:has-text("Shading")', clip: "legend" },
+  "takeaways": { hash: "#senate", clip: "takeaways" },
   "governors-shift-wi": { hash: "#governors-wi", click: 'button[role="radio"]:has-text("Shift since 2024")', beforeHover: 700, hover: "g.counties path:not(.is-out) >> nth=40", clip: "map" },
   "governors-wi": { hash: "#governors-wi", clip: "panel" },
   "senate-since": { hash: "#senate", visitHoursAgo: 5, clip: "since" },
@@ -52,7 +54,7 @@ const aborted = (r) => r.failure()?.errorText === "net::ERR_ABORTED";
 
 // clip: screenshot one region instead of the page. It is scrolled into view before any hover, because an element
 // screenshot scrolls to its target, and a pointer left behind by that scroll would leave the hovered element.
-const CLIPS = { map: ".map-frame", table: ".table-section", legend: ".board__map", panel: ".board__panel", since: ".since", chambers: ".chambers-frame" };
+const CLIPS = { map: ".map-frame", table: ".table-section", legend: ".board__map", panel: ".board__panel", since: ".since", chambers: ".chambers-frame", takeaways: ".takeaways" };
 
 const [outDir = "screens", ...only] = process.argv.slice(2);
 const names = only.length ? only.filter((n) => n !== "compact") : Object.keys(VIEWS);
@@ -84,6 +86,7 @@ for (const width of WIDTHS) {
       await page.waitForFunction(() => !document.querySelector(".map-pending"), null, { timeout: 15000 });
     }
     await page.waitForFunction(() => !document.querySelector(".map-pending"), null, { timeout: 15000 });
+    if (view.then) await page.click(view.then); // a second control, after the first click's view is up
     if (view.clip) await page.locator(CLIPS[view.clip]).scrollIntoViewIfNeeded();
     if (view.hover) {
       if (view.beforeHover) await page.waitForTimeout(view.beforeHover); // a zoom still moving would slide out from under the pointer

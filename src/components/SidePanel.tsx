@@ -11,6 +11,7 @@ import type { Demographics } from "../lib/patterns";
 import { biggestShifts, marginLabel, officeShift, type Baseline } from "../lib/shift";
 import { CountyMap } from "./CountyMap";
 import { CountyPatterns } from "./CountyPatterns";
+import { ShiftScatter } from "./ShiftScatter";
 import { MarginStrip } from "./MarginStrip";
 import { RaceCard } from "./RaceCard";
 
@@ -112,7 +113,7 @@ function RaceRow({ race, onClick, showOffice = false, when, points }: RowProps) 
 
 const COUNTING_LISTED = 40;
 
-function Overview({ office, chamber, popularVote, races, counties, demographics, baseline, history, now, onSelect }: Props) {
+function Overview({ office, chamber, popularVote, races, counties, geo, demographics, baseline, history, now, onSelect }: Props) {
   const counting = chamber.uncalled.filter((r) => !r.runoff);
   const listed = counting.slice(0, COUNTING_LISTED); // mid-replay, hundreds are uncalled; the table has them all
   const pick = (r: Race) => onSelect(office, r.state, routeOf(r));
@@ -193,7 +194,13 @@ function Overview({ office, chamber, popularVote, races, counties, demographics,
           )}
         </>
       )}
-      {office !== "H" && !measures && baseline && <ShiftBlock office={office} races={races.filter((r) => r.office === office)} baseline={baseline} onSelect={pick} />}
+      {office !== "H" && !measures && baseline && (
+        <ShiftBlock office={office} races={races.filter((r) => r.office === office)} baseline={baseline} onSelect={pick}>
+          {counties && demographics && (
+            <ShiftScatter races={races.filter((r) => r.office === office)} counties={office === "S" ? counties.S : counties.G} demographics={demographics} baseline={baseline} geo={geo} />
+          )}
+        </ShiftBlock>
+      )}
       {office !== "H" && !measures && counties && demographics && (
         <CountyPatterns
           races={races.filter((r) => r.office === office)}
@@ -239,7 +246,7 @@ function HomeGlance({ races, onSelect }: Pick<Props, "races" | "onSelect">) {
 }
 
 /** The office's races against the 2024 presidential vote in their states, and the biggest moves each way. */
-function ShiftBlock({ office, races, baseline, onSelect }: { office: Office; races: Race[]; baseline: Baseline; onSelect: (r: Race) => void }) {
+function ShiftBlock({ office, races, baseline, onSelect, children }: { office: Office; races: Race[]; baseline: Baseline; onSelect: (r: Race) => void; children?: React.ReactNode }) {
   const all = officeShift(races, baseline);
   if (!all) return null;
   const s = all.shift.shift;
@@ -255,6 +262,7 @@ function ShiftBlock({ office, races, baseline, onSelect }: { office: Office; rac
         </strong>{" "}
         than the 2024 presidential vote in the same states ({marginLabel(all.shift.then)} then, {marginLabel(all.shift.now)} now).
       </p>
+      {children}
       {(["D", "R"] as const).map((p) => {
         const list = biggestShifts(races, baseline, p, 3);
         if (!list.length) return null;
@@ -338,6 +346,7 @@ function StateView({ office, state, races, counties, geo, history, demographics,
         <>
           <RaceCard race={race} heading="h2" points={history[String(race.id)]} baseline={baseline} />
           {geo && countyData && <CountyMap race={race} counties={countyData} geo={geo} />}
+          {countyData && demographics && baseline && <ShiftScatter races={[race]} counties={countyData} demographics={demographics} baseline={baseline} geo={geo} />}
           {countyData && demographics && <CountyPatterns races={[race]} counties={countyData} demographics={demographics} baseline={baseline} scope={raceTitle(race)} />}
         </>
       ) : (

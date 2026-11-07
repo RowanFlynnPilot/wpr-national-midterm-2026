@@ -21,6 +21,7 @@ export function remainingColor(pctReporting: number): string {
   return REMAINING_RAMP[idx === -1 ? REMAINING_RAMP.length - 1 : idx + 1] as string;
 }
 export const NO_RESULTS = "#D8D2C4";
+export const ARROW_BASE = "#EFEBE1"; // the county fill under the swing arrows
 
 export const PARTY_LABEL: Record<Party, string> = { D: "Democrat", R: "Republican", I: "Independent", O: "Other", Y: "Yes", N: "No" };
 export const PARTY_PLURAL: Record<Party, string> = { D: "Democrats", R: "Republicans", I: "Independents", O: "Others", Y: "Yes votes", N: "No votes" };

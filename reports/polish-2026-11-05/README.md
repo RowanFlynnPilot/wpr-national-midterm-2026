@@ -218,3 +218,12 @@ an independent in the top two voids the comparison); a statewide race left out o
 the county-patterns block reads Yes and No for ballot measures and appears on each measure's card; the variable menu
 does not print. The two new deferred files were re-checked in Lighthouse.
 
+## Statement pass (Nov. 7)
+
+Rowan asked for ideas from the best results pages. Three landed: auto-written "things to know" under the chamber cards
+(the closest open race, the widest flip, the House popular vote, the move since 2024, Wisconsin), each a button into the
+view behind it; swing arrows as the default drawing of the shift mode, with the shading one click away and partially
+counted counties drawn lighter (the Boston Globe read 2026 swings only where over 90% was counted; the Almanac of
+American Politics notes how arrow maps can overwhelm, hence the toggle); and a county scatter of density against the
+move since 2024 in the "Compared with 2024" block and on each state's panel.
+
