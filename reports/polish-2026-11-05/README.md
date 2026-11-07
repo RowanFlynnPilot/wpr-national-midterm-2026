@@ -211,3 +211,10 @@ shift column in the county patterns, and a "Compared with 2024" block on the ove
 aggregate and the three biggest moves toward each party. The deploy workflow now checks out the branch tip, after a
 push-triggered run lost a rebase to the hourly run's snapshot commit.
 
+## Refinements after the swing layer (Nov. 7)
+
+A fresh-eyes pass over the new layers: the shift key now explains the gray counties (Alaska has no 2024 county figures;
+an independent in the top two voids the comparison); a statewide race left out of the comparison says why on its card;
+the county-patterns block reads Yes and No for ballot measures and appears on each measure's card; the variable menu
+does not print. The two new deferred files were re-checked in Lighthouse.
+

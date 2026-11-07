@@ -35,6 +35,7 @@ const VIEWS = {
   "house-margins": { hash: "#house", clip: "panel" },
   "senate-patterns": { hash: "#senate", clip: "panel" },
   "senate-shift": { hash: "#senate", click: 'button[role="radio"]:has-text("Shift since 2024")', clip: "map" },
+  "senate-shift-legend": { hash: "#senate", click: 'button[role="radio"]:has-text("Shift since 2024")', clip: "legend" },
   "governors-shift-wi": { hash: "#governors-wi", click: 'button[role="radio"]:has-text("Shift since 2024")', beforeHover: 700, hover: "g.counties path:not(.is-out) >> nth=40", clip: "map" },
   "governors-wi": { hash: "#governors-wi", clip: "panel" },
   "senate-since": { hash: "#senate", visitHoursAgo: 5, clip: "since" },

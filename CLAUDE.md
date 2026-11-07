@@ -125,7 +125,7 @@ Each district's target = vote-weighted centroid of the counties it covers (from 
 - Colors validated with the dataviz palette checker on cream: D `#2D63A6`, R `#C23A30`, Ind/other `#B88A1E` (below 3:1, always paired with a label). Measures: Yes `#2B7A6F` (brand teal), No `#A0612C` (warm brown), with pale and five-step ramps in `colors.ts`; the tab's hero numbers and the table's Yes/No columns carry those colors beside their labels. Pale tints = leading, not called. `--muted` is `#6b665a` (5.1:1 on cream, 4.7:1 on the wash); the earlier `#7d776b` was under AA.
 - WPR design system ("Follow the Money" pairing in the wpr-brand skill's terms): teal `#3A867C`, cream `#F6F2E9`, Fraunces (headlines), Public Sans (UI, hero numbers), JetBrains Mono (vote counts in tables). The brand invariants live in `src/components/Masthead.tsx`: the press-seal badge (`public/brand/wpr-typewriter-badge.png`, committed copy, never hot-linked) and wordmark (`public/brand/wpr-wordmark.png`) as one centered lockup linking to wausaupilotandreview.com, the tagline "Where Locals Look First For News" (uppercase, 0.28em tracking), a dateline (long date left, WAUSAU, WISCONSIN right) and the thick-over-thin slate rule (`--slate: #32373c`, 4px over 1px). Both assets are black on white, so they get `mix-blend-mode: multiply` on the cream (normal in print). The hero carries a kicker with the update time; the footer leads with the seal at 44px and ends with "Wausau Pilot & Review · 715-301-5539" plus the provenance and non-affiliation lines; the share card and credits page carry the seal and wordmark too. favicon.png and apple-touch-icon.png are made from the seal.
 - Fonts are self-hosted in `public/fonts` (latin subsets of the variable woff2 files Google Fonts serves; `python scripts/fetch_fonts.py` refreshes them), declared at the top of `styles.css` and preloaded from `index.html`. Nothing render-blocking leaves the origin.
-- The four chamber tabs sit two by two under 1000px. The map toolbar's caption yields (`flex: 1 1 12rem`) so the controls never wrap onto a second row; "Copy link" is icon-only under 700px (named by aria-label). Counties outside the zoomed state fade to 35% opacity.
+- The four chamber tabs sit two by two under 1000px. The map toolbar's caption yields (`flex: 1 1 12rem`) and the controls are one flex item, so when the four-mode row and a long caption cannot share a line the controls move to the next line whole, never one control at a time; "Copy link" is icon-only under 700px (named by aria-label). Counties outside the zoomed state fade to 35% opacity.
 - `.loading` uses padding, not margin: a top margin collapses through `<body>` and shifts the page when the app replaces it (that was a 0.08 CLS).
 
 ## Swing and county patterns (Nov. 7, 2026)
@@ -138,8 +138,9 @@ Two sources beyond civicAPI, both static, fetched by hand and committed; neither
   is the counties the maps and civicAPI use (from 2022 the Census reports Connecticut by planning region). Alaska's split census
   areas are merged like the vote. The build fails if any atlas county lacks a row; one county (Loving, TX) has no median income.
   Public domain; credited in the footer. Front end: `src/lib/patterns.ts` (`countyPatterns`: the vote of the given races summed
-  over counties grouped by one variable into four bins; a race counts only when a Democrat and a Republican finished first and
-  second (`twoPartyRace` in `shift.ts`; six 2026 races had an independent in the top two), a county only with votes and the variable) and `CountyPatterns.tsx`, on the Senate and governor overview panels (every
+  over counties grouped by one variable into four bins; a race counts only when its two sides finished first and
+  second (`headToHead` in `shift.ts`; six 2026 races had an independent in the top two), a county only with votes and the variable;
+  a measure reads Yes and No (`sides`), and its card carries the block too) and `CountyPatterns.tsx`, on the Senate and governor overview panels (every
   race of the office) and on a state's panel (that race): a menu of four variables (people per square mile, bachelor's share,
   median household income, white non-Hispanic share), each bin's share of the vote, D/R result and, once the 2024 baseline is
   loaded, the shift. The note says these are patterns of places, not a survey of voters.
@@ -149,7 +150,7 @@ Two sources beyond civicAPI, both static, fetched by hand and committed; neither
   `[dem, rep, total]` by county FIPS (where the atlas draws the county; Alaska and Connecticut have state totals only) and by
   state. It uses a county's TOTAL vote-mode rows where they exist and fails unless the national totals land within 1% of the
   certified count. `src/lib/shift.ts`: `raceShift` and `countyShift` compare a race's or a county's Democratic-minus-Republican
-  share of all votes with 2024 (null unless `twoPartyRace`), `shiftText` words it, `shiftColor` in `colors.ts` steps the party
+  share of all votes with 2024 (null unless `headToHead`), `shiftText` words it, `shiftColor` in `colors.ts` steps the party
   margin ramps at 5, 10 and 20 points (cut against the 2026 county distribution: median 14, quartiles 8 and 19). Once the file loads (after first paint, with the demographics): a
   fourth map mode "Shift since 2024" for Senate and governor races (counties on the margin ramps by how far they moved, with a
   diverging key), a line on every statewide race card and tooltip (`shiftText`), a sortable "vs. 2024" column in the table
@@ -256,7 +257,7 @@ Lighthouse's throttling) and a 40 ms round trip per response (a zero-latency ser
 paint is reported, and Lighthouse's simulation then charges the paint for them). Lighthouse mobile on `/#senate` and
 `/#house` is bimodal by design of its simulation: 100 when the app's first frame is also the first paint, 94 (LCP ≈ 3.1 s
 simulated on slow 4G) when the loading flag painted first and the headline is charged for the JavaScript, results.json and
-the two preloaded fonts it truly needs. Both are honest; 94 is the floor. Accessibility 100, Best Practices 100, CLS 0,
+the two preloaded fonts it truly needs. Both are honest; 94 was the floor, 93 after the swing and demographics layers added about 8 KB of JavaScript (Nov. 7: 100, 93, 93). Accessibility 100, Best Practices 100, CLS 0,
 TBT under 90 ms. The mono font is not preloaded (tables only, below the fold). `npm run screens` doubles as the zero-console-errors gate. `npm audit` clean.
 
 ## Deploy

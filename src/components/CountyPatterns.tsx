@@ -2,7 +2,7 @@ import { useState } from "react";
 import { PARTY } from "../lib/colors";
 import { pct } from "../lib/format";
 import { countyPatterns, patternRaces, VARIABLES, type Demographics, type Variable } from "../lib/patterns";
-import type { Baseline } from "../lib/shift";
+import { sides, type Baseline } from "../lib/shift";
 import type { CountyResults, Race } from "../lib/types";
 
 interface Props {
@@ -21,6 +21,8 @@ export function CountyPatterns({ races, counties, demographics, baseline, scope 
   const bins = countyPatterns(usable, counties, demographics, variable, baseline);
   const hasShift = bins.some((b) => b.shift !== null);
   const skipped = races.length - usable.length;
+  const [left, right] = sides(usable[0] as Race);
+  const name = { D: "D", R: "R", Y: "Yes", N: "No" } as Record<string, string>;
   return (
     <section className="patterns" aria-labelledby="patterns-title">
       <div className="patterns__head">
@@ -67,13 +69,17 @@ export function CountyPatterns({ races, counties, demographics, baseline, scope 
                 {b.counties > 0 && (
                   <>
                     <span className="patterns__bar" aria-hidden="true">
-                      <span style={{ flexGrow: b.dem, background: PARTY.D }} />
+                      <span style={{ flexGrow: b.dem, background: PARTY[left] }} />
                       <span style={{ flexGrow: Math.max(0, 100 - b.dem - b.rep) }} />
-                      <span style={{ flexGrow: b.rep, background: PARTY.R }} />
+                      <span style={{ flexGrow: b.rep, background: PARTY[right] }} />
                     </span>
                     <span className="patterns__pcts">
-                      <span style={{ color: PARTY.D }}>D {pct(b.dem)}</span>
-                      <span style={{ color: PARTY.R }}>R {pct(b.rep)}</span>
+                      <span style={{ color: PARTY[left] }}>
+                        {name[left]} {pct(b.dem)}
+                      </span>
+                      <span style={{ color: PARTY[right] }}>
+                        {name[right]} {pct(b.rep)}
+                      </span>
                     </span>
                   </>
                 )}
@@ -89,6 +95,7 @@ export function CountyPatterns({ races, counties, demographics, baseline, scope 
       </table>
       <p className="panel__note">
         {usable.length === 1 ? `${scope}, every county.` : `${scope}: ${usable.length} where a Democrat and a Republican finished first and second${skipped ? `, ${skipped} with an independent in the top two left out` : ""}.`}{" "}
+        {left === "Y" && "Shares are of every vote on the question. "}
         Counties are grouped by Census estimates ({demographics.vintage}) and their votes summed, so these are patterns of places, not a
         survey of voters.
         {hasShift && " “vs. 2024” compares the two-party margin with the 2024 presidential vote in the same counties."}

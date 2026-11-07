@@ -243,7 +243,7 @@ export function App({ data }: { data: Data }) {
         : mode === "counties"
           ? `County results in the ${raceNoun}`
           : mode === "shift"
-            ? `How each county moved since the 2024 presidential vote, in the ${raceNoun}`
+            ? `How each county moved since the 2024 presidential vote in the ${raceNoun}`
             : `Where votes are still being counted in the ${raceNoun}`;
   const c = chambers[sel.office];
   const tally =

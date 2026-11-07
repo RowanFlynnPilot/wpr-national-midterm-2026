@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { race } from "./fixture";
 import type { Candidate } from "./types";
-import { biggestShifts, countyShift, officeShift, partyVotes, raceShift, shiftText, twoPartyMargin, twoPartyRace, type Baseline } from "./shift";
+import { biggestShifts, countyShift, officeShift, partyVotes, raceShift, shiftText, twoPartyMargin, headToHead, type Baseline } from "./shift";
 
 const tx = race("S", "TX");
 const baseline: Baseline = {
@@ -38,11 +38,17 @@ describe("raceShift", () => {
     const noRep = { ...tx, cands: tx.cands.filter((c) => c.party !== "R") };
     expect(raceShift(noRep, baseline)).toBeNull();
   });
+  it("is null for a measure, which has no presidential baseline", () => {
+    const measure = race("B", "WI-179849");
+    expect(headToHead(measure)).toBe(true);
+    expect(raceShift(measure, { ...baseline, states: { WI: [1_668_229, 1_697_626, 3_422_918] } })).toBeNull();
+    expect(countyShift(measure, [100, 500, 400, 0], "55025", { ...baseline, counties: { "55025": [273_995, 85_454, 365_929] } })).toBeNull();
+  });
   it("is null when an independent finished in the top two, as in Montana", () => {
     const [a, b, ...rest] = tx.cands as [Candidate, Candidate, ...Candidate[]];
     const independentSecond = { ...tx, cands: [a, { ...b, party: "I" as const, partyName: "Independent" }, ...rest, { ...b, votes: 1, pct: 0.1 }] };
-    expect(twoPartyRace(tx)).toBe(true);
-    expect(twoPartyRace(independentSecond)).toBe(false);
+    expect(headToHead(tx)).toBe(true);
+    expect(headToHead(independentSecond)).toBe(false);
     expect(raceShift(independentSecond, baseline)).toBeNull();
   });
 });

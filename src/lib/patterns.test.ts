@@ -40,6 +40,19 @@ describe("countyPatterns", () => {
   });
 });
 
+describe("countyPatterns on a measure", () => {
+  it("reads Yes and No", () => {
+    const m = race("B", "WI-179849");
+    const yesNo: CountyResults = { [String(m.id)]: { "55025": [100, 600, 400, 0], "55073": [100, 300, 700, 0] } };
+    const demo: Demographics = { vintage: "t", counties: { "55025": [1, 50, 1, 50, 464], "55073": [1, 20, 1, 80, 300] } };
+    const bins = countyPatterns([m], yesNo, demo, "density", null);
+    const urban = bins[2] as (typeof bins)[number]; // 100–500 per square mile holds both
+    expect(urban.counties).toBe(2);
+    expect(urban.dem).toBeCloseTo(45, 5); // Yes
+    expect(urban.rep).toBeCloseTo(55, 5); // No
+  });
+});
+
 describe("patternRaces", () => {
   it("keeps races with county rows and both major parties", () => {
     expect(patternRaces([tx], counties)).toEqual([tx]);

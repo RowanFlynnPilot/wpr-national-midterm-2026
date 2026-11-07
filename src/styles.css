@@ -701,9 +701,10 @@ a {
 
 .map-toolbar {
   display: flex;
+  flex-wrap: wrap; /* the controls are one item: when they and the caption cannot share a row, they take the next one whole */
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 0.5rem 1rem;
   min-height: 2.25rem;
   margin-bottom: 0.5rem;
 }
@@ -1572,6 +1573,12 @@ a {
 
 .margin-legend__row--shift {
   grid-template-columns: repeat(8, 30px);
+}
+
+.margin-legend__row--note {
+  grid-template-columns: 30px auto;
+  margin-top: 0.4rem;
+  color: var(--muted);
 }
 
 .margin-legend__ends {
@@ -2670,7 +2677,8 @@ table.races {
   .demo-ribbon,
   .touch-hint,
   .expander-col,
-  .detail__open {
+  .detail__open,
+  .patterns__pick {
     display: none;
   }
   .legend__item {

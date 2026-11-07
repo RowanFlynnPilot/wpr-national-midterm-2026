@@ -449,7 +449,7 @@ function MeasuresStateView({ state, races, onSelect }: Props & { state: string }
   );
 }
 
-function MeasureView({ races, district, counties, geo, history, onSelect }: Props & { district: string }) {
+function MeasureView({ races, district, counties, geo, history, demographics, onSelect }: Props & { district: string }) {
   const race = races.find((r) => r.office === "B" && r.district === district);
   if (!race) throw new Error(`unknown measure ${district}`);
   return (
@@ -457,6 +457,7 @@ function MeasureView({ races, district, counties, geo, history, onSelect }: Prop
       <Back label={`All ${stateName(race.state)} measures`} onClick={() => onSelect("B", race.state, null)} />
       <RaceCard race={race} heading="h2" points={history[String(race.id)]} />
       {geo && counties && <CountyMap race={race} counties={counties.B} geo={geo} />}
+      {counties && demographics && <CountyPatterns races={[race]} counties={counties.B} demographics={demographics} baseline={null} scope={measureShortTitle(race)} />}
     </div>
   );
 }

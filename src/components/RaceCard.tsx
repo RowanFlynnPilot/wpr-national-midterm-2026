@@ -1,7 +1,7 @@
 import { PARTY } from "../lib/colors";
 import { centralTime, pct, votes } from "../lib/format";
 import type { HistoryPoint } from "../lib/history";
-import { raceShift, shiftText, type Baseline } from "../lib/shift";
+import { headToHead, raceShift, shiftText, type Baseline } from "../lib/shift";
 import { rcvNote, statusText } from "../lib/status";
 import { Sparkline } from "./Sparkline";
 import { raceTitle } from "../lib/summary";
@@ -68,6 +68,9 @@ export function RaceCard({ race, heading = "h3", points, baseline = null }: { ra
         </footer>
       )}
       {shift && <p className="race-card__shift">{shiftText(shift)}</p>}
+      {baseline && !shift && (race.office === "S" || race.office === "G") && !headToHead(race) && (
+        <p className="race-card__shift">No comparison with the 2024 presidential vote: an independent finished in the top two.</p>
+      )}
       {points && points.length >= 2 && <Sparkline race={race} points={points} />}
       {note && <p className="race-card__note">{note}</p>}
     </article>

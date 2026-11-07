@@ -1,4 +1,4 @@
-import { countyPartyVotes, twoPartyRace, type Baseline } from "./shift";
+import { countyVotes, headToHead, sides, type Baseline } from "./shift";
 import type { CountyResults, Race } from "./types";
 
 /** County demographics (pipeline/demographics.py): [population, collegePct, medianIncome | null, whiteNhPct, density]. */
@@ -35,14 +35,15 @@ export interface Bin {
   counties: number;
   votes: number; // all votes counted in the bin's counties
   shareOfVote: number; // percent of the votes in every bin
-  dem: number; // percent of the bin's votes
-  rep: number;
+  dem: number; // percent of the bin's votes for the first side (Democrat, or Yes on a measure)
+  rep: number; // the second side (Republican, or No)
   shift: number | null; // points against the 2024 presidential vote, over the counties with a baseline
 }
 
 /**
  * The vote in every county of the given races, grouped by one Census variable. Give it `patternRaces`: a race counts
- * only with a Democrat and a Republican first and second; a county only when it has votes and the variable.
+ * only with its two sides first and second (`headToHead`); a county only when it has votes and the variable. Measures
+ * read Yes and No where candidate races read Democrat and Republican.
  */
 export function countyPatterns(races: Race[], counties: CountyResults, demographics: Demographics, variable: Variable, baseline: Baseline | null): Bin[] {
   const { index, edges } = VARIABLES[variable];
@@ -51,7 +52,7 @@ export function countyPatterns(races: Race[], counties: CountyResults, demograph
     const rows = counties[String(race.id)];
     if (!rows) throw new Error(`no county results for race ${race.id}`);
     for (const [fips, row] of Object.entries(rows)) {
-      const { dem, rep, total } = countyPartyVotes(race, row);
+      const { left: dem, right: rep, total } = countyVotes(race, row, sides(race));
       const value = demographics.counties[fips]?.[index];
       if (dem === null || rep === null || total <= 0 || value === null || value === undefined) continue;
       const i = edges.findIndex((e) => value < e);
@@ -86,7 +87,7 @@ export function countyPatterns(races: Race[], counties: CountyResults, demograph
   });
 }
 
-/** Races that can enter the patterns: county rows loaded, and a Democrat and a Republican first and second. */
+/** Races that can enter the patterns: county rows loaded, and the race's two sides first and second. */
 export function patternRaces(races: Race[], counties: CountyResults): Race[] {
-  return races.filter((r) => counties[String(r.id)] && twoPartyRace(r));
+  return races.filter((r) => counties[String(r.id)] && headToHead(r));
 }

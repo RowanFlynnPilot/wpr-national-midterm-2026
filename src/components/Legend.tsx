@@ -54,6 +54,10 @@ export function Legend({ office, mode, hasIndependent, hasRunoff, hasNoVotes, ha
           <span>More Republican than 2024</span>
           <span>More Democratic than 2024</span>
         </div>
+        <div className="margin-legend__row margin-legend__row--note">
+          <span className="margin-legend__step" style={{ background: NO_RESULTS }} />
+          <span>No county figures for 2024 (Alaska), or an independent in the top two</span>
+        </div>
       </div>
     );
   }
