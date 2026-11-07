@@ -51,6 +51,15 @@ export function marginColor(party: Party, margin: number): string {
   return ramp[idx === -1 ? ramp.length - 1 : idx] as string;
 }
 
+// Shift since 2024: points moved toward a party, on that party's margin ramp (the lightest step for under 2 points).
+export const SHIFT_BINS = [2, 5, 10];
+
+export function shiftColor(shift: number): string {
+  const idx = SHIFT_BINS.findIndex((b) => Math.abs(shift) < b);
+  const ramp = MARGIN_RAMP[shift >= 0 ? "D" : "R"];
+  return ramp[idx === -1 ? SHIFT_BINS.length : idx] as string;
+}
+
 /** Ink that stays legible on top of a fill: white on the darker steps, near-black on the light ones. */
 export function inkOn(fill: string): string {
   const n = parseInt(fill.slice(1), 16);

@@ -33,6 +33,8 @@ const VIEWS = {
   "senate-replay": { hash: "#senate", click: ".replay-start", fill: [".replay__scrub", "120"], clip: "legend" },
   "house-replay": { hash: "#house", click: ".replay-start", fill: [".replay__scrub", "60"], clip: "legend" },
   "house-margins": { hash: "#house", clip: "panel" },
+  "senate-patterns": { hash: "#senate", clip: "panel" },
+  "governors-wi": { hash: "#governors-wi", clip: "panel" },
   "senate-since": { hash: "#senate", visitHoursAgo: 5, clip: "since" },
   "senate-table": { hash: "#senate", click: ".races tbody tr:nth-child(2) .expander", clip: "table" },
   "senate-remaining": { hash: "#senate", click: 'button[role="radio"]:has-text("Still counting")' },

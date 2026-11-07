@@ -188,3 +188,14 @@ at desktop widths without changing the strip's height. A screenshot-script bug s
 screenshot scrolls its target into view, and that scroll moved the pointer off the hovered dot, so clips now scroll into
 view before any hover.
 
+## Swing and demographics, part one (Nov. 7)
+
+Rowan asked for direction-of-the-vote and demographic stats. civicAPI's history covers nine states for the 2024
+presidential vote and none for Wisconsin, so with Rowan's OK the tool takes two outside sources: the MIT Election Data
+and Science Lab's county presidential returns (CC0, for a 2024 baseline) and Census ACS county estimates (public domain,
+for demographics). Exit-poll style "how groups voted" data belongs to AP and is not used. This part ships the
+demographics: a hand-run pipeline from the Census FTP (no key needed; the 2021 vintage keeps Connecticut's counties) and a
+"How counties voted" block on the Senate and governor panels, grouping counties by density, degree share, income or white
+share and summing the vote in each group. The 2024 baseline pipeline and the shift math are written and tested; the MIT
+file sits behind a Dataverse guestbook, so the shift layer waits for Rowan to download it.
+

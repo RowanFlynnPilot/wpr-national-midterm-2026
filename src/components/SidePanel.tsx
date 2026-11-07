@@ -4,9 +4,11 @@ import { HOME_STATE, stateName } from "../lib/states";
 import { RUNOFF, noVotesYet, raceFill, raceStatus } from "../lib/status";
 import type { Geo } from "../lib/geo";
 import { side, trend, type History } from "../lib/history";
-import { measureShortTitle, OFFICE_NAME, OFFICE_SINGULAR, type Chamber, type PopularVote } from "../lib/summary";
+import { measureShortTitle, OFFICE_NAME, OFFICE_SINGULAR, raceTitle, type Chamber, type PopularVote } from "../lib/summary";
 import type { CountySets, Office, Race } from "../lib/types";
+import type { Demographics } from "../lib/patterns";
 import { CountyMap } from "./CountyMap";
+import { CountyPatterns } from "./CountyPatterns";
 import { MarginStrip } from "./MarginStrip";
 import { RaceCard } from "./RaceCard";
 
@@ -20,6 +22,7 @@ interface Props {
   counties: CountySets | null; // null until the county files load
   geo: Geo | null; // null until the map shapes load
   history: History;
+  demographics: Demographics | null; // null until the Census file loads
   now: number;
   onSelect: (office: Office, state: string | null, district: string | null) => void;
 }
@@ -106,7 +109,7 @@ function RaceRow({ race, onClick, showOffice = false, when, points }: RowProps) 
 
 const COUNTING_LISTED = 40;
 
-function Overview({ office, chamber, popularVote, races, history, now, onSelect }: Props) {
+function Overview({ office, chamber, popularVote, races, counties, demographics, history, now, onSelect }: Props) {
   const counting = chamber.uncalled.filter((r) => !r.runoff);
   const listed = counting.slice(0, COUNTING_LISTED); // mid-replay, hundreds are uncalled; the table has them all
   const pick = (r: Race) => onSelect(office, r.state, routeOf(r));
@@ -187,6 +190,15 @@ function Overview({ office, chamber, popularVote, races, history, now, onSelect 
           )}
         </>
       )}
+      {office !== "H" && !measures && counties && demographics && (
+        <CountyPatterns
+          races={races.filter((r) => r.office === office)}
+          counties={office === "S" ? counties.S : counties.G}
+          demographics={demographics}
+          baseline={null}
+          scope={`Across the ${races.filter((r) => r.office === office).length} ${office === "S" ? "Senate" : "governor"} races`}
+        />
+      )}
       {office === "H" && (
         <p className="panel__note panel__note--foot">
           Several states redrew their districts in 2025 and 2026, so seat-by-seat flips are not shown. Pick a hexagon or a state to see its races.
@@ -261,7 +273,7 @@ function Back({ label, onClick }: { label: string; onClick: () => void }) {
   );
 }
 
-function StateView({ office, state, races, counties, geo, history, onSelect }: Props & { state: string }) {
+function StateView({ office, state, races, counties, geo, history, demographics, onSelect }: Props & { state: string }) {
   const race = races.find((r) => r.office === office && r.state === state);
   const others = races.filter((r) => r.state === state && r.office !== office && r.office !== "H");
   const house = races.filter((r) => r.state === state && r.office === "H");
@@ -273,6 +285,7 @@ function StateView({ office, state, races, counties, geo, history, onSelect }: P
         <>
           <RaceCard race={race} heading="h2" points={history[String(race.id)]} />
           {geo && countyData && <CountyMap race={race} counties={countyData} geo={geo} />}
+          {countyData && demographics && <CountyPatterns races={[race]} counties={countyData} demographics={demographics} baseline={null} scope={raceTitle(race)} />}
         </>
       ) : (
         <h2 className="panel__title panel__title--state">

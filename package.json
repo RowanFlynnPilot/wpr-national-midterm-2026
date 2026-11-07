@@ -11,7 +11,9 @@
     "preview": "vite preview",
     "screens": "node scripts/screenshots.mjs screens",
     "test": "vitest run",
-    "headshots": "node scripts/headshots.mjs"
+    "headshots": "node scripts/headshots.mjs",
+    "demographics": "python pipeline/demographics.py",
+    "baseline": "python pipeline/baseline.py"
   },
   "dependencies": {
     "d3-force": "^3.0.0",

@@ -1,5 +1,7 @@
 import { buildGeo, type Atlas, type Geo } from "./geo";
 import type { History } from "./history";
+import type { Demographics } from "./patterns";
+import type { Baseline } from "./shift";
 import type { CountyResults, CountySets, HexCell, Race, Results } from "./types";
 
 /** What the first render needs. County breakdowns, the map shapes and the count history follow after the first paint. */
@@ -43,6 +45,16 @@ const PAINT_MARGIN_MS = 150;
 /** How each uncalled race's margin has moved over the last week (pipeline/history.py). Small; fetched after first paint. */
 export async function loadHistory(): Promise<History> {
   return getJson<History>("history.json");
+}
+
+/** County demographics from the Census (pipeline/demographics.py), for the "how counties voted" block. */
+export async function loadDemographics(): Promise<Demographics> {
+  return getJson<Demographics>("demographics.json");
+}
+
+/** The 2024 presidential vote by county and state (pipeline/baseline.py), for the shift layer. */
+export async function loadBaseline(): Promise<Baseline> {
+  return getJson<Baseline>("baseline-2024.json");
 }
 
 /** The county and state shapes: the largest file, so the page renders before it lands. */

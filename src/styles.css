@@ -388,6 +388,98 @@ a {
   font-weight: 600;
 }
 
+/* ---------- how counties voted (panel) ---------- */
+
+.patterns__head {
+  display: flex;
+  flex-wrap: wrap; /* a narrow panel puts the menu under the title rather than squeezing it */
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.35rem 0.75rem;
+}
+
+.patterns__pick select {
+  max-width: 11rem;
+  padding: 0.25rem 0.4rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: 4px;
+  background: var(--paper);
+  font: 500 0.8125rem/1.3 var(--sans);
+  color: var(--ink);
+}
+
+.patterns__table {
+  width: 100%;
+  margin-top: 0.5rem;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.patterns__table th,
+.patterns__table td {
+  padding: 0.4rem 0.3rem;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: middle;
+  text-align: left;
+}
+
+.patterns__table thead th {
+  padding-top: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.patterns__table th:first-child,
+.patterns__table td:first-child {
+  padding-left: 0;
+}
+
+.patterns__table th:last-child,
+.patterns__table td:last-child {
+  padding-right: 0;
+}
+
+.patterns__table tbody th {
+  font-weight: 600;
+}
+
+.patterns__table tbody th small {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.patterns__table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.patterns__result {
+  min-width: 6.5rem;
+}
+
+.patterns__bar {
+  display: flex;
+  height: 8px;
+  border-radius: 2px;
+  overflow: hidden;
+  background: var(--rule);
+}
+
+.patterns__pcts {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.2rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
 /* ---------- chamber tabs ---------- */
 
 .chambers-frame {

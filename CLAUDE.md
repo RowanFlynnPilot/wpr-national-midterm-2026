@@ -128,6 +128,31 @@ Each district's target = vote-weighted centroid of the counties it covers (from 
 - The four chamber tabs sit two by two under 1000px. The map toolbar's caption yields (`flex: 1 1 12rem`) so the controls never wrap onto a second row; "Copy link" is icon-only under 700px (named by aria-label). Counties outside the zoomed state fade to 35% opacity.
 - `.loading` uses padding, not margin: a top margin collapses through `<body>` and shifts the page when the app replaces it (that was a 0.08 CLS).
 
+## Swing and county patterns (Nov. 7, 2026)
+
+Two sources beyond civicAPI, both static, fetched by hand and committed; neither runs on the cron.
+
+- **County demographics**: `pipeline/demographics.py` (`npm run demographics`) downloads four ACS 5-year table files and the
+  county gazetteer from the Census Bureau's FTP (no API key) into `pipeline/raw/acs/` and writes `public/data/demographics.json`:
+  `{"<fips>": [population, collegePct, medianIncome | null, whiteNhPct, density]}`. Vintage 2017–2021, the last whose geography
+  is the counties the maps and civicAPI use (from 2022 the Census reports Connecticut by planning region). Alaska's split census
+  areas are merged like the vote. The build fails if any atlas county lacks a row; one county (Loving, TX) has no median income.
+  Public domain; credited in the footer. Front end: `src/lib/patterns.ts` (`countyPatterns`: the vote of the given races summed
+  over counties grouped by one variable into four bins; a race counts only with both a Democrat and a Republican among its county
+  columns, a county only with votes and the variable) and `CountyPatterns.tsx`, on the Senate and governor overview panels (every
+  race of the office) and on a state's panel (that race): a menu of four variables (people per square mile, bachelor's share,
+  median household income, white non-Hispanic share), each bin's share of the vote, D/R result and, once the 2024 baseline is
+  loaded, the shift. The note says these are patterns of places, not a survey of voters.
+- **2024 presidential baseline**: `pipeline/baseline.py` (`npm run baseline`) reads the MIT Election Data and Science Lab's
+  "County Presidential Election Returns 2000-2024" (Harvard Dataverse doi:10.7910/DVN/VOQCHQ, CC0) from `pipeline/raw/medsl/`
+  (the download needs a Dataverse guestbook response, so it is saved by hand) and writes `public/data/baseline-2024.json`:
+  `[dem, rep, total]` by county FIPS (where the atlas draws the county; Alaska and Connecticut have state totals only) and by
+  state. It uses a county's TOTAL vote-mode rows where they exist and fails unless the national totals land within 1% of the
+  certified count. `src/lib/shift.ts`: `raceShift` and `countyShift` compare a race's or a county's Democratic-minus-Republican
+  share of all votes with 2024 (null without both parties on the ballot), `shiftText` words it, `shiftColor` in `colors.ts`
+  steps the party margin ramps at 2, 5 and 10 points. The shift map mode, race-card line, table column and tooltip line land
+  once the file is in place.
+
 ## WordPress embed
 
 `src/lib/embed.ts` posts `{type: "wpr-embed-height", id: "wpr-national-midterm-2026", height}` to the parent whenever

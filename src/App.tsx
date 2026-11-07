@@ -13,7 +13,8 @@ import { Replay } from "./components/Replay";
 import { SinceVisit } from "./components/SinceVisit";
 import { SidePanel } from "./components/SidePanel";
 import { Tooltip, type HoverHandler, type HoverTarget, type MeasureSummary } from "./components/Tooltip";
-import { afterPaint, countyColumns, loadAtlas, loadHistory, readCounty, type Data } from "./lib/data";
+import { afterPaint, countyColumns, loadAtlas, loadDemographics, loadHistory, readCounty, type Data } from "./lib/data";
+import type { Demographics } from "./lib/patterns";
 import type { History } from "./lib/history";
 import { centralTime, relativeAge } from "./lib/format";
 import type { Geo } from "./lib/geo";
@@ -111,6 +112,18 @@ export function App({ data }: { data: Data }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // County demographics: static, fetched once after first paint; the panel's "how counties voted" block waits on it.
+  const [demographics, setDemographics] = useState<Demographics | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    afterPaint()
+      .then(loadDemographics)
+      .then((d) => !cancelled && setDemographics(d));
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // The count history rides behind the results: fetched after first paint, again after each refresh.
@@ -397,6 +410,7 @@ export function App({ data }: { data: Data }) {
             counties={counties}
             geo={geo}
             history={history}
+            demographics={demographics}
             now={clock}
             onSelect={(office, state, district) => select({ office, state, district })}
           />
@@ -426,7 +440,8 @@ export function App({ data }: { data: Data }) {
           Angus King and Bernie Sanders are counted with the Senate Democrats they caucus with. Where both finalists are from the
           same party, the seat counts for that party before a winner is called. Louisiana House races without a majority go to a
           Dec. 12 runoff. On the House map, district positions within each state are approximate. Map boundaries from the U.S.
-          Census Bureau via us-atlas. Candidate photos are official congressional portraits or come from Wikimedia Commons
+          Census Bureau via us-atlas. County demographics are U.S. Census Bureau estimates from the 2017–2021 American
+          Community Survey. Candidate photos are official congressional portraits or come from Wikimedia Commons
           contributors (<a href="./credits.html">photo credits</a>).
         </p>
         <p className="sources__paper">
