@@ -473,7 +473,7 @@ a {
 
 .takeaways__list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(13.5rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); /* three across on a laptop: six sentences sit 3 by 2, five as 3 and 2, never one orphan under a row of five */
   gap: 0.75rem;
   margin: 0;
   padding: 0;
@@ -611,6 +611,80 @@ a {
   font-size: 0.8125rem;
   line-height: 1.4;
   color: var(--ink-2);
+}
+
+.tooltip__flips {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--ink-2);
+}
+
+.margin-legend__step--outline {
+  background: var(--paper-raised);
+  border: 1.5px solid var(--ink);
+}
+
+/* ---------- Senate and governor on the same ballot ---------- */
+
+.splits {
+  margin-top: 1.5rem;
+}
+
+.splits__table {
+  width: 100%;
+  max-width: 44rem;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.splits__table th,
+.splits__table td {
+  padding: 0.4rem 0.6rem 0.4rem 0;
+  border-bottom: 1px solid var(--rule);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.splits__table thead th {
+  border-bottom-color: var(--ink);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.splits__table .num {
+  padding-right: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.splits__table tr.is-split th,
+.splits__table tr.is-split td {
+  background: var(--wash);
+}
+
+.splits__cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.splits__margin {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.splits__tag {
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.4rem;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--ink);
 }
 
 .tooltip__shift {
@@ -1410,6 +1484,11 @@ a {
 .national-map .counties path {
   stroke: var(--paper);
   stroke-width: 0.22;
+}
+
+.national-map .counties path.is-flipped {
+  stroke: var(--ink); /* changed sides since 2024, in the shift mode */
+  stroke-width: 0.9;
 }
 
 .national-map .state {
@@ -2880,8 +2959,9 @@ table.races {
   .map-controls .seg-short {
     display: inline;
   }
-  .races .phone-hide {
-    display: none;
+  .races .phone-hide,
+  .splits__name {
+    display: none; /* on a phone the pair cells keep the swatch and the margin */
   }
   .measure-cell {
     min-width: 11rem;

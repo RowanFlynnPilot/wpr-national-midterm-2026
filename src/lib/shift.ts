@@ -117,3 +117,99 @@ export function shiftText(s: Shift): string {
   if (Math.abs(s.shift) < 0.05) return `In line with the 2024 presidential vote (${detail})`;
   return `${Math.abs(s.shift).toFixed(1)} points more ${s.shift > 0 ? "Democratic" : "Republican"} than the 2024 presidential vote (${detail})`;
 }
+
+/** The side a county went to, by its two-party vote; null when a side is absent or nothing is counted or it is tied. */
+const sideOf = (dem: number | null, rep: number | null): "D" | "R" | null => (dem === null || rep === null || dem === rep ? null : dem > rep ? "D" : "R");
+
+/** The side a county changed to since the 2024 presidential vote, or null when it did not change or cannot be read. */
+export function countyFlip(race: Race, row: number[], fips: string, baseline: Baseline): "D" | "R" | null {
+  if (!comparable(race)) return null;
+  const then = baseline.counties[fips];
+  if (!then || then[2] <= 0) return null;
+  const { left, right, total } = countyVotes(race, row, ["D", "R"]);
+  if (total <= 0) return null;
+  const now = sideOf(left, right);
+  const before = sideOf(then[0], then[1]);
+  return now && before && now !== before ? now : null;
+}
+
+/** The counties of a race that changed sides since 2024, each way, and how many could be compared. */
+export interface CountyFlips {
+  toD: number;
+  toR: number;
+  compared: number;
+}
+
+/** Counties that changed sides since the 2024 presidential vote, counted as the vote stands (a partial count can still change them). */
+export function countyFlips(race: Race, rows: Record<string, number[]>, baseline: Baseline): CountyFlips | null {
+  if (!comparable(race)) return null;
+  let toD = 0, toR = 0, compared = 0;
+  for (const [fips, row] of Object.entries(rows)) {
+    const then = baseline.counties[fips];
+    if (!then || then[2] <= 0 || countyVotes(race, row, ["D", "R"]).total <= 0) continue;
+    compared += 1;
+    const flip = countyFlip(race, row, fips, baseline);
+    if (flip === "D") toD += 1;
+    else if (flip === "R") toR += 1;
+  }
+  return compared ? { toD, toR, compared } : null;
+}
+
+/** "12 of 254 counties changed sides since 2024: 11 to Democrats, 1 to Republicans"; "No county changed sides since 2024". */
+export function countyFlipsText(f: CountyFlips): string {
+  const n = f.toD + f.toR;
+  if (!n) return `None of the ${f.compared} counties with a 2024 figure changed sides`;
+  const ways = [f.toD ? `${f.toD} to Democrats` : "", f.toR ? `${f.toR} to Republicans` : ""].filter(Boolean).join(", ");
+  return `${n} of ${f.compared} counties changed sides since 2024: ${ways}`;
+}
+
+/** Votes counted so far as a percentage of the state's 2024 presidential vote; statewide races and measures only. */
+export function turnoutVs2024(race: Race, baseline: Baseline): number | null {
+  if (race.office === "H") return null;
+  const then = baseline.states[race.state];
+  return then && then[2] > 0 && race.total > 0 ? (100 * race.total) / then[2] : null;
+}
+
+/** The races of an office with a 2024 figure, taken together: votes counted so far against their states' 2024 presidential vote. */
+export function officeTurnout(races: Race[], baseline: Baseline): number | null {
+  let now = 0, then = 0;
+  for (const r of races) {
+    const t = baseline.states[r.state];
+    if (r.office === "H" || !t || t[2] <= 0 || r.total <= 0) continue;
+    now += r.total;
+    then += t[2];
+  }
+  return then ? (100 * now) / then : null;
+}
+
+/** A state that elected both a senator and a governor, head to head in both, with the two margins side by side. */
+export interface TicketPair {
+  state: string;
+  senate: Race;
+  governor: Race;
+  senateMargin: number; // Democratic minus Republican share, points
+  governorMargin: number;
+  gap: number; // points between the two margins
+  split: boolean; // the two races lead or went to different parties
+}
+
+const dMinusR = (race: Race): number | null => {
+  const { dem, rep } = partyVotes(race);
+  return twoPartyMargin(dem, rep, race.total);
+};
+
+/** Every state with a Senate and a governor race both read head to head, widest gap between the two first. */
+export function ticketPairs(races: Race[]): TicketPair[] {
+  const out: TicketPair[] = [];
+  for (const governor of races) {
+    if (governor.office !== "G") continue;
+    const senates = races.filter((r) => r.office === "S" && r.state === governor.state);
+    const senate = senates.find((r) => !r.special) ?? senates[0]; // a state with two Senate races pairs its regular one
+    if (!senate || !headToHead(senate) || !headToHead(governor)) continue;
+    const s = dMinusR(senate);
+    const g = dMinusR(governor);
+    if (s === null || g === null) continue;
+    out.push({ state: governor.state, senate, governor, senateMargin: s, governorMargin: g, gap: Math.abs(s - g), split: Math.sign(s) !== Math.sign(g) });
+  }
+  return out.sort((a, b) => b.gap - a.gap);
+}

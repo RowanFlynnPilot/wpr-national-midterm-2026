@@ -1,15 +1,30 @@
 import { PARTY } from "../lib/colors";
 import { centralTime, pct, votes } from "../lib/format";
 import type { HistoryPoint } from "../lib/history";
-import { headToHead, raceShift, shiftText, type Baseline } from "../lib/shift";
+import { countyFlips, countyFlipsText, headToHead, raceShift, shiftText, turnoutVs2024, type Baseline } from "../lib/shift";
 import { rcvNote, statusText } from "../lib/status";
 import { Sparkline } from "./Sparkline";
 import { raceTitle } from "../lib/summary";
-import type { Race } from "../lib/types";
+import type { CountyResults, Race } from "../lib/types";
 
-export function RaceCard({ race, heading = "h3", points, baseline = null }: { race: Race; heading?: "h1" | "h2" | "h3"; points?: HistoryPoint[]; baseline?: Baseline | null }) {
+export function RaceCard({
+  race,
+  heading = "h3",
+  points,
+  baseline = null,
+  counties = null,
+}: {
+  race: Race;
+  heading?: "h1" | "h2" | "h3";
+  points?: HistoryPoint[];
+  baseline?: Baseline | null;
+  counties?: CountyResults | null; // the office's county rows, for the count of counties that changed sides since 2024
+}) {
   const H = heading;
   const shift = baseline ? raceShift(race, baseline) : null;
+  const turnout = baseline ? turnoutVs2024(race, baseline) : null;
+  const rows = counties?.[String(race.id)];
+  const flips = baseline && rows ? countyFlips(race, rows, baseline) : null;
   const noVotes = race.total === 0;
   const leadVotes = race.cands[0]?.votes ?? 0;
   const note = rcvNote(race);
@@ -70,6 +85,13 @@ export function RaceCard({ race, heading = "h3", points, baseline = null }: { ra
       {shift && <p className="race-card__shift">{shiftText(shift)}</p>}
       {baseline && !shift && (race.office === "S" || race.office === "G") && !headToHead(race) && (
         <p className="race-card__shift">No comparison with the 2024 presidential vote: an independent finished in the top two.</p>
+      )}
+      {!noVotes && (turnout !== null || flips) && (
+        <p className="race-card__shift">
+          {turnout !== null && `Votes counted so far come to ${Math.round(turnout)}% of the state's 2024 presidential vote.`}
+          {turnout !== null && flips && " "}
+          {flips && `${countyFlipsText(flips)}.`}
+        </p>
       )}
       {points && points.length >= 2 && <Sparkline race={race} points={points} />}
       {note && <p className="race-card__note">{note}</p>}

@@ -14,7 +14,7 @@ export const Takeaways = memo(function Takeaways({ items, onSelect, link }: Prop
   return (
     <section className="takeaways" aria-labelledby="takeaways-title">
       <h2 id="takeaways-title" className="takeaways__title">
-        {items.length === 1 ? "One thing" : `${["", "", "Two", "Three", "Four", "Five"][items.length]} things`} to know
+        {items.length === 1 ? "One thing" : `${["", "", "Two", "Three", "Four", "Five", "Six"][items.length]} things`} to know
       </h2>
       <ol className="takeaways__list">
         {items.map((t, i) => (

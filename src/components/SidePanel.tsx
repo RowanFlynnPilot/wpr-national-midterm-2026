@@ -271,7 +271,7 @@ function StateView({ office, state, races, counties, geo, history, baseline, onS
       <Back label={`All ${OFFICE_NAME[office].toLowerCase()} races`} onClick={() => onSelect(office, null, null)} />
       {race ? (
         <>
-          <RaceCard race={race} heading="h2" points={history[String(race.id)]} baseline={baseline} />
+          <RaceCard race={race} heading="h2" points={history[String(race.id)]} baseline={baseline} counties={countyData} />
           <EmbedRace race={race} />
           {geo && countyData && <CountyMap race={race} counties={countyData} geo={geo} />}
         </>

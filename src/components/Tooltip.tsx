@@ -1,7 +1,7 @@
 import { PARTY, PARTY_LABEL } from "../lib/colors";
 import { countyColumns, readCounty } from "../lib/data";
 import { pct, timeAgo, votes } from "../lib/format";
-import { countyShift, raceShift, shiftText, type Baseline } from "../lib/shift";
+import { countyFlip, countyFlips, countyFlipsText, countyShift, raceShift, shiftText, type Baseline } from "../lib/shift";
 import { stateName } from "../lib/states";
 import { statusText } from "../lib/status";
 import { raceTitle } from "../lib/summary";
@@ -99,6 +99,7 @@ function TipBody({ target, race, counties, baseline, now }: { target: TipTarget;
     const reading = row ? readCounty(row) : null;
     const cols = countyColumns(race);
     const shift = row && baseline ? countyShift(race, row, target.fips, baseline) : null;
+    const flip = row && baseline ? countyFlip(race, row, target.fips, baseline) : null;
     return (
       <>
         <div className="tooltip__title">
@@ -125,10 +126,12 @@ function TipBody({ target, race, counties, baseline, now }: { target: TipTarget;
           </ul>
         )}
         {shift && <div className="tooltip__shift">{shiftText(shift)}</div>}
+        {flip && <div className="tooltip__flips">Changed sides since 2024</div>}
       </>
     );
   }
   const shift = baseline ? raceShift(race, baseline) : null;
+  const flips = baseline && counties ? countyFlips(race, counties[String(race.id)] ?? {}, baseline) : null;
   const lead = race.cands[0];
   const photo = lead?.photo && lead.party !== "O" ? `./headshots/${lead.photo}` : null;
   const timing = race.winner && race.calledAt ? `Called ${timeAgo(race.calledAt, now)}` : !race.winner && !race.runoff ? `${Math.round(race.pctIn)}% reporting` : null;
@@ -161,6 +164,7 @@ function TipBody({ target, race, counties, baseline, now }: { target: TipTarget;
           ))}
       </ul>
       {shift && <div className="tooltip__shift">{shiftText(shift)}</div>}
+      {flips && <div className="tooltip__flips">{countyFlipsText(flips)}</div>}
     </>
   );
 }

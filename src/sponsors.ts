@@ -1,7 +1,7 @@
 // Sponsorship inventory, the WPR tracker model: a slot is a sponsor or null, and null renders an
 // upsell rather than an empty hole. Flip a slot from open to sold by editing this file only.
 // Sales: Chris Weber. One address, no variants.
-export const SALES_EMAIL = "weber.chris@wausaupilotandreview.com";
+export const SALES_EMAIL = "chris.weber@wausaupilotandreview.com";
 export const CAMPAIGN = "midterm-2026";
 
 export interface Sponsor {

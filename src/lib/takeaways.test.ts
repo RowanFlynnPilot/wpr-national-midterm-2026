@@ -10,7 +10,7 @@ describe("takeaways", () => {
   it("leads with the closest statewide race still being counted and links every item to a view", () => {
     const list = takeaways(RESULTS, chambers, null);
     expect(list.length).toBeGreaterThanOrEqual(3);
-    expect(list.length).toBeLessThanOrEqual(5);
+    expect(list.length).toBeLessThanOrEqual(6);
     const open = RESULTS.races.filter((r) => (r.office === "S" || r.office === "G") && !r.winner && !r.runoff && r.total > 0).sort((a, b) => a.margin - b.margin)[0];
     expect(open).toBeDefined();
     expect(list[0]?.text).toContain("closest race still being counted");

@@ -173,13 +173,33 @@ selected measure, its Yes/No patterns alone. The House has no band (no district 
 keeps the glance, the still-counting list, the latest calls and the flips. The CLAUDE.md paragraphs above that place the scatter
 and patterns "on the panel" predate this move.
 
+## Three more statistics (Nov. 7, 2026, evening)
+
+All in `src/lib/shift.ts`, from the results and the 2024 baseline already in hand; nothing new is fetched.
+
+- **Counties that changed sides since 2024** (`countyFlip`, `countyFlips`, `countyFlipsText`): a county whose head-to-head
+  winner differs from its 2024 presidential winner, counted as the vote stands (a partial count can still change it), only in
+  races that read against 2024 (`comparable`) and only for counties with a 2024 figure and votes. On the race card and the
+  state tooltip as a sentence (the card needs the office's county rows: the panel and the race page pass them, the table's
+  expanded card does not have them), on the county tooltip as "Changed sides since 2024", outlined in ink on the shift map
+  (`.is-flipped`, with a key entry), and summed across the office in the "Compared with 2024" block.
+- **Votes counted against 2024 turnout** (`turnoutVs2024`, `officeTurnout`): a statewide race's or measure's total as a
+  share of its state's 2024 presidential vote. A sentence on the race card ("Votes counted so far come to 78% of the state's
+  2024 presidential vote"), pooled in the "Compared with 2024" block, and a `votes_vs_2024_turnout_pct` CSV column. No
+  House figure: a district has no 2024 total.
+- **Senate and governor on the same ballot** (`ticketPairs`, `TicketPairs` in `Analysis.tsx`): every state with both races
+  read head to head (a state with two Senate races pairs its regular one), the two Democratic-minus-Republican margins side by
+  side, widest gap first, a "Split" tag where the leaders differ; a table under the analysis grid on the Senate and governor
+  overviews (the surname column hides under 700px), and takeaway five when any state split.
+
 ## Statement pass (Nov. 7, 2026)
 
-- **Things to know** (`src/lib/takeaways.ts`, `Takeaways.tsx`): up to five sentences written from the data under the chamber
+- **Things to know** (`src/lib/takeaways.ts`, `Takeaways.tsx`): up to six sentences written from the data under the chamber
   cards, each a button into the view behind it: the closest race still being counted (statewide, else House), the seats that
   changed parties with the widest flip, the House popular vote beside the seat count, the move since 2024 (once the baseline
-  loads; Senate first) and the home state (its statewide winner, delegation and questions). Derived from the results in hand, so
-  it replays with them.
+  loads; Senate first), the states that split their Senate and governor votes between the parties (when any did) and the home
+  state (its statewide winner, delegation and questions). Derived from the results in hand, so it replays with them. The list
+  sits three across on a laptop (six as 3 by 2, five as 3 and 2).
 - **Swing arrows** (`NationalMap.tsx`, `ShiftStyle`): the shift mode draws arrows by default, one per county from its center,
   up-left toward Democrats and up-right toward Republicans, length by the move up to 30 points (`ARROW_MAX` 17 map units,
   divided by the zoom so they hold their size in a zoomed state, and `ARROW_ZOOMED` 2.4 times longer and bolder there, where moves are often under 10 points), over a flat `ARROW_BASE` fill; "Shading" in the key returns
@@ -226,7 +246,7 @@ The WPR tracker model (wpr-brand skill, `references/sponsorship.md`). Inventory 
 em dash into a bold offer and a muted place, a Directions chip when there is an address (Apple Maps on Apple hardware, Google
 Maps elsewhere; a button-role span, since the card is already a link), UTM tags on the way out and
 `rel="noopener noreferrer sponsored"`. Open: `OpenSlot`, a dashed card leading with "Sponsorship available", one line of
-value, a "Book this placement →" mailto to `SALES_EMAIL` (weber.chris@wausaupilotandreview.com, the one address) with the
+value, a "Book this placement →" mailto to `SALES_EMAIL` (chris.weber@wausaupilotandreview.com, the one address) with the
 placement in the subject, which also copies the address and confirms inline. `?demo` fills every open slot with "Your Brand
 Here" under a ribbon that names itself a sales preview; sold slots are never overridden. The footer carries "Advertise on this
 page". To sell the slot: fill in `SPONSORS.title`, drop the logo in `public/sponsors/`, commit.

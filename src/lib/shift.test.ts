@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { race } from "./fixture";
+import { race, RESULTS } from "./fixture";
 import type { Candidate } from "./types";
-import { biggestShifts, countyShift, officeShift, partyVotes, raceShift, shiftText, twoPartyMargin, headToHead, type Baseline } from "./shift";
+import { biggestShifts, countyFlip, countyFlips, countyFlipsText, countyShift, officeShift, officeTurnout, partyVotes, raceShift, shiftText, ticketPairs, turnoutVs2024, twoPartyMargin, headToHead, type Baseline } from "./shift";
 
 const tx = race("S", "TX");
 const baseline: Baseline = {
@@ -93,5 +93,49 @@ describe("shiftText", () => {
     expect(shiftText({ then: -0.9, now: 3.3, shift: 4.2 })).toBe("4.2 points more Democratic than the 2024 presidential vote (2024: R +0.9, now D +3.3)");
     expect(shiftText({ then: 2, now: -1, shift: -3 })).toBe("3.0 points more Republican than the 2024 presidential vote (2024: D +2.0, now R +1.0)");
     expect(shiftText({ then: 2, now: 2.01, shift: 0.01 })).toMatch(/^In line with the 2024 presidential vote/);
+  });
+});
+
+describe("countyFlips", () => {
+  // county rows: [pctIn, votes for the race's three county columns (Talarico D, Paxton R, third), all other votes]
+  const rows = { "48453": [100, 300, 100, 10, 5], "48001": [100, 100, 300, 0, 0] };
+  const base: Baseline = { ...baseline, counties: { "48453": [150_000, 300_000, 470_000], "48001": [1_000, 3_000, 4_100] } };
+  it("counts the counties whose side differs from 2024, each way, as the vote stands", () => {
+    expect(countyFlip(tx, rows["48453"], "48453", base)).toBe("D"); // Republican in 2024, Democratic now
+    expect(countyFlip(tx, rows["48001"], "48001", base)).toBeNull(); // Republican both times
+    expect(countyFlips(tx, rows, base)).toEqual({ toD: 1, toR: 0, compared: 2 });
+    expect(countyFlipsText({ toD: 1, toR: 0, compared: 2 })).toBe("1 of 2 counties changed sides since 2024: 1 to Democrats");
+    expect(countyFlipsText({ toD: 0, toR: 0, compared: 9 })).toBe("None of the 9 counties with a 2024 figure changed sides");
+  });
+  it("skips counties without a 2024 figure or without votes, and races a district cannot read", () => {
+    expect(countyFlips(tx, { "48999": [100, 1, 2, 0, 0] }, base)).toBeNull();
+    expect(countyFlips(tx, { "48453": [0, 0, 0, 0, 0] }, base)).toBeNull();
+    expect(countyFlips(race("H", "WI-03"), rows, base)).toBeNull();
+  });
+});
+
+describe("turnout against 2024", () => {
+  it("is the votes counted as a share of the state's 2024 presidential vote, statewide only", () => {
+    expect(turnoutVs2024(tx, baseline)).toBeCloseTo((100 * tx.total) / 11_400_000, 5);
+    expect(turnoutVs2024(race("H", "WI-03"), baseline)).toBeNull();
+    expect(turnoutVs2024(tx, { ...baseline, states: {} })).toBeNull();
+  });
+  it("pools an office's races against their states, skipping those without a figure", () => {
+    const ak = race("S", "AK");
+    const base: Baseline = { ...baseline, states: { ...baseline.states, AK: [100_000, 200_000, 320_000] } };
+    expect(officeTurnout([tx, ak, race("S", "ME"), race("H", "WI-03")], base)).toBeCloseTo((100 * (tx.total + ak.total)) / (11_400_000 + 320_000), 5);
+  });
+});
+
+describe("ticketPairs", () => {
+  it("pairs each state's Senate and governor race, widest gap first, and flags the ones that split", () => {
+    const pairs = ticketPairs(RESULTS.races);
+    expect(pairs.map((p) => p.state)).toEqual(expect.arrayContaining(["TX", "AL"]));
+    expect(pairs.some((p) => p.state === "FL")).toBe(false); // no governor race in the fixture
+    for (let i = 1; i < pairs.length; i++) expect((pairs[i - 1] as { gap: number }).gap).toBeGreaterThanOrEqual((pairs[i] as { gap: number }).gap);
+    for (const p of pairs) {
+      expect(p.gap).toBeCloseTo(Math.abs(p.senateMargin - p.governorMargin), 5);
+      expect(p.split).toBe(Math.sign(p.senateMargin) !== Math.sign(p.governorMargin));
+    }
   });
 });

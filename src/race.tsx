@@ -71,7 +71,7 @@ function RaceEmbed({ initial, sel }: { initial: Results; sel: Selection }) {
           {ago && <span className="kicker__ago"> · {ago}</span>}
         </span>
       </header>
-      <RaceCard race={race} heading="h1" points={history[String(race.id)]} baseline={baseline} />
+      <RaceCard race={race} heading="h1" points={history[String(race.id)]} baseline={baseline} counties={counties} />
       {countyOffice && counties && geo && <CountyMap race={race} counties={counties} geo={geo} />}
       <a className="compact__more" href={full} target="_top">
         Every race, every state, every county →

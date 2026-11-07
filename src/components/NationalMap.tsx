@@ -1,6 +1,6 @@
 import { memo, useMemo, useState } from "react";
 import { ARROW_BASE, NO_RACE, NO_RESULTS, PARTY, inkOn, marginColor, measureCountColor, remainingColor, shiftColor } from "../lib/colors";
-import { countyShift, type Baseline } from "../lib/shift";
+import { countyFlip, countyShift, type Baseline } from "../lib/shift";
 import { countyColumns, readCounty } from "../lib/data";
 import { LABEL_NUDGE, VIEW, type Geo, type Shape, type StateShape } from "../lib/geo";
 
@@ -86,6 +86,15 @@ export const NationalMap = memo(function NationalMap({ geo, mode, baseline, shif
     }
     return set;
   }, [mode, racesByState, counties]);
+  // Counties that changed sides since 2024, outlined in the shift mode.
+  const flipped = useMemo(() => {
+    if (mode !== "shift" || !baseline) return new Set<string>();
+    const set = new Set<string>();
+    for (const race of racesByState.values()) {
+      for (const [fips, row] of Object.entries(counties[String(race.id)] ?? {})) if (countyFlip(race, row, fips, baseline)) set.add(fips);
+    }
+    return set;
+  }, [mode, racesByState, counties, baseline]);
   const countyFills = useMemo(() => {
     if (mode === "states" || mode === "measures") return null;
     const fills = new Map<string, string>();
@@ -202,7 +211,7 @@ export const NationalMap = memo(function NationalMap({ geo, mode, baseline, shif
                     key={c.id}
                     d={c.d}
                     fill={fill ?? NO_RACE}
-                    className={[zoomed && code !== zoomed.code ? "is-out" : "", !arrows && partial.has(c.id) ? "is-partial" : ""].filter(Boolean).join(" ") || undefined}
+                    className={[zoomed && code !== zoomed.code ? "is-out" : "", !arrows && partial.has(c.id) ? "is-partial" : "", flipped.has(c.id) ? "is-flipped" : ""].filter(Boolean).join(" ") || undefined}
                     vectorEffect="non-scaling-stroke"
                     onPointerMove={(e) => (fill && code ? onHover({ kind: "county", state: code, fips: c.id, name: c.name }, e) : onHover(null))}
                     onPointerLeave={() => onHover(null)}

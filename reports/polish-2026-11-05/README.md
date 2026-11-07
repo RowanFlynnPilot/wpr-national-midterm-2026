@@ -262,3 +262,13 @@ the analysis band; "D 36.4%R 61.2%" run together in the patterns table (a gap, s
 hint hidden where nothing can point. Left as designed: taps on the national map select rather than show a tooltip (a finger
 cannot hover), a hex tap opens the state list, and the table row is the expander's tap target.
 
+## Three more statistics (Nov. 7, evening)
+
+Rowan asked for further stat additions. Three were added from the data already in hand, none needing a new source: the
+counties that changed sides since the 2024 presidential vote (card and tooltip sentences, an ink outline and key entry on
+the shift map, a sum in the Compared-with-2024 block), the votes counted so far against each state's 2024 presidential
+turnout (card sentence, pooled sentence, CSV column), and a Senate-and-governor table for the 21 states that elected both,
+with the two margins side by side and the states that split them tagged; the split count is a new takeaway, so the list
+holds up to six and sits three across. Also corrected the sales address to chris.weber@wausaupilotandreview.com here and in
+the wpr-brand skill's sponsorship notes, which had it reversed.
+

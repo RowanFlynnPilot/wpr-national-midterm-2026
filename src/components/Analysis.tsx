@@ -3,11 +3,12 @@ import { useInView } from "../lib/inView";
 import { PARTY, PARTY_PLURAL } from "../lib/colors";
 import type { Geo } from "../lib/geo";
 import type { Demographics } from "../lib/patterns";
-import { biggestShifts, headToHead, marginLabel, officeShift, raceShift, shiftText, type Baseline } from "../lib/shift";
+import { biggestShifts, countyFlips, headToHead, marginLabel, officeShift, officeTurnout, raceShift, shiftText, ticketPairs, type Baseline, type CountyFlips } from "../lib/shift";
+import { shortName } from "../lib/takeaways";
 import { stateName } from "../lib/states";
 import { raceFill } from "../lib/status";
 import { measureShortTitle, raceTitle } from "../lib/summary";
-import type { CountySets, Office, Race } from "../lib/types";
+import type { CountyResults, CountySets, Office, Race } from "../lib/types";
 import { CountyPatterns } from "./CountyPatterns";
 import { ShiftScatter } from "./ShiftScatter";
 
@@ -68,7 +69,7 @@ function AnalysisBand({ office, state, district, races, counties, demographics, 
       </h2>
       <div className="analysis__grid">
         <div className="analysis__col">
-          {baseline && (race ? <RaceShift race={race} baseline={baseline} /> : <ShiftBlock office={office} races={officeRaces} baseline={baseline} onSelect={onSelect} />)}
+          {baseline && (race ? <RaceShift race={race} baseline={baseline} /> : <ShiftBlock office={office} races={officeRaces} baseline={baseline} counties={set} onSelect={onSelect} />)}
           {baseline && set && demographics && <ShiftScatter races={scope} counties={set} demographics={demographics} baseline={baseline} geo={geo} />}
         </div>
         <div className="analysis__col">
@@ -77,6 +78,7 @@ function AnalysisBand({ office, state, district, races, counties, demographics, 
           )}
         </div>
       </div>
+      {!race && <TicketPairs races={races} onSelect={onSelect} />}
     </section>
   );
 }
@@ -99,10 +101,21 @@ function RaceShift({ race, baseline }: { race: Race; baseline: Baseline }) {
 }
 
 /** The office's races against the 2024 presidential vote in their states, and the biggest moves each way. */
-function ShiftBlock({ office, races, baseline, onSelect }: { office: Office; races: Race[]; baseline: Baseline; onSelect: (r: Race) => void }) {
+function ShiftBlock({ office, races, baseline, counties, onSelect }: { office: Office; races: Race[]; baseline: Baseline; counties: CountyResults | null; onSelect: (r: Race) => void }) {
   const all = officeShift(races, baseline);
   if (!all) return null;
   const s = all.shift.shift;
+  const compared = races.filter((r) => raceShift(r, baseline) !== null);
+  const turnout = officeTurnout(compared, baseline);
+  const flips = counties
+    ? compared.reduce<CountyFlips>(
+        (sum, r) => {
+          const f = countyFlips(r, counties[String(r.id)] ?? {}, baseline);
+          return f ? { toD: sum.toD + f.toD, toR: sum.toR + f.toR, compared: sum.compared + f.compared } : sum;
+        },
+        { toD: 0, toR: 0, compared: 0 },
+      )
+    : null;
   return (
     <div className="shift-block">
       <h3 className="panel__title">Compared with 2024</h3>
@@ -113,6 +126,12 @@ function ShiftBlock({ office, races, baseline, onSelect }: { office: Office; rac
         </strong>{" "}
         than the 2024 presidential vote in the same states ({marginLabel(all.shift.then)} then, {marginLabel(all.shift.now)} now).
       </p>
+      {turnout !== null && (
+        <p className="panel__lede">
+          Votes counted so far in those races come to {Math.round(turnout)}% of the 2024 presidential vote in the same states
+          {flips && flips.compared > 0 && `, and ${flips.toD + flips.toR} of their ${flips.compared.toLocaleString("en-US")} counties changed sides: ${flips.toD} to Democrats, ${flips.toR} to Republicans`}.
+        </p>
+      )}
       <div className="shift-block__moves">
         {(["D", "R"] as const).map((p) => {
           const list = biggestShifts(races, baseline, p, 3);
@@ -144,5 +163,69 @@ function ShiftBlock({ office, races, baseline, onSelect }: { office: Office; rac
         independent in the top two are left out.
       </p>
     </div>
+  );
+}
+
+/** The states that elected both a senator and a governor this year, the two margins side by side, widest gap first. */
+function TicketPairs({ races, onSelect }: { races: Race[]; onSelect: (r: Race) => void }) {
+  const pairs = ticketPairs(races);
+  if (!pairs.length) return null;
+  const splits = pairs.filter((p) => p.split).length;
+  return (
+    <section className="splits" aria-labelledby="splits-title">
+      <h3 id="splits-title" className="panel__title">
+        Senate and governor on the same ballot
+      </h3>
+      <p className="panel__lede">
+        {pairs.length} states elected both this year. {splits ? `${splits} split the two between the parties.` : "Every one gave both to the same party."} Margins are the
+        Democratic minus Republican share of every vote, in points; the gap is how far the two differ.
+      </p>
+      <table className="splits__table">
+        <thead>
+          <tr>
+            <th scope="col">State</th>
+            <th scope="col">Senate</th>
+            <th scope="col">Governor</th>
+            <th scope="col" className="num">
+              Gap
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {pairs.map((p) => (
+            <tr key={p.state} className={p.split ? "is-split" : undefined}>
+              <th scope="row">
+                <button type="button" className="row-link" onClick={() => onSelect(p.senate)}>
+                  {stateName(p.state)}
+                </button>
+              </th>
+              <td>
+                <PairCell race={p.senate} margin={p.senateMargin} />
+              </td>
+              <td>
+                <PairCell race={p.governor} margin={p.governorMargin} />
+              </td>
+              <td className="num">
+                {p.gap.toFixed(1)}
+                {p.split && <span className="splits__tag">Split</span>}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+  );
+}
+
+function PairCell({ race, margin }: { race: Race; margin: number }) {
+  const lead = race.cands[0];
+  return (
+    <span className="splits__cell">
+      <span className="race-row__swatch" style={{ background: raceFill(race) }} />
+      {lead && <span className="splits__name">{shortName(lead.name)}</span>}
+      <span className="splits__margin" style={{ color: margin > 0 ? PARTY.D : PARTY.R }}>
+        {marginLabel(margin)}
+      </span>
+    </span>
   );
 }

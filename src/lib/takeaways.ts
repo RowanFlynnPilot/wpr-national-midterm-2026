@@ -1,5 +1,5 @@
 import { marginText, pct } from "./format";
-import { biggestShifts, officeShift, type Baseline } from "./shift";
+import { biggestShifts, marginLabel, officeShift, ticketPairs, type Baseline, type TicketPair } from "./shift";
 import { HOME_STATE, stateName } from "./states";
 import { housePopularVote, OFFICE_SINGULAR, raceTitle, secured, type Chamber } from "./summary";
 import type { Office, Race, Results, Selection } from "./types";
@@ -13,9 +13,10 @@ const toRace = (r: Race): Selection => ({ office: r.office, state: r.state, dist
 const lastName = (name: string) => name.split(" ").slice(-1)[0] as string;
 
 /**
- * Up to five sentences a reader could take away, each written from the data and linked to the view that shows it:
+ * Up to six sentences a reader could take away, each written from the data and linked to the view that shows it:
  * the closest race still being counted, the seats that changed hands, the House popular vote, the move since 2024
- * (once the baseline has loaded) and the home state. Replays with the results, since it is derived from them.
+ * (once the baseline has loaded), the states that split their Senate and governor votes between the parties, and the
+ * home state. Replays with the results, since it is derived from them.
  */
 export function takeaways(results: Results, chambers: Record<Office, Chamber>, baseline: Baseline | null): Takeaway[] {
   const out: Takeaway[] = [];
@@ -76,7 +77,18 @@ export function takeaways(results: Results, chambers: Record<Office, Chamber>, b
     }
   }
 
-  // 5. The home state: its statewide race, its delegation, its questions.
+  // 5. States electing both a senator and a governor that split them between the parties.
+  const pairs = ticketPairs(races);
+  const splits = pairs.filter((p) => p.split);
+  if (splits.length) {
+    const top = splits[0] as TicketPair;
+    out.push({
+      text: `${splits.length} of the ${pairs.length} states electing both a senator and a governor split them between the parties, the widest gap in ${stateName(top.state)} (Senate ${marginLabel(top.senateMargin)}, governor ${marginLabel(top.governorMargin)}).`,
+      to: toRace(top.senate),
+    });
+  }
+
+  // 6. The home state: its statewide race, its delegation, its questions.
   const home = races.filter((r) => r.state === HOME_STATE);
   const statewide = home.find((r) => r.office === "G" && r.winner) ?? home.find((r) => r.office === "S" && r.winner);
   const house = home.filter((r) => r.office === "H");
@@ -102,7 +114,7 @@ export function takeaways(results: Results, chambers: Record<Office, Chamber>, b
       to: statewide ? toRace(statewide) : { office: "H", state: HOME_STATE, district: null },
     });
   }
-  return out.slice(0, 5);
+  return out.slice(0, 6);
 }
 
 /** The surname-only form used in short labels. */
