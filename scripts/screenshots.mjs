@@ -37,11 +37,17 @@ const VIEWS = {
   "senate-table": { hash: "#senate", click: ".races tbody tr:nth-child(2) .expander", clip: "table" },
   "senate-remaining": { hash: "#senate", click: 'button[role="radio"]:has-text("Still counting")' },
   "senate-counties-tx": { hash: "#senate-tx", click: 'button[role="radio"]:has-text("Counties")', settle: 900, clip: "map" },
+  "senate-arc-hover": { hash: "#senate", hover: ".seat-arc__seat.is-race >> nth=6", clip: "chambers" },
+  "house-arc-hover": { hash: "#house", hover: ".seat-arc__seat.is-race >> nth=300", clip: "chambers" },
   "house-keyboard": { hash: "#house", focus: 'polygon.hex[tabindex="0"]', keys: ["ArrowRight", "ArrowRight", "ArrowDown"], clip: "map" },
 };
 
 // A tooltip that moves on before its headshot lands aborts the image request; that is not a broken file.
 const aborted = (r) => r.failure()?.errorText === "net::ERR_ABORTED";
+
+// clip: screenshot one region instead of the page. It is scrolled into view before any hover, because an element
+// screenshot scrolls to its target, and a pointer left behind by that scroll would leave the hovered element.
+const CLIPS = { map: ".map-frame", table: ".table-section", legend: ".board__map", panel: ".board__panel", since: ".since", chambers: ".chambers-frame" };
 
 const [outDir = "screens", ...only] = process.argv.slice(2);
 const names = only.length ? only.filter((n) => n !== "compact") : Object.keys(VIEWS);
@@ -73,6 +79,7 @@ for (const width of WIDTHS) {
       await page.waitForFunction(() => !document.querySelector(".map-pending"), null, { timeout: 15000 });
     }
     await page.waitForFunction(() => !document.querySelector(".map-pending"), null, { timeout: 15000 });
+    if (view.clip) await page.locator(CLIPS[view.clip]).scrollIntoViewIfNeeded();
     if (view.hover) {
       await page.locator(view.hover).first().hover();
       await page.waitForSelector(".tooltip");
@@ -85,11 +92,7 @@ for (const width of WIDTHS) {
     }
     await page.waitForTimeout(view.settle ?? 1200); // the seat arcs stagger in over about a second
     const path = join(outDir, `${name}-${width}.png`);
-    if (view.clip === "map") await page.locator(".map-frame").screenshot({ path });
-    else if (view.clip === "table") await page.locator(".table-section").screenshot({ path });
-    else if (view.clip === "legend") await page.locator(".board__map").screenshot({ path });
-    else if (view.clip === "panel") await page.locator(".board__panel").screenshot({ path });
-    else if (view.clip === "since") await page.locator(".since").screenshot({ path });
+    if (view.clip) await page.locator(CLIPS[view.clip]).screenshot({ path });
     else await page.screenshot({ path, fullPage: true });
     await page.close();
     console.log(path);

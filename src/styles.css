@@ -390,6 +390,10 @@ a {
 
 /* ---------- chamber tabs ---------- */
 
+.chambers-frame {
+  position: relative; /* the seat tooltip is placed within it */
+}
+
 .chambers {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -401,13 +405,29 @@ a {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-  padding: 1rem 1.25rem 1.1rem;
-  border: 0;
+  padding: 1rem 1rem 1.1rem;
   border-top: 3px solid transparent;
   margin-top: -1px;
+  cursor: pointer;
+}
+
+/* the tab control proper: the name and the counts; the arc below it has its own targets */
+.chamber__tab {
+  display: flex;
+  flex-direction: column;
+  gap: inherit;
+  width: 100%;
+  padding: 0;
+  border: 0;
   background: none;
+  font: inherit;
+  color: inherit;
   text-align: left;
   cursor: pointer;
+}
+
+.chamber__tab:focus-visible {
+  outline-offset: 6px;
 }
 
 .chamber + .chamber {
@@ -501,6 +521,10 @@ a {
   width: 100%;
   height: auto;
   margin: 0.1rem 0 0;
+}
+
+.seat-arc__seat.is-race {
+  cursor: pointer; /* a seat with a race opens it; holdovers only name themselves */
 }
 
 .seat-arc__seat {
@@ -780,6 +804,9 @@ a {
 }
 
 @media (pointer: coarse) {
+  .seat-arc__seat {
+    pointer-events: none; /* a finger cannot pick a dot; the tap goes to the card and opens the office */
+  }
   .touch-hint {
     display: inline;
   }
@@ -2271,6 +2298,11 @@ table.races {
 
   .chamber:hover {
     background: rgba(29, 27, 23, 0.025);
+  }
+
+  .seat-arc__seat.is-race:hover {
+    stroke: var(--ink);
+    stroke-width: 1.5;
   }
 
   .home-chip:hover {

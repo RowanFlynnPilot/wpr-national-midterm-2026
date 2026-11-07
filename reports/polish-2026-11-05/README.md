@@ -176,3 +176,15 @@ the Wisconsin glance listed Question 2, 3, 1 above the governor (civicAPI id ord
 title order in the pipeline and the glance leads with the statewide offices; and the screenshot gate flagged a headshot
 request the tooltip aborted when keyboard focus moved on, which is not a broken file, so aborted loads no longer count.
 
+## Interactive arcs (Nov. 7)
+
+Every dot in the four chamber cards now stands for a known seat: `chamberSeats` lays the Senate's and governors' holdovers
+at the edges and sorts each block by margin so the closest races meet in the middle. Hovering a dot shows the race tooltip
+(headshot, status, call time or % reporting, share bars); clicking it opens the race. The card had been one `<button>`,
+which cannot contain interactive dots, so the tab role moved to a button holding the name and counts while the card div
+takes the office click. Phones keep the tap-the-card behavior (`pointer-events: none` on dots under a coarse pointer).
+The ring is thicker (inner radius 40 to 34, outer 96 to 98) and the card padding tighter, so the arcs grew about 5%
+at desktop widths without changing the strip's height. A screenshot-script bug surfaced on the way: an element
+screenshot scrolls its target into view, and that scroll moved the pointer off the hovered dot, so clips now scroll into
+view before any hover.
+

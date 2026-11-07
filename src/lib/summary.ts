@@ -19,6 +19,7 @@ export interface Chamber {
   uncalled: Race[]; // every race without a called winner, closest first
   runoffs: Race[];
   latestCalls: Race[]; // called races with a timestamp, newest first
+  races: Race[]; // every race of the office, in results order
 }
 
 export const LATEST_CALLS = 8;
@@ -73,6 +74,7 @@ export function chamber(results: Results, office: Office): Chamber {
       .filter((r): r is Race & { calledAt: string } => r.calledAt !== null)
       .sort((a, z) => z.calledAt.localeCompare(a.calledAt))
       .slice(0, LATEST_CALLS),
+    races,
   };
 }
 

@@ -147,6 +147,8 @@ export function App({ data }: { data: Data }) {
     }
   }, []);
 
+  const selectRace = useCallback((r: Race) => select({ office: r.office, state: r.state, district: r.office === "H" || r.office === "B" ? r.district : null }), [select]);
+
   const chambers = useMemo(
     () => ({ S: chamber(results, "S"), H: chamber(results, "H"), G: chamber(results, "G"), B: chamber(results, "B") }),
     [results],
@@ -276,13 +278,13 @@ export function App({ data }: { data: Data }) {
         <TitleSlot />
       </section>
 
-      <ChamberTabs chambers={chambers} office={sel.office} onChange={(office) => select({ office, state: sel.state, district: null }, false)} />
+      <ChamberTabs chambers={chambers} office={sel.office} now={clock} onChange={(office) => select({ office, state: sel.state, district: null }, false)} onSelectRace={selectRace} />
       {visit && replay === null && (
         <SinceVisit
           visit={visit}
           results={live.results}
           now={now}
-          onSelect={(r) => select({ office: r.office, state: r.state, district: r.office === "H" || r.office === "B" ? r.district : null })}
+          onSelect={selectRace}
         />
       )}
 
@@ -406,7 +408,7 @@ export function App({ data }: { data: Data }) {
         races={results.races}
         history={history}
         now={clock}
-        onSelect={(r) => select({ office: r.office, state: r.state, district: r.office === "H" || r.office === "B" ? r.district : null })}
+        onSelect={selectRace}
       />
 
       </main>

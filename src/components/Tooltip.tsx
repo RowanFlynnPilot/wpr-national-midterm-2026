@@ -1,15 +1,18 @@
-import { PARTY } from "../lib/colors";
+import { PARTY, PARTY_LABEL } from "../lib/colors";
 import { countyColumns, readCounty } from "../lib/data";
 import { pct, timeAgo, votes } from "../lib/format";
 import { stateName } from "../lib/states";
 import { statusText } from "../lib/status";
 import { raceTitle } from "../lib/summary";
-import type { CountyResults, Race } from "../lib/types";
+import type { CountyResults, Office, Party, Race } from "../lib/types";
 
 export type HoverTarget =
   | { kind: "state"; state: string }
   | { kind: "county"; state: string; fips: string; name: string }
   | { kind: "district"; district: string };
+
+/** The tooltip also serves the chamber cards, where a seat may have no race: one not on this year's ballot. */
+export type TipTarget = HoverTarget | { kind: "seat"; party: Party; office: Office };
 
 /** Where a hover or keyboard focus landed, in viewport coordinates. Pointer events satisfy this directly. */
 export interface HoverPoint {
@@ -34,7 +37,7 @@ export interface MeasureSummary {
 }
 
 interface Props {
-  target: HoverTarget;
+  target: TipTarget;
   race: Race | undefined;
   measures?: MeasureSummary; // set on the measures tab instead of a race
   counties: CountyResults | null;
@@ -56,7 +59,17 @@ export function Tooltip({ target, race, measures, counties, now, x, y, bounds }:
   );
 }
 
-function NoRace({ target, measures }: { target: HoverTarget; measures?: MeasureSummary }) {
+function NoRace({ target, measures }: { target: TipTarget; measures?: MeasureSummary }) {
+  if (target.kind === "seat") {
+    return (
+      <>
+        <div className="tooltip__title">Not on the ballot this year</div>
+        <div className="tooltip__status">
+          {PARTY_LABEL[target.party]} {target.office === "G" ? "governor" : "senator"}; the seat counts for the party
+        </div>
+      </>
+    );
+  }
   const title = target.kind === "district" ? target.district : stateName(target.state);
   if (measures) {
     const open = measures.total - measures.passed - measures.failed;
@@ -78,7 +91,7 @@ function NoRace({ target, measures }: { target: HoverTarget; measures?: MeasureS
   );
 }
 
-function TipBody({ target, race, counties, now }: { target: HoverTarget; race: Race; counties: CountyResults | null; now: number }) {
+function TipBody({ target, race, counties, now }: { target: TipTarget; race: Race; counties: CountyResults | null; now: number }) {
   if (target.kind === "county") {
     const row = counties?.[String(race.id)]?.[target.fips];
     const reading = row ? readCounty(row) : null;
