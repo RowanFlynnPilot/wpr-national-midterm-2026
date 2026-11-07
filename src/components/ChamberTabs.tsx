@@ -2,7 +2,8 @@ import { PARTY } from "../lib/colors";
 import { apNumber } from "../lib/format";
 import { OFFICE_NAME, secured, type Chamber } from "../lib/summary";
 import type { Office } from "../lib/types";
-import { SeatBar } from "./SeatBar";
+import { useCountUp } from "../lib/countUp";
+import { SeatArc } from "./SeatArc";
 
 interface Props {
   chambers: Record<Office, Chamber>;
@@ -42,6 +43,8 @@ function ChamberTab({ c, active, onClick }: { c: Chamber; active: boolean; onCli
   const right = measures ? { n: c.won.N, label: "Failed", color: PARTY.N } : { n: secured(c, "R"), label: "Republicans", color: PARTY.R };
   const rule = measures ? `${c.total} statewide` : c.office === "G" ? `${c.total} governors` : `${c.majority} for a majority`;
   const uncalled = c.uncalled.length;
+  const leftShown = useCountUp(left.n);
+  const rightShown = useCountUp(right.n);
   return (
     <button
       type="button"
@@ -59,15 +62,15 @@ function ChamberTab({ c, active, onClick }: { c: Chamber; active: boolean; onCli
       </span>
       <span className="chamber__counts">
         <span className="chamber__count">
-          <strong style={{ color: left.color }}>{left.n}</strong>
+          <strong style={{ color: left.color }}>{leftShown}</strong>
           <span>{left.label}</span>
         </span>
         <span className="chamber__count chamber__count--right">
-          <strong style={{ color: right.color }}>{right.n}</strong>
+          <strong style={{ color: right.color }}>{rightShown}</strong>
           <span>{right.label}</span>
         </span>
       </span>
-      <SeatBar chamber={c} />
+      <SeatArc chamber={c} />
       <span className="chamber__foot">
         {uncalled ? `${apNumber(uncalled).replace(/^\w/, (x) => x.toUpperCase())} not called` : measures ? "All measures called" : "All races called"}
         {!measures && (

@@ -7,6 +7,7 @@ import { DemoRibbon, TitleSlot } from "./components/Sponsor";
 import { SALES_EMAIL } from "./sponsors";
 import { Legend } from "./components/Legend";
 import { NationalMap, type MapMode } from "./components/NationalMap";
+import { PartyWords } from "./components/PartyWords";
 import { RaceTable } from "./components/RaceTable";
 import { Replay } from "./components/Replay";
 import { SinceVisit } from "./components/SinceVisit";
@@ -268,7 +269,9 @@ export function App({ data }: { data: Data }) {
             {relativeAge(results.updated, now) && <span className="kicker__ago"> · {relativeAge(results.updated, now)}</span>}
           </span>
         </p>
-        <h1>{headline(chambers.H, chambers.S)}</h1>
+        <h1>
+          <PartyWords text={headline(chambers.H, chambers.S)} />
+        </h1>
         <p className="hero__dek">{dek(chambers.H, chambers.S, chambers.G, chambers.B)}</p>
         <TitleSlot />
       </section>

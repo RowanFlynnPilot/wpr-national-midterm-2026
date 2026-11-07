@@ -1,6 +1,6 @@
 import { PALE, PARTY } from "../lib/colors";
 import { RUNOFF } from "../lib/status";
-import { secured, type Chamber } from "../lib/summary";
+import { seatLabel, secured, type Chamber } from "../lib/summary";
 
 /** Balance-of-power bar: secured seats at the ends in full color, leads pale, runoffs gray, majority line. */
 export function SeatBar({ chamber: c }: { chamber: Chamber }) {
@@ -23,21 +23,8 @@ export function SeatBar({ chamber: c }: { chamber: Chamber }) {
           { key: "R", n: secured(c, "R"), color: PARTY.R },
         ]
   ).filter((s) => s.n > 0);
-  const label = (
-    measures
-      ? [`${c.won.Y} passed`, `${c.won.N} failed`, c.uncalled.length ? `${c.uncalled.length} not called` : "all called"]
-      : [
-          `${secured(c, "D")} Democrats`,
-          secured(c, "I") ? `${secured(c, "I")} independents` : "",
-          `${secured(c, "R")} Republicans`,
-          c.uncalled.length ? `${c.uncalled.length} not called` : "all called",
-          c.office === "G" ? "" : `${c.majority} for a majority`,
-        ]
-  )
-    .filter(Boolean)
-    .join(", ");
   return (
-    <span className="seatbar" role="img" aria-label={label}>
+    <span className="seatbar" role="img" aria-label={seatLabel(c)}>
       {segs.map((s) => (
         <span key={s.key} className="seatbar__seg" style={{ width: `${(100 * s.n) / c.total}%`, background: s.color }} />
       ))}

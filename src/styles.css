@@ -451,6 +451,7 @@ a {
 .chamber__count strong {
   font: 700 clamp(1.75rem, 3.4vw, 2.6rem) / 1 var(--sans);
   letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums; /* the run-up on load does not jitter the label */
 }
 
 .chamber__count span {
@@ -492,6 +493,40 @@ a {
   width: 2px;
   margin-left: -1px;
   background: var(--ink);
+}
+
+/* the parliament arc in each chamber card */
+.seat-arc {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0.1rem 0 0;
+}
+
+.seat-arc__seat {
+  transition: fill 400ms ease; /* a replay step or a refresh recolors rather than snaps */
+  animation: seat-pop 260ms ease-out both; /* staggered from both ends toward the undecided middle */
+}
+
+@keyframes seat-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+    transform-origin: center;
+    transform-box: fill-box;
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    transform-origin: center;
+    transform-box: fill-box;
+  }
+}
+
+.seat-arc__majority {
+  stroke: var(--ink);
+  stroke-width: 1.6;
+  stroke-linecap: round;
 }
 
 @keyframes seat-reveal {
@@ -1190,12 +1225,24 @@ a {
 .tooltip {
   position: absolute;
   z-index: 5;
+  animation: tip-in 120ms ease-out both;
   padding: 0.65rem 0.8rem 0.7rem;
   border: 1px solid var(--rule);
   border-radius: 6px;
   background: var(--paper-raised);
   box-shadow: 0 8px 28px rgba(29, 27, 23, 0.14);
   pointer-events: none;
+}
+
+@keyframes tip-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .tooltip__head--photo {
@@ -2518,8 +2565,13 @@ table.races {
     animation: none;
   }
   .national-map,
-  .hex-map {
+  .hex-map,
+  .seat-arc__seat,
+  .tooltip {
     animation: none;
+  }
+  .seat-arc__seat {
+    transition: none;
   }
   .national-map .state,
   .hex,

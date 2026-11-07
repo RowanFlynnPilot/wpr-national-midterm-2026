@@ -94,6 +94,10 @@ The key is now a spotlight filter: press "Democrat leads", "Seat flipped" or "Ca
 
 **Print.** The page prints as the tallies, the map and the table, without controls, sponsor upsells or the replay.
 
+## Visual pop (Nov. 6)
+
+Each chamber card now carries a parliament arc: every Senate, House and governor seat and every ballot measure as a dot in a half circle, secured seats at the ends, leads pale, the undecided in the middle under the majority tick. The dots pop in from both ends toward the middle on load and recolor live during the replay. The cards' numbers run up from zero on load, the headline sets the party names in their colors, and tooltips fade up. Proven at 390/768/1280/1600 in `senate-*` (hero and cards) and `house-replay-*` (arcs mid-replay).
+
 ## Lighthouse (mobile, gzip-served build, two runs per view)
 
 | View | Performance | Accessibility | Best Practices | LCP | CLS |

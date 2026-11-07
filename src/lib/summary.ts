@@ -79,6 +79,24 @@ export function chamber(results: Results, office: Office): Chamber {
 /** Seats a party holds for certain: not up this year, called for it, or settled by a same-party final. */
 export const secured = (c: Chamber, p: Party) => c.notUp[p] + c.won[p] + c.decided[p];
 
+/** The accessible name of a balance-of-power graphic: "54 Democrats, 44 Republicans, two not called, 51 for a majority". */
+export function seatLabel(c: Chamber): string {
+  const measures = c.office === "B";
+  return (
+    measures
+      ? [`${c.won.Y} passed`, `${c.won.N} failed`, c.uncalled.length ? `${c.uncalled.length} not called` : "all called"]
+      : [
+          `${secured(c, "D")} Democrats`,
+          secured(c, "I") ? `${secured(c, "I")} independents` : "",
+          `${secured(c, "R")} Republicans`,
+          c.uncalled.length ? `${c.uncalled.length} not called` : "all called",
+          c.office === "G" ? "" : `${c.majority} for a majority`,
+        ]
+  )
+    .filter(Boolean)
+    .join(", ");
+}
+
 /** The party that has secured a majority, if any. */
 export function controller(c: Chamber): Party | null {
   for (const p of ["D", "R"] as const) if (secured(c, p) >= c.majority) return p;

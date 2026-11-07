@@ -80,7 +80,7 @@ for (const width of WIDTHS) {
       for (const key of view.keys ?? []) await page.keyboard.press(key);
       await page.waitForSelector(".tooltip");
     }
-    await page.waitForTimeout(view.settle ?? 250);
+    await page.waitForTimeout(view.settle ?? 1200); // the seat arcs stagger in over about a second
     const path = join(outDir, `${name}-${width}.png`);
     if (view.clip === "map") await page.locator(".map-frame").screenshot({ path });
     else if (view.clip === "table") await page.locator(".table-section").screenshot({ path });
