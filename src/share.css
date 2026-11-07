@@ -44,13 +44,13 @@
   flex: 1;
   flex-direction: column;
   justify-content: center;
-  gap: 2.6rem;
+  gap: 1.6rem;
 }
 
 .share__headline {
   margin: 0;
   max-width: 18ch;
-  font: 600 3.9rem/1.02 var(--display);
+  font: 600 3.4rem/1.02 var(--display);
   font-variation-settings: "opsz" 144;
   letter-spacing: -0.02em;
   text-wrap: balance;
@@ -114,13 +114,17 @@
   color: var(--r);
 }
 
-.share .seatbar {
-  height: 24px;
-  animation: none;
+.share .seat-arc {
+  width: 240px;
+  margin: 0 auto;
+}
+
+.share .seat-arc__seat {
+  animation: none; /* the screenshot is taken once the page is idle; nothing may still be fading in */
 }
 
 .share__measures {
-  margin: 1.4rem 0 0;
+  margin: 1rem 0 0;
   font-size: 1.05rem;
   color: var(--ink-2);
 }

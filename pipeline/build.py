@@ -114,6 +114,11 @@ def county_rows(detail: dict, cands: list[dict], ids: set[str], by_name: dict) -
     return rows
 
 
+def title_key(title):
+    """Natural order for measure names: "Question 2" sorts before "Question 10"."""
+    return [int(t) if t.isdigit() else t.lower() for t in re.split(r"(\d+)", title)]
+
+
 def check_race(name: str, detail: dict, cands: list[dict]) -> None:
     """Fail the build on states the front end cannot represent."""
     winners = [c for c in cands if c["winner"]]
@@ -190,7 +195,7 @@ def main() -> None:
         if expected != got:
             raise RuntimeError(f"{holder_key} states mismatch: missing={expected - got} extra={got - expected}")
 
-    races.sort(key=lambda x: (x["office"], x["state"], x["num"] or 0))
+    races.sort(key=lambda x: (x["office"], x["state"], x["num"] or 0, title_key(x["title"]) if x["office"] == "B" else []))
     OUT.mkdir(parents=True, exist_ok=True)
     payload = {
         "updated": latest,

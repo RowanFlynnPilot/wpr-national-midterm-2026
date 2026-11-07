@@ -1,7 +1,7 @@
 import { apNumber, centralTime } from "../lib/format";
 import { chamber, headline, OFFICE_NAME, secured } from "../lib/summary";
 import type { Results } from "../lib/types";
-import { SeatBar } from "./SeatBar";
+import { SeatArc } from "./SeatArc";
 
 const ORDER = ["S", "H", "G"] as const; // the card shows the three sets of offices, not the measures
 
@@ -40,7 +40,7 @@ export function ShareCard({ results }: { results: Results }) {
                     <small>Republicans</small>
                   </span>
                 </div>
-                <SeatBar chamber={c} />
+                <SeatArc chamber={c} />
               </div>
             );
           })}

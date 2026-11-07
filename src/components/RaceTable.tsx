@@ -163,9 +163,9 @@ export function RaceTable({ office, races, history, now, onSelect }: Props) {
                 </>
               )}
               <SortHeader label="Margin" value="margin" sort={sort} onSort={setSort} num />
-              <SortHeader label="Reporting" value="reporting" sort={sort} onSort={setSort} num phoneHide />
-              <SortHeader label="Votes" value="votes" sort={sort} onSort={setSort} num phoneHide />
-              <SortHeader label="Called" value="called" sort={sort} onSort={setSort} phoneHide />
+              <SortHeader label="Reporting" value="reporting" sort={sort} onSort={setSort} num tabletHide />
+              <SortHeader label="Votes" value="votes" sort={sort} onSort={setSort} num tabletHide />
+              <SortHeader label="Called" value="called" sort={sort} onSort={setSort} tabletHide />
               <th scope="col">Status</th>
             </tr>
           </thead>
@@ -227,9 +227,9 @@ export function RaceTable({ office, races, history, now, onSelect }: Props) {
                     )}
                     {r.unopposed ? "Unopposed" : marginText(r.margin)}
                   </td>
-                  <td className="num phone-hide">{Math.round(r.pctIn)}%</td>
-                  <td className="num phone-hide">{votes(r.total)}</td>
-                  <td className="phone-hide called-cell">{r.calledAt ? timeAgo(r.calledAt, now) : r.winner ? "No time given" : "—"}</td>
+                  <td className="num tablet-hide">{Math.round(r.pctIn)}%</td>
+                  <td className="num tablet-hide">{votes(r.total)}</td>
+                  <td className="tablet-hide called-cell">{r.calledAt ? timeAgo(r.calledAt, now) : r.winner ? "No time given" : "—"}</td>
                   <td>
                     <span className={`pill pill--${r.winner ? "won" : "open"}`} style={{ ["--c" as string]: raceFill(r) }}>
                       {pillText(r)}
@@ -268,10 +268,10 @@ export function RaceTable({ office, races, history, now, onSelect }: Props) {
   );
 }
 
-function SortHeader({ label, value, sort, onSort, num = false, phoneHide = false }: { label: string; value: Sort; sort: Sort; onSort: (s: Sort) => void; num?: boolean; phoneHide?: boolean }) {
+function SortHeader({ label, value, sort, onSort, num = false, phoneHide = false, tabletHide = false }: { label: string; value: Sort; sort: Sort; onSort: (s: Sort) => void; num?: boolean; phoneHide?: boolean; tabletHide?: boolean }) {
   const on = sort === value;
   return (
-    <th scope="col" className={[num ? "num" : "", phoneHide ? "phone-hide" : ""].filter(Boolean).join(" ") || undefined} aria-sort={on ? "ascending" : "none"}>
+    <th scope="col" className={[num ? "num" : "", phoneHide ? "phone-hide" : "", tabletHide ? "tablet-hide" : ""].filter(Boolean).join(" ") || undefined} aria-sort={on ? "ascending" : "none"}>
       <button type="button" className={on ? "sort is-on" : "sort"} onClick={() => onSort(value)}>
         {label}
       </button>

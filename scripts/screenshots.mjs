@@ -40,6 +40,9 @@ const VIEWS = {
   "house-keyboard": { hash: "#house", focus: 'polygon.hex[tabindex="0"]', keys: ["ArrowRight", "ArrowRight", "ArrowDown"], clip: "map" },
 };
 
+// A tooltip that moves on before its headshot lands aborts the image request; that is not a broken file.
+const aborted = (r) => r.failure()?.errorText === "net::ERR_ABORTED";
+
 const [outDir = "screens", ...only] = process.argv.slice(2);
 const names = only.length ? only.filter((n) => n !== "compact") : Object.keys(VIEWS);
 mkdirSync(outDir, { recursive: true });
@@ -55,7 +58,7 @@ for (const width of WIDTHS) {
     const page = await context.newPage();
     page.on("console", (m) => m.type() === "error" && problems.push(`${name}@${width}: console.error ${m.text()}`));
     page.on("pageerror", (e) => problems.push(`${name}@${width}: pageerror ${e.message}`));
-    page.on("requestfailed", (r) => problems.push(`${name}@${width}: request failed ${r.url()}`));
+    page.on("requestfailed", (r) => aborted(r) || problems.push(`${name}@${width}: request failed ${r.url()}`));
     if (view.visitHoursAgo) {
       // a browser that last saw the page before any call: the strip lists every call since
       await page.addInitScript((hours) => {
@@ -98,7 +101,7 @@ if (!only.length || only.includes("compact")) {
     const page = await browser.newPage({ viewport: { width, height: 800 } });
     page.on("console", (m) => m.type() === "error" && problems.push(`compact@${width}: console.error ${m.text()}`));
     page.on("pageerror", (e) => problems.push(`compact@${width}: pageerror ${e.message}`));
-    page.on("requestfailed", (r) => problems.push(`compact@${width}: request failed ${r.url()}`));
+    page.on("requestfailed", (r) => aborted(r) || problems.push(`compact@${width}: request failed ${r.url()}`));
     await page.goto(`http://localhost:${server.port}/compact.html`, { waitUntil: "networkidle" });
     await page.waitForSelector(".compact__cards");
     await page.evaluate(() => document.fonts.ready);

@@ -197,8 +197,10 @@ function Overview({ office, chamber, popularVote, races, history, now, onSelect 
 }
 
 /** The home state's statewide races and House delegation, one tap from any overview. */
+const GLANCE_ORDER: Record<Office, number> = { S: 0, G: 1, B: 2, H: 3 };
+
 function HomeGlance({ races, onSelect }: Pick<Props, "races" | "onSelect">) {
-  const statewide = races.filter((r) => r.state === HOME_STATE && r.office !== "H");
+  const statewide = races.filter((r) => r.state === HOME_STATE && r.office !== "H").sort((a, b) => GLANCE_ORDER[a.office] - GLANCE_ORDER[b.office]);
   const house = races.filter((r) => r.state === HOME_STATE && r.office === "H");
   return (
     <section className="glance" aria-labelledby="glance-title">

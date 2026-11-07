@@ -165,3 +165,14 @@ New views: counties mode zoomed to Texas ([senate-counties-tx-1280-after.jpg](se
 | FL Senate special | Moody R +2.9 | Called, Nov. 3 | jaxtoday.org |
 | TX-32 | Yarbrough R +2.9 | Called, Nov. 4 | wtop.com (AP wire) |
 | TX-05 | Gooden R +2.9 | Called, Nov. 4 | foxnews.com (AP calls) |
+
+## Fresh-eyes pass (Nov. 7)
+
+A screenshot audit of every view at the four widths, looking for rough edges the feature rounds left. Four turned up:
+the share image still carried flat bars while the page had moved to parliament arcs (it now draws the arcs, the
+headline a step smaller to make room); the race table overflowed sideways between 700 and 960px by up to 134px even
+after hiding the call time, so Reporting, Votes and Called now hide on tablets (every number is in the expanded row);
+the Wisconsin glance listed Question 2, 3, 1 above the governor (civicAPI id order), so measures now sort in natural
+title order in the pipeline and the glance leads with the statewide offices; and the screenshot gate flagged a headshot
+request the tooltip aborted when keyboard focus moved on, which is not a broken file, so aborted loads no longer count.
+

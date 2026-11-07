@@ -2337,6 +2337,9 @@ table.races {
 }
 
 @media (max-width: 959px) {
+  .races .tablet-hide {
+    display: none; /* reporting, votes and the call time are in the expanded row; with them the table scrolled sideways on tablets */
+  }
   .chamber__foot {
     flex-direction: column;
     gap: 0.1rem;
