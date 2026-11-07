@@ -1,6 +1,9 @@
 // Serve dist/ the way GitHub Pages does (gzip for text), for the Playwright and Lighthouse runs.
 //   import { serveDist } from "./serve.mjs"   -> { port, close } on an ephemeral port
 //   node scripts/serve.mjs 4173              -> keeps serving on that port
+// Every response waits one CDN-like round trip (RTT_MS). Lighthouse's simulated throttling orders events by when they
+// were observed, and a zero-latency server lets the deferred files (counties, atlas) land before the headline's paint is
+// reported, which charged the largest contentful paint for them. No real host answers in 5 ms.
 import { createServer } from "node:http";
 import { readFileSync, existsSync, statSync } from "node:fs";
 import { extname, join, resolve } from "node:path";
@@ -9,6 +12,7 @@ import { gzipSync } from "node:zlib";
 const DIST = resolve("dist");
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".png": "image/png", ".svg": "image/svg+xml", ".woff2": "font/woff2" };
 const GZIP = new Set([".html", ".js", ".css", ".json", ".svg"]);
+const RTT_MS = 40;
 
 export function serveDist(port = 0) {
   const server = createServer((req, res) => {
@@ -26,8 +30,10 @@ export function serveDist(port = 0) {
       body = gzipSync(body);
       headers["content-encoding"] = "gzip";
     }
-    res.writeHead(200, headers);
-    res.end(body);
+    setTimeout(() => {
+      res.writeHead(200, headers);
+      res.end(body);
+    }, RTT_MS);
   }).listen(port);
   return { port: server.address().port, close: () => server.close() };
 }

@@ -176,7 +176,7 @@ export const NationalMap = memo(function NationalMap({ geo, mode, description, r
                   aria-pressed={on ? selected === s.code : undefined}
                   onPointerMove={(e) => {
                     if (!flat) return;
-                    setHovered(on ? s.code : null);
+                    if (e.pointerType !== "touch") setHovered(on ? s.code : null); // a finger never sends pointerleave
                     onHover({ kind: "state", state: s.code }, e);
                   }}
                   onPointerLeave={() => {

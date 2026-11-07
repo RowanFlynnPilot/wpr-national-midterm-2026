@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { loadCounties, loadResults } from "./data";
+import { afterPaint, loadCounties, loadResults } from "./data";
 import type { CountySets, Results } from "./types";
 
 /** Refetch the results this often while the tab is open; the data run deploys hourly. */
@@ -22,7 +22,7 @@ export function useLive(initial: Results): LiveState {
     let busy = false;
     let last = Date.now();
     let haveCounties = false;
-    loadCounties().then(
+    afterPaint().then(loadCounties).then(
       (counties) => {
         haveCounties = true;
         setState((s) => ({ ...s, counties }));

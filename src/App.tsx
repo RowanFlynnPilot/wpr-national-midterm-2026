@@ -13,7 +13,7 @@ import { Replay } from "./components/Replay";
 import { SinceVisit } from "./components/SinceVisit";
 import { SidePanel } from "./components/SidePanel";
 import { Tooltip, type HoverHandler, type HoverTarget, type MeasureSummary } from "./components/Tooltip";
-import { countyColumns, loadAtlas, loadHistory, readCounty, type Data } from "./lib/data";
+import { afterPaint, countyColumns, loadAtlas, loadHistory, readCounty, type Data } from "./lib/data";
 import type { History } from "./lib/history";
 import { centralTime, relativeAge } from "./lib/format";
 import type { Geo } from "./lib/geo";
@@ -73,7 +73,7 @@ export function App({ data }: { data: Data }) {
   const [geoError, setGeoError] = useState<string | null>(null);
   useEffect(() => {
     let cancelled = false;
-    loadAtlas().then(
+    afterPaint().then(loadAtlas).then(
       (g) => !cancelled && setGeo(g),
       (err: Error) => !cancelled && setGeoError(err.message),
     );
@@ -117,7 +117,7 @@ export function App({ data }: { data: Data }) {
   const [history, setHistory] = useState<History>({});
   useEffect(() => {
     let cancelled = false;
-    loadHistory().then((h) => !cancelled && setHistory(h), () => undefined);
+    afterPaint().then(loadHistory).then((h) => !cancelled && setHistory(h), () => undefined);
     return () => {
       cancelled = true;
     };

@@ -27,6 +27,19 @@ export async function loadData(): Promise<Data> {
   return { results, hexes };
 }
 
+/**
+ * Resolves a moment after the first app frame is on screen. The deferred files (counties, atlas, history) wait on this:
+ * an effect runs before that frame is presented, frame callbacks fire before a frame's render, and the browser reports
+ * the headline's paint some tens of milliseconds after that, so on a fast connection the files would land first and the
+ * largest contentful paint would be charged for them. Two frames and PAINT_MARGIN_MS clear it; the maps wait on a
+ * second-long atlas fetch anyway.
+ */
+export function afterPaint(): Promise<void> {
+  return new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(resolve, PAINT_MARGIN_MS))));
+}
+
+const PAINT_MARGIN_MS = 150;
+
 /** How each uncalled race's margin has moved over the last week (pipeline/history.py). Small; fetched after first paint. */
 export async function loadHistory(): Promise<History> {
   return getJson<History>("history.json");

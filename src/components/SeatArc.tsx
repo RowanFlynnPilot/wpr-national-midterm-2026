@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 import { arcRows, arcSeats } from "../lib/arc";
 import { PALE, PARTY } from "../lib/colors";
 import { RUNOFF } from "../lib/status";
@@ -10,7 +10,8 @@ const INNER = 40;
 const H = OUTER + 6;
 
 /** Every seat as a dot in a half circle: secured seats at the ends, leads pale, runoffs gray, the majority line as a tick. */
-export function SeatArc({ chamber: c }: { chamber: Chamber }) {
+/** memo: the card's numbers re-render every frame while they run up; the dots only change with the data. */
+export const SeatArc = memo(function SeatArc({ chamber: c }: { chamber: Chamber }) {
   const measures = c.office === "B";
   // Left to right: the order a parliament chart reads in.
   const blocks = (
@@ -67,4 +68,4 @@ export function SeatArc({ chamber: c }: { chamber: Chamber }) {
       </g>
     </svg>
   );
-}
+});

@@ -98,6 +98,17 @@ The key is now a spotlight filter: press "Democrat leads", "Seat flipped" or "Ca
 
 Each chamber card now carries a parliament arc: every Senate, House and governor seat and every ballot measure as a dot in a half circle, secured seats at the ends, leads pale, the undecided in the middle under the majority tick. The dots pop in from both ends toward the middle on load and recolor live during the replay. The cards' numbers run up from zero on load, the headline sets the party names in their colors, and tooltips fade up. Proven at 390/768/1280/1600 in `senate-*` (hero and cards) and `house-replay-*` (arcs mid-replay).
 
+## Quality re-check after the visual work (Nov. 6)
+
+Lighthouse had dropped to 81–82 on some runs. Bisecting across the day's commits in worktrees showed the same bimodal
+scores on the pre-map-pass build, and the trace showed why: the simulation charges the headline's paint to every file
+observed before it, and on a zero-latency local server the deferred county and atlas files landed first. Three real fixes
+came out of it (the deferred fetches wait two frames and 150 ms after the first app frame; the seat arc is memoized so the
+count-up's per-frame renders never re-render 700 dots; the dots fade with opacity only instead of a transform) plus a
+40 ms round trip in the gzip server so the lab order matches a real host. Result: 100 or 94 (LCP 3.1 s simulated) depending
+on whether the loading flag painted before the app frame; accessibility 100 throughout. Also: the hover outline on the
+maps is no longer set by touch (a finger never sends pointer-leave), and print disables the entrance animations.
+
 ## Lighthouse (mobile, gzip-served build, two runs per view)
 
 | View | Performance | Accessibility | Best Practices | LCP | CLS |

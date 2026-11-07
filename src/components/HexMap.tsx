@@ -124,7 +124,7 @@ export const HexMap = memo(function HexMap({ hexes, racesByDistrict, selectedSta
               aria-label={`${raceTitle(race)}: ${statusText(race)}`}
               aria-pressed={selectedDistrict === c.d}
               onPointerMove={(e) => {
-                setHoverKey(c.d);
+                if (e.pointerType !== "touch") setHoverKey(c.d); // a finger never sends pointerleave
                 onHover({ kind: "district", district: c.d }, e);
               }}
               onPointerLeave={() => {

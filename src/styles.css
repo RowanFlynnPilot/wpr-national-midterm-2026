@@ -505,21 +505,15 @@ a {
 
 .seat-arc__seat {
   transition: fill 400ms ease; /* a replay step or a refresh recolors rather than snaps */
-  animation: seat-pop 260ms ease-out both; /* staggered from both ends toward the undecided middle */
+  animation: seat-in 260ms ease-out both; /* staggered from both ends toward the undecided middle; opacity only, so 700 dots cost the first frame little */
 }
 
-@keyframes seat-pop {
+@keyframes seat-in {
   from {
     opacity: 0;
-    transform: scale(0.4);
-    transform-origin: center;
-    transform-box: fill-box;
   }
   to {
     opacity: 1;
-    transform: none;
-    transform-origin: center;
-    transform-box: fill-box;
   }
 }
 
@@ -2530,6 +2524,12 @@ table.races {
   .national-map .states--states,
   .hex-map .hexes {
     filter: none;
+  }
+  .national-map,
+  .hex-map,
+  .seat-arc__seat,
+  .seatbar {
+    animation: none; /* a print started mid-entrance would otherwise catch dots at opacity 0 */
   }
   .table-section {
     break-before: page;
