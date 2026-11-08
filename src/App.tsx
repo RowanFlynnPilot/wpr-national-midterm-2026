@@ -486,7 +486,8 @@ export function App({ data }: { data: Data }) {
         </p>
         <p className="sources__paper">
           <a href="https://wausaupilotandreview.com/">Wausau Pilot &amp; Review</a> · 715-301-5539 ·{" "}
-          <a href={`mailto:${SALES_EMAIL}?subject=${encodeURIComponent("Sponsorship: 2026 midterm results")}`}>Advertise on this page</a>
+          <a href={`mailto:${SALES_EMAIL}?subject=${encodeURIComponent("Sponsorship: 2026 midterm results")}`}>Advertise on this page</a> ·{" "}
+          <a href="./partners.html">Newsrooms: embed these results</a>
         </p>
         </div>
       </footer>

@@ -65,7 +65,7 @@ const aborted = (r) => r.failure()?.errorText === "net::ERR_ABORTED";
 const CLIPS = { map: ".map-frame", table: ".table-section", legend: ".board__map", panel: ".board__panel", since: ".since", chambers: ".chambers-frame", takeaways: ".takeaways", analysis: ".analysis-slot" };
 
 const [outDir = "screens", ...only] = process.argv.slice(2);
-const names = only.length ? only.filter((n) => n !== "compact" && n !== "race") : Object.keys(VIEWS);
+const names = only.length ? only.filter((n) => n !== "compact" && n !== "race" && n !== "partners") : Object.keys(VIEWS);
 mkdirSync(outDir, { recursive: true });
 
 const server = serveDist();
@@ -143,6 +143,22 @@ if (!only.length || only.includes("race")) {
       await page.close();
       console.log(path);
     }
+  }
+}
+if (!only.length || only.includes("partners")) {
+  for (const width of WIDTHS) {
+    const page = await browser.newPage({ viewport: { width, height: 900 } });
+    page.on("console", (m) => m.type() === "error" && problems.push(`partners@${width}: console.error ${m.text()}`));
+    page.on("pageerror", (e) => problems.push(`partners@${width}: pageerror ${e.message}`));
+    page.on("requestfailed", (r) => aborted(r) || problems.push(`partners@${width}: request failed ${r.url()}`));
+    await page.goto(`http://localhost:${server.port}/partners.html`, { waitUntil: "networkidle" });
+    await page.waitForSelector(".partners__builder");
+    await page.selectOption(".partners__pick select", "MN");
+    await page.waitForTimeout(2500); // the preview frame loads the app and posts its height
+    const path = join(outDir, `partners-${width}.png`);
+    await page.screenshot({ path, fullPage: true });
+    await page.close();
+    console.log(path);
   }
 }
 if (!only.length || only.includes("compact")) {

@@ -288,3 +288,8 @@ Open Graph and Twitter tags, so a shared race link previews as that race rather 
 race" and "Save image" sit on every race view and on the single-race embed. Checked by eye: Wisconsin governor, Maine Senate
 (flip wording), Mississippi Senate (three candidates), Florida Amendment 3 (a 113-character title), Florida District 10
 (unopposed, no votes).
+
+## Partner page (Nov. 7, night)
+
+`partners.html` pitches the embed to other newsrooms: what readers get, what WPR asks, a state picker that builds the
+snippet with `?home=` and previews the app, the compact module, and the contact. Screenshots: `partners-390/768/1280/1600`.

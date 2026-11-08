@@ -244,9 +244,12 @@ hash into the iframe so a shared link opens on the right view, and passes the ar
 `allow="clipboard-write; web-share"` is what lets the copy buttons and the share sheet work inside the frame.
 
 Another newsroom embeds the same page with `?home=<its state>` and without `?host=` (Copy link then gives the Pages URL, since only
-WPR's domain is accepted as a host): `f.src = 'https://rowanflynnpilot.github.io/wpr-national-midterm-2026/?home=MN' + location.hash;`
-with the rest of the snippet unchanged. The result is WPR's page with that state in the shortcut, the glance block, the outlines and the
-last thing to know.
+WPR's domain is accepted as a host). **`partners.html`** (`src/partners.tsx`, linked from the footer as "Newsrooms: embed these
+results") is the page to send them: what readers get, what WPR asks (keep the masthead, footer and civicAPI credit; say it is from
+WPR; tell us where it runs; calls are civicAPI's), a state picker that builds the snippet (`pageEmbedSnippet` in `embed.ts`, the one
+source for the page snippet; `compactEmbedSnippet` for the module) with a live preview of the app in a frame sized by the height
+message, and the contact (`PARTNER_EMAIL`, the sales address until WPR names another). The snippets above are what those
+functions produce with WPR's `?host=`.
 
 ```html
 <div id="wpr-national-midterm-2026"></div>
