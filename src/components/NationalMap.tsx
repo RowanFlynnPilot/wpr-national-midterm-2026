@@ -32,8 +32,10 @@ interface Props {
   now: number;
   counties: CountyResults;
   selected: string | null;
+  selectedCounty: string | null; // outlined and named in the zoomed state
   onHover: HoverHandler;
   onSelect: (state: string) => void;
+  onSelectCounty: (state: string, fips: string) => void; // a county clicked inside the zoomed state
   onClear: () => void;
 }
 
@@ -60,7 +62,7 @@ function zoomTransform(s: StateShape): string {
   return `translate(${VIEW.width / 2}px, ${VIEW.height / 2}px) scale(${k}) translate(${-cx}px, ${-cy}px)`;
 }
 
-export const NationalMap = memo(function NationalMap({ geo, mode, baseline, shiftStyle, description, racesByState, measureCounts, spotlight, now, counties, selected, onHover, onSelect, onClear }: Props) {
+export const NationalMap = memo(function NationalMap({ geo, mode, baseline, shiftStyle, description, racesByState, measureCounts, spotlight, now, counties, selected, selectedCounty, onHover, onSelect, onSelectCounty, onClear }: Props) {
   const [focused, setFocused] = useState<string | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
   const measures = mode === "measures";
@@ -155,23 +157,25 @@ export const NationalMap = memo(function NationalMap({ geo, mode, baseline, shif
   const focusedShape = focused ? geo.states.find((s) => s.code === focused) : undefined;
   const zoomed = countyFills && selectedShape ? selectedShape : undefined;
   const hoveredShape = hovered && hovered !== selected ? geo.states.find((s) => s.code === hovered) : undefined;
-  // In a zoomed state, name the five biggest counties by votes so the reader has bearings; neighbors that would overlap are skipped.
+  const countyShape = zoomed && selectedCounty ? geo.counties.find((c) => c.id === selectedCounty) : undefined;
+  // In a zoomed state, name the five biggest counties by votes so the reader has bearings (the selected county first);
+  // neighbors that would overlap are skipped.
   const countyLabels = useMemo(() => {
     if (!zoomed) return [];
     const race = racesByState.get(zoomed.code);
     const rows = race ? counties[String(race.id)] : undefined;
     if (!rows) return [];
     const apart = LABEL_GAP / zoomScale(zoomed); // screen pixels, in map units
-    const picked: Shape[] = [];
+    const picked: Shape[] = countyShape ? [countyShape] : [];
     for (const { c } of (geo.countiesByState.get(zoomed.code) ?? [])
       .map((c) => ({ c, total: (rows[c.id] ?? []).slice(1).reduce((s, v) => s + v, 0) }))
-      .filter((x) => x.total > 0)
+      .filter((x) => x.total > 0 && x.c.id !== countyShape?.id)
       .sort((a, b) => b.total - a.total)) {
       if (picked.every((p) => Math.hypot(p.centroid[0] - c.centroid[0], p.centroid[1] - c.centroid[1]) > apart)) picked.push(c);
       if (picked.length === 5) break;
     }
     return picked;
-  }, [zoomed, racesByState, counties, geo]);
+  }, [zoomed, racesByState, counties, geo, countyShape]);
 
   const focusHandlers = (code: string) => ({
     onFocus: (e: React.FocusEvent<SVGElement>) => {
@@ -215,7 +219,11 @@ export const NationalMap = memo(function NationalMap({ geo, mode, baseline, shif
                     vectorEffect="non-scaling-stroke"
                     onPointerMove={(e) => (fill && code ? onHover({ kind: "county", state: code, fips: c.id, name: c.name }, e) : onHover(null))}
                     onPointerLeave={() => onHover(null)}
-                    onClick={() => code && racesByState.has(code) && onSelect(code)}
+                    onClick={() => {
+                      if (!code || !racesByState.has(code)) return;
+                      if (zoomed && zoomed.code === code) onSelectCounty(code, c.id); // inside the zoomed state a county is the target
+                      else onSelect(code);
+                    }}
                   />
                 );
               })}
@@ -274,7 +282,7 @@ export const NationalMap = memo(function NationalMap({ geo, mode, baseline, shif
           {zoomed && countyLabels.length > 0 && (
             <g className="county-labels" aria-hidden="true">
               {countyLabels.map((c) => (
-                <text key={c.id} x={c.centroid[0]} y={c.centroid[1]} style={{ fontSize: `${9 / zoomScale(zoomed)}px` }}>
+                <text key={c.id} x={c.centroid[0]} y={c.centroid[1]} className={c.id === countyShape?.id ? "is-selected" : undefined} style={{ fontSize: `${9 / zoomScale(zoomed)}px` }}>
                   {c.name}
                 </text>
               ))}
@@ -283,6 +291,8 @@ export const NationalMap = memo(function NationalMap({ geo, mode, baseline, shif
           {homeShape && <path className="home-outline" d={homeShape.d} vectorEffect="non-scaling-stroke" />}
           {flat && hoveredShape && <path className="hover-outline" d={hoveredShape.d} vectorEffect="non-scaling-stroke" />}
           {selectedShape && <path className="selected-outline" d={selectedShape.d} vectorEffect="non-scaling-stroke" />}
+          {countyShape && <path className="county-outline county-outline--casing" d={countyShape.d} vectorEffect="non-scaling-stroke" />}
+          {countyShape && <path className="county-outline" d={countyShape.d} vectorEffect="non-scaling-stroke" />}
           {focusedShape && <path className="focus-outline" d={focusedShape.d} vectorEffect="non-scaling-stroke" />}
         </g>
 

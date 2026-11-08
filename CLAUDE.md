@@ -107,7 +107,7 @@ Each district's target = vote-weighted centroid of the counties it covers (from 
 
 ## Front end
 
-- `src/App.tsx` — selection state + hash routing (`#senate`, `#senate-tx`, `#house-wi`, `#house-wi-03`, `#governors-ks`, `#measures`, `#measures-wi`, `#measures-wi-179849`).
+- `src/App.tsx` — selection state + hash routing (`#senate`, `#senate-tx`, `#house-wi`, `#house-wi-03`, `#governors-ks`, `#measures`, `#measures-wi`, `#measures-wi-179849`, and a county page `#governors-wi-55073`; see County pages).
 - `src/lib/summary.ts` — chamber tallies, data-driven headline and dek. Senate majority 51 (VP is a Republican), House 218, no majority marker for governors. `latestCalls` = the 8 newest calls with a `calledAt` for the office (the ~34 calls civicAPI timestamps are skipped; the panel says so); shown on the overview panel with `timeAgo`.
 - `src/components/NationalMap.tsx` — states/counties map on us-atlas Albers USA (pre-projected; no projection at runtime). Small NE states get callout chips.
 - `src/components/NationalMap.tsx` has a `measures` mode (states shaded by how many statewide measures they have, `measureCountColor`; the tooltip gives passed/failed/not called); the measures tab has no counties toggle, each measure's card carries its own county map. For the other offices it has three modes: states, counties (margin bins) and "Still counting" (`remaining`: share of each county's vote still out, teal ramp from `remainingColor`; the legend names civicAPI's % reporting as the source). Both county modes zoom to the selected state (CSS transform on `.map-zoom`, non-scaling strokes, "All states" button to return; no animation under `prefers-reduced-motion`).
@@ -191,6 +191,31 @@ All in `src/lib/shift.ts`, from the results and the 2024 baseline already in han
   read head to head (a state with two Senate races pairs its regular one), the two Democratic-minus-Republican margins side by
   side, widest gap first, a "Split" tag where the leaders differ; a table under the analysis grid on the Senate and governor
   overviews (the surname column hides under 700px), and takeaway five when any state split.
+
+## County pages and the county finder (Nov. 7, 2026, night)
+
+A county is the one place every reader in the country has, so every county in a state electing a senator or governor this
+year has a page of its own, reachable three ways and shareable as a link.
+
+- **Route**: `#senate-wi-55073` / `#governors-wi-55073`, the third segment a county FIPS inside the state (`Selection.county`,
+  optional; `parseHash` drops a FIPS from another state, and the House and measures views have no county pages).
+  Opening one forces the counties map mode (an effect in App); choosing the states mode leaves the page (`pickMode`),
+  since that map cannot show one county. Escape steps county → state → overview.
+- **Finder** (`CountyFinder.tsx`, a WAI-ARIA combobox): "How did your county vote?" at the top of every overview panel and
+  under a state's county map on the Senate and governor views. Every word typed must appear in the county's name or state
+  ("marathon wi"); names that begin with the first word rank first; eight matches at most. A pick opens the county on
+  the current tab when its state has that race, else the Senate, else the governor view. Counties come from the atlas,
+  so the list says it is loading until the shapes land; states with neither race are not offered, and the empty state says
+  so. Hidden in print.
+- **Map**: inside a zoomed state, clicking a county opens its page (the first tap on a phone zooms, the second picks); the
+  county is outlined in ink over a paper casing (`.county-outline`) and named first among the county labels, in bold.
+- **Page** (`CountyView.tsx`): the name as the atlas has it ("Marathon, Wisconsin": us-atlas carries no County/Parish/Borough
+  suffix), the Census line (people, density, bachelor's share, median income, white non-Hispanic share), the county's
+  2024 presidential vote (`county2024` in `shift.ts`), then a block per statewide race and measure in the state (Senate,
+  governor, measures; each title opens the race): every county column with votes, share and bar, Others when there are any,
+  % reporting, votes, the county's votes against its own 2024 presidential vote (`countyTurnoutVs2024`), the shift
+  sentence and "Changed sides since 2024". `Back.tsx` is the shared step-back button. An unknown FIPS throws, like an
+  unknown measure.
 
 ## Statement pass (Nov. 7, 2026)
 

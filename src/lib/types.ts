@@ -70,4 +70,5 @@ export interface Selection {
   office: Office;
   state: string | null;
   district: string | null;
+  county?: string; // a county FIPS within the state, on the Senate and governor views: the county's own page
 }

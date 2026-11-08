@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { raceEmbedSnippet } from "../lib/embed";
-import { toHash } from "../lib/route";
+import { raceDistrict, toHash } from "../lib/route";
 import { raceTitle } from "../lib/summary";
 import type { Race } from "../lib/types";
 
@@ -10,7 +10,7 @@ type State = "idle" | "copied" | "failed";
 export function EmbedRace({ race }: { race: Race }) {
   const [state, setState] = useState<State>("idle");
   const timer = useRef<number>();
-  const slug = toHash({ office: race.office, state: race.state, district: race.office === "H" || race.office === "B" ? race.district : null });
+  const slug = toHash({ office: race.office, state: race.state, district: raceDistrict(race) });
   const snippet = () => raceEmbedSnippet(slug, raceTitle(race), new URL("./race.html", window.location.href).href);
 
   useEffect(() => () => window.clearTimeout(timer.current), []);

@@ -24,7 +24,7 @@ import { centralTime, relativeAge } from "./lib/format";
 import type { Geo } from "./lib/geo";
 import { useLive } from "./lib/live";
 import { callOrder, resultsAfter } from "./lib/replay";
-import { parseHash, toHash } from "./lib/route";
+import { parseHash, raceDistrict, toHash } from "./lib/route";
 import { readVisit, writeVisit } from "./lib/visits";
 import { isStale } from "./lib/share";
 import { isFresh, noVotesYet, type LegendKey } from "./lib/status";
@@ -81,6 +81,10 @@ export function App({ data }: { data: Data }) {
   useEffect(() => {
     if (mode !== "states") setReplay(null); // county views have no history to replay
   }, [mode]);
+  // A county page (from the finder, a county click or a link) needs a county map; the states mode has none.
+  useEffect(() => {
+    if (sel.county && mode === "states") setMode("counties");
+  }, [sel.county, mode]);
   const [hover, setHover] = useState<Hover | null>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
@@ -97,7 +101,7 @@ export function App({ data }: { data: Data }) {
       if (e.key !== "Escape") return;
       setSel((s) => {
         if (!s.state) return s;
-        const next = s.district ? { ...s, district: null } : { ...s, state: null };
+        const next: Selection = s.county ? { office: s.office, state: s.state, district: null } : s.district ? { ...s, district: null } : { ...s, state: null };
         window.location.hash = toHash(next);
         return next;
       });
@@ -155,7 +159,7 @@ export function App({ data }: { data: Data }) {
     }
   }, []);
 
-  const selectRace = useCallback((r: Race) => select({ office: r.office, state: r.state, district: r.office === "H" || r.office === "B" ? r.district : null }), [select]);
+  const selectRace = useCallback((r: Race) => select({ office: r.office, state: r.state, district: raceDistrict(r) }), [select]);
 
   const chambers = useMemo(
     () => ({ S: chamber(results, "S"), H: chamber(results, "H"), G: chamber(results, "G"), B: chamber(results, "B") }),
@@ -213,12 +217,24 @@ export function App({ data }: { data: Data }) {
       : undefined;
 
   const onStateSelect = useCallback((state: string) => select({ office: sel.office, state, district: null }), [select, sel.office]);
+  const onCountySelect = useCallback((state: string, fips: string) => select({ office: sel.office, state, district: null, county: fips }), [select, sel.office]);
+  // Leaving for the states mode leaves the county page too: that map cannot show one county.
+  const pickMode = useCallback(
+    (m: MapMode) => {
+      setMode(m);
+      if (m === "states" && sel.county) select({ office: sel.office, state: sel.state, district: null }, false);
+    },
+    [select, sel],
+  );
   const onStateClear = useCallback(() => select({ office: sel.office, state: null, district: null }, false), [select, sel.office]);
   const onHexSelect = useCallback((state: string, district: string | null) => select({ office: "H", state, district }), [select]);
   const jumpStates = useMemo(() => [...new Set(officeRaces.map((r) => r.state))].sort((a, b) => stateName(a).localeCompare(stateName(b))), [officeRaces]);
 
   const selectedRace = sel.district ? racesByDistrict.get(sel.district) : sel.state ? racesByState.get(sel.state) : undefined;
-  const announce = selectedRace
+  const countyName = sel.county ? (geo?.counties.find((c) => c.id === sel.county)?.name ?? "County") : null;
+  const announce = sel.county && sel.state
+    ? `${countyName}, ${stateName(sel.state)}`
+    : selectedRace
     ? raceTitle(selectedRace)
     : sel.state
       ? `${stateName(sel.state)} ${sel.office === "H" ? "House districts" : sel.office === "B" ? "ballot measures" : "has no race this year"}`
@@ -331,7 +347,7 @@ export function App({ data }: { data: Data }) {
               <div className="segmented" role="radiogroup" aria-label="Map detail">
                 {/* the short label shows under 700px, where the four full names wrapped to two lines each */}
                 {([["states", "States", "States"], ["counties", "Counties", "Counties"], ["remaining", "Still counting", "Counting"], ...(baseline ? [["shift", "Shift since 2024", "vs. 2024"]] : [])] as [MapMode, string, string][]).map(([m, label, short]) => (
-                  <button key={m} type="button" role="radio" aria-checked={mode === m} className={mode === m ? "is-on" : undefined} onClick={() => setMode(m)}>
+                  <button key={m} type="button" role="radio" aria-checked={mode === m} className={mode === m ? "is-on" : undefined} onClick={() => pickMode(m)}>
                     <span className="seg-long">{label}</span>
                     <span className="seg-short">{short}</span>
                   </button>
@@ -366,10 +382,12 @@ export function App({ data }: { data: Data }) {
                 now={clock}
                 counties={officeCounties ?? {}}
                 selected={sel.state}
+                selectedCounty={sel.county ?? null}
                 baseline={baseline}
                 shiftStyle={shiftStyle}
                 onHover={onHover}
                 onSelect={onStateSelect}
+                onSelectCounty={onCountySelect}
                 onClear={onStateClear}
               />
             ) : (
@@ -410,6 +428,7 @@ export function App({ data }: { data: Data }) {
             office={sel.office}
             state={sel.state}
             district={sel.district}
+            county={sel.county ?? null}
             races={results.races}
             chamber={chambers[sel.office]}
             popularVote={popularVote}
@@ -419,7 +438,7 @@ export function App({ data }: { data: Data }) {
             demographics={demographics}
             baseline={baseline}
             now={clock}
-            onSelect={(office, state, district) => select({ office, state, district })}
+            onSelect={(office, state, district, county) => select(county ? { office, state, district, county } : { office, state, district })}
           />
         </aside>
       </section>

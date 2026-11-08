@@ -272,3 +272,11 @@ with the two margins side by side and the states that split them tagged; the spl
 holds up to six and sits three across. Also corrected the sales address to chris.weber@wausaupilotandreview.com here and in
 the wpr-brand skill's sponsorship notes, which had it reversed.
 
+
+## County pages and the finder (Nov. 7, night)
+
+Every county in a state with a Senate or governor race has a shareable page (`#governors-wi-55073`): the Census line, the
+2024 presidential vote, and its vote in every statewide race and measure, with the shift and the county's turnout against
+2024. Reached from a combobox at the top of every overview panel ("How did your county vote?"), a click on a county inside
+a zoomed state, or a link. The home state can also come from `?home=` so another newsroom can embed the page around its
+own state. Screenshots: `county-wi`, `county-panel`, `county-map`, `county-finder`, `senate-home-mn`.

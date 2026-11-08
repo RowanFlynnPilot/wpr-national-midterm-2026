@@ -1,4 +1,5 @@
 import { marginText, pct } from "./format";
+import { raceDistrict } from "./route";
 import { biggestShifts, marginLabel, officeShift, ticketPairs, type Baseline, type TicketPair } from "./shift";
 import { HOME_STATE, stateName } from "./states";
 import { housePopularVote, OFFICE_SINGULAR, raceTitle, secured, type Chamber } from "./summary";
@@ -9,7 +10,7 @@ export interface Takeaway {
   to: Selection; // the view that backs it up
 }
 
-const toRace = (r: Race): Selection => ({ office: r.office, state: r.state, district: r.office === "H" || r.office === "B" ? r.district : null });
+const toRace = (r: Race): Selection => ({ office: r.office, state: r.state, district: raceDistrict(r) });
 const lastName = (name: string) => name.split(" ").slice(-1)[0] as string;
 
 /**

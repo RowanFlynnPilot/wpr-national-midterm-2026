@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { race, RESULTS } from "./fixture";
 import type { Candidate } from "./types";
-import { biggestShifts, countyFlip, countyFlips, countyFlipsText, countyShift, officeShift, officeTurnout, partyVotes, raceShift, shiftText, ticketPairs, turnoutVs2024, twoPartyMargin, headToHead, type Baseline } from "./shift";
+import { biggestShifts, county2024, countyFlip, countyFlips, countyFlipsText, countyShift, countyTurnoutVs2024, officeShift, officeTurnout, partyVotes, raceShift, shiftText, ticketPairs, turnoutVs2024, twoPartyMargin, headToHead, type Baseline } from "./shift";
 
 const tx = race("S", "TX");
 const baseline: Baseline = {
@@ -124,6 +124,21 @@ describe("turnout against 2024", () => {
     const ak = race("S", "AK");
     const base: Baseline = { ...baseline, states: { ...baseline.states, AK: [100_000, 200_000, 320_000] } };
     expect(officeTurnout([tx, ak, race("S", "ME"), race("H", "WI-03")], base)).toBeCloseTo((100 * (tx.total + ak.total)) / (11_400_000 + 320_000), 5);
+  });
+});
+
+describe("a county against 2024", () => {
+  it("reads the county's 2024 presidential vote as shares and a margin", () => {
+    const then = county2024("48453", baseline);
+    expect(then?.dem).toBeCloseTo(63.83, 1);
+    expect(then?.rep).toBeCloseTo(31.91, 1);
+    expect(then?.margin).toBeCloseTo(31.9, 1);
+    expect(county2024("00000", baseline)).toBeNull();
+  });
+  it("is the county's votes counted so far against its 2024 presidential vote", () => {
+    expect(countyTurnoutVs2024([98, 200_000, 100_000, 5_000], "48453", baseline)).toBeCloseTo(64.9, 1);
+    expect(countyTurnoutVs2024([0, 0, 0, 0], "48453", baseline)).toBeNull();
+    expect(countyTurnoutVs2024([98, 200_000, 100_000, 5_000], "00000", baseline)).toBeNull();
   });
 });
 

@@ -29,6 +29,10 @@ const VIEWS = {
   "measures-hover": { hash: "#measures", hover: 'path.state.has-race[aria-label^="California"]', clip: "map" },
   "senate-demo": { hash: "?demo#senate" },
   "senate-home-mn": { hash: "?home=mn#senate", clip: "panel" }, // another newsroom's embed: the home state from the URL
+  "county-wi": { hash: "#governors-wi-55073" }, // Marathon County's page: the zoomed map with the county outlined, the panel with every race there
+  "county-panel": { hash: "#governors-wi-55073", clip: "panel" },
+  "county-map": { hash: "#governors-wi-55073", settle: 900, clip: "map" },
+  "county-finder": { hash: "#senate", fill: [".finder input", "wash"], clip: "panel" },
   "senate-spotlight": { hash: "#senate", click: '.legend__item:has-text("Seat flipped")', clip: "map" },
   "senate-spotlight-legend": { hash: "#senate", click: '.legend__item:has-text("Democrat leads")', clip: "legend" },
   "senate-replay": { hash: "#senate", click: ".replay-start", fill: [".replay__scrub", "120"], clip: "legend" },

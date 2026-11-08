@@ -170,6 +170,20 @@ export function turnoutVs2024(race: Race, baseline: Baseline): number | null {
   return then && then[2] > 0 && race.total > 0 ? (100 * race.total) / then[2] : null;
 }
 
+/** A county's votes counted so far in a race as a percentage of its 2024 presidential vote; null without a figure or votes. */
+export function countyTurnoutVs2024(row: number[], fips: string, baseline: Baseline): number | null {
+  const then = baseline.counties[fips];
+  const now = row.slice(1).reduce((s, v) => s + v, 0);
+  return then && then[2] > 0 && now > 0 ? (100 * now) / then[2] : null;
+}
+
+/** A county's 2024 presidential vote as shares of all its votes and a margin, Democratic positive; null without a figure. */
+export function county2024(fips: string, baseline: Baseline): { dem: number; rep: number; margin: number } | null {
+  const then = baseline.counties[fips];
+  if (!then || then[2] <= 0) return null;
+  return { dem: (100 * then[0]) / then[2], rep: (100 * then[1]) / then[2], margin: (100 * (then[0] - then[1])) / then[2] };
+}
+
 /** The races of an office with a 2024 figure, taken together: votes counted so far against their states' 2024 presidential vote. */
 export function officeTurnout(races: Race[], baseline: Baseline): number | null {
   let now = 0, then = 0;

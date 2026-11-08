@@ -1,5 +1,6 @@
 import { PALE, PARTY, PARTY_LABEL } from "../lib/colors";
 import { apNumber, marginText, pct, timeAgo } from "../lib/format";
+import { raceDistrict } from "../lib/route";
 import { HOME_STATE, stateName } from "../lib/states";
 import { RUNOFF, noVotesYet, raceFill, raceStatus } from "../lib/status";
 import type { Geo } from "../lib/geo";
@@ -8,7 +9,10 @@ import { measureShortTitle, OFFICE_NAME, OFFICE_SINGULAR, type Chamber, type Pop
 import type { CountySets, Office, Race } from "../lib/types";
 import type { Demographics } from "../lib/patterns";
 import type { Baseline } from "../lib/shift";
+import { Back } from "./Back";
+import { CountyFinder } from "./CountyFinder";
 import { CountyMap } from "./CountyMap";
+import { CountyView } from "./CountyView";
 import { EmbedRace } from "./EmbedRace";
 import { MarginStrip } from "./MarginStrip";
 import { RaceCard } from "./RaceCard";
@@ -17,6 +21,7 @@ interface Props {
   office: Office;
   state: string | null;
   district: string | null;
+  county: string | null; // a county FIPS on the Senate and governor views: its own page
   races: Race[];
   chamber: Chamber;
   popularVote: PopularVote;
@@ -26,11 +31,12 @@ interface Props {
   demographics: Demographics | null; // null until the Census file loads
   baseline: Baseline | null; // the 2024 presidential vote; null until it loads
   now: number;
-  onSelect: (office: Office, state: string | null, district: string | null) => void;
+  onSelect: (office: Office, state: string | null, district: string | null, county?: string) => void;
 }
 
 export function SidePanel(props: Props) {
-  const { office, state, district } = props;
+  const { office, state, district, county } = props;
+  if (county && state && (office === "S" || office === "G")) return <CountyView {...props} office={office} state={state} fips={county} />;
   if (district) return office === "B" ? <MeasureView {...props} district={district} /> : <DistrictView {...props} district={district} />;
   if (state) return office === "H" ? <HouseStateView {...props} state={state} /> : office === "B" ? <MeasuresStateView {...props} state={state} /> : <StateView {...props} state={state} />;
   return <Overview {...props} />;
@@ -46,9 +52,6 @@ function splitMeasureTitle(title: string): [string | null, string | null] {
   const m = /^(.{3,14}?)\s[-–:]\s(.+)$/.exec(title);
   return m ? [m[1] as string, m[2] as string] : [null, null];
 }
-
-/** The route for a race's own panel: a district or measure gets its district key, a statewide race none. */
-const routeOf = (r: Race) => (r.office === "H" || r.office === "B" ? r.district : null);
 
 interface RowProps {
   race: Race;
@@ -111,15 +114,16 @@ function RaceRow({ race, onClick, showOffice = false, when, points }: RowProps) 
 
 const COUNTING_LISTED = 40;
 
-function Overview({ office, chamber, popularVote, races, history, now, onSelect }: Props) {
+function Overview({ office, chamber, popularVote, races, history, now, geo, onSelect }: Props) {
   const counting = chamber.uncalled.filter((r) => !r.runoff);
   const listed = counting.slice(0, COUNTING_LISTED); // mid-replay, hundreds are uncalled; the table has them all
-  const pick = (r: Race) => onSelect(office, r.state, routeOf(r));
+  const pick = (r: Race) => onSelect(office, r.state, raceDistrict(r));
   const measures = office === "B";
   const failed = measures ? races.filter((r) => r.office === "B" && r.winner === "N") : [];
   const homeSeats = races.filter((r) => r.office === "H" && r.state === HOME_STATE).length;
   return (
     <div className="panel">
+      <CountyFinder geo={geo} races={races} office={office} onSelect={(o, st, fips) => onSelect(o, st, null, fips)} />
       {office === "H" && <PopularVoteBlock vote={popularVote} />}
       {office === "H" && (
         <section className="margins" aria-labelledby="margins-title">
@@ -252,17 +256,6 @@ function PopularVoteBlock({ vote }: { vote: PopularVote }) {
   );
 }
 
-function Back({ label, onClick }: { label: string; onClick: () => void }) {
-  return (
-    <button type="button" className="back" onClick={onClick}>
-      <svg viewBox="0 0 16 16" aria-hidden="true">
-        <path d="M10 3L5 8l5 5" />
-      </svg>
-      {label}
-    </button>
-  );
-}
-
 function StateView({ office, state, races, counties, geo, history, baseline, onSelect }: Props & { state: string }) {
   const race = races.find((r) => r.office === office && r.state === state);
   const others = races.filter((r) => r.state === state && r.office !== office && r.office !== "H");
@@ -282,6 +275,7 @@ function StateView({ office, state, races, counties, geo, history, baseline, onS
           {stateName(state)} has no {OFFICE_SINGULAR[office].toLowerCase()} race this year
         </h2>
       )}
+      <CountyFinder geo={geo} races={races} office={office} onSelect={(o, st, fips) => onSelect(o, st, null, fips)} />
       <h3 className="panel__subtitle">Also on the ballot in {stateName(state)}</h3>
       <ul className="race-rows">
         {others.map((r) => (
