@@ -15,6 +15,13 @@ export interface Candidate {
   advanced: boolean; // finalist in a runoff
 }
 
+/** A measure's pass rule beyond a plain majority (pipeline/measure-rules.json): the share Yes needs, how to print it, the sentence for the card. */
+export interface MeasureRule {
+  needs: number;
+  label: string; // "60%", "two-thirds"
+  text: string;
+}
+
 export interface Race {
   id: number;
   office: Office;
@@ -22,6 +29,7 @@ export interface Race {
   district: string | null; // "WI-03"; for a measure, "<state>-<civicAPI id>" (its route)
   num: number | null;
   title: string | null; // a measure's name, e.g. "Wisconsin Question 3 - ..."; null for candidate races
+  rule: MeasureRule | null; // measures only; null when a plain majority passes it
   special: boolean;
   pctIn: number;
   updated: string; // civicAPI's last_updated for this race

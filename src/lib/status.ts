@@ -1,5 +1,5 @@
 import { NO_RESULTS, PALE, PARTY, PARTY_LABEL, PARTY_PLURAL } from "./colors";
-import { centralTime, marginText } from "./format";
+import { centralTime, marginText, pct } from "./format";
 import { stateName } from "./states";
 import type { Race } from "./types";
 
@@ -59,7 +59,7 @@ export function statusText(r: Race): string {
   if (noVotesYet(r)) return "No votes reported yet";
   switch (raceStatus(r)) {
     case "won":
-      if (r.office === "B") return r.winner === "Y" ? "Passed" : "Failed";
+      if (r.office === "B") return r.winner === "Y" ? "Passed" : failedText(r);
       return r.unopposed ? "Unopposed" : r.flip && r.prior ? `Winner called. Flipped from ${PARTY_LABEL[r.prior]}` : "Winner called";
     case "runoff": {
       const finalists = r.cands.filter((c) => c.advanced).map((c) => c.name);
@@ -69,8 +69,24 @@ export function statusText(r: Race): string {
     case "decided":
       return `Seat decided: both finalists are ${PARTY_PLURAL[r.partyDecided ?? r.leader]}. Winner not called`;
     case "leading":
+      if (r.office === "B") return measureLeadText(r);
       return `Not called. ${PARTY_LABEL[r.leader]} leads by ${marginText(r.margin)} points${rcvNote(r) ? " in first-choice votes" : ""}`;
   }
+}
+
+/** A measure's Yes share. */
+export const yesShare = (r: Race) => r.cands.find((c) => c.party === "Y")?.pct ?? 0;
+
+/** "Failed", or why when Yes led but the measure needed more than a majority: "Failed: Yes 58.2% fell short of the 60% required". */
+function failedText(r: Race): string {
+  const yes = yesShare(r);
+  return r.rule && yes > 50 ? `Failed: Yes ${pct(yes)} fell short of the ${r.rule.label} required` : "Failed";
+}
+
+/** "Not called. Yes leads by 2.2 points", with "but is under the 55% needed" when that lead is not enough to pass. */
+function measureLeadText(r: Race): string {
+  const lead = `Not called. ${PARTY_LABEL[r.leader]} leads by ${marginText(r.margin)} points`;
+  return r.rule && r.leader === "Y" && yesShare(r) < r.rule.needs ? `${lead} but is under the ${r.rule.label} needed` : lead;
 }
 
 /** "Called Nov. 3, 10:32 p.m. CST", or null for a race civicAPI called without a time or has not called. */

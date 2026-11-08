@@ -3,7 +3,7 @@ import { PALE, PARTY, PARTY_LABEL } from "../lib/colors";
 import { apNumber, marginText, pct, reportingShare, timeAgo } from "../lib/format";
 import { raceDistrict, raceFor } from "../lib/route";
 import { HOME_STATE, stateName } from "../lib/states";
-import { RUNOFF, noVotesYet, raceFill, raceStatus } from "../lib/status";
+import { RUNOFF, noVotesYet, raceFill, raceStatus, yesShare } from "../lib/status";
 import type { Geo } from "../lib/geo";
 import { side, trend, type History } from "../lib/history";
 import { measureShortTitle, OFFICE_NAME, OFFICE_SINGULAR, type Chamber, type PopularVote } from "../lib/summary";
@@ -166,7 +166,11 @@ function RaceRow({ race, onClick, showOffice = false, when, points }: RowProps) 
       : status === "won"
       ? race.unopposed
         ? ["Won", "unopposed"]
-        : [measure ? (race.winner === "Y" ? "Passed" : "Failed") : race.flip ? "Flip" : "Won", when ?? `by ${marginText(race.margin)}`]
+        : [
+            measure ? (race.winner === "Y" ? "Passed" : "Failed") : race.flip ? "Flip" : "Won",
+            // a measure that failed while Yes led (Florida needs 60%) shows the Yes share: "Failed by 16.4" would read as a No landslide
+            when ?? (measure && race.winner !== race.leader ? `Yes ${pct(yesShare(race))}` : `by ${marginText(race.margin)}`),
+          ]
       : status === "runoff"
         ? ["Runoff", "no majority"]
         : status === "decided"

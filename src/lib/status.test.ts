@@ -98,6 +98,22 @@ describe("ballot measures", () => {
     expect(raceFill(race("B", "CA-150571"))).toBe(PALE.N);
     expect(rcvNote({ ...race("B", "WI-179849"), state: "AK" })).toBeNull();
   });
+  it("a measure that needs more than a majority says so when Yes leads, or led, short of it", () => {
+    const rule = { needs: 60, label: "60%", text: "Florida requires 60% of the vote to amend its constitution." };
+    const [y, n] = race("B", "WI-179849").cands;
+    const yesNo = (yes: number, winner: "Y" | "N" | null) => [
+      { ...y!, party: "Y" as const, name: "Yes", pct: yes, winner: winner === "Y" },
+      { ...n!, party: "N" as const, name: "No", pct: 100 - yes, winner: winner === "N" },
+    ];
+    const short = { ...race("B", "CA-150571"), rule, leader: "Y" as const, margin: 16.4, cands: yesNo(58.2, null) };
+    expect(statusText(short)).toBe("Not called. Yes leads by 16.4 points but is under the 60% needed");
+    expect(statusText({ ...short, rule: null })).toBe("Not called. Yes leads by 16.4 points");
+    expect(statusText({ ...short, cands: yesNo(61, null) })).toBe("Not called. Yes leads by 16.4 points");
+    const failed = { ...short, winner: "N" as const, cands: yesNo(58.2, "N") };
+    expect(statusText(failed)).toBe("Failed: Yes 58.2% fell short of the 60% required");
+    expect(statusText({ ...failed, rule: null })).toBe("Failed");
+    expect(statusText({ ...failed, leader: "N" as const, cands: yesNo(40.9, "N") })).toBe("Failed");
+  });
 });
 
 describe("rcvNote", () => {

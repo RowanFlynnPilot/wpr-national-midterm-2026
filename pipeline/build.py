@@ -28,6 +28,9 @@ COUNTY_TOLERANCE_PCT = 2.0  # county rows normally sum within 0.3% of the statew
 ELECTION_DAY = "2026-11-03"
 # Races civicAPI's Nov. 3 search returns that were not on the Nov. 3 ballot (a Kansas amendment decided in August), by id.
 EXCLUSIONS = {int(k): v for k, v in json.loads((ROOT / "pipeline" / "exclusions.json").read_text(encoding="utf-8")).items() if not k.startswith("_")}
+# Measures read against a pass rule other than a plain majority (Florida 60%, Colorado 55%, New Hampshire two-thirds, Minnesota's
+# blank-counts-as-No), by id: {"needs": share Yes must reach, "label": how it prints, "text": the sentence on the card}.
+MEASURE_RULES = {int(k): v for k, v in json.loads((ROOT / "pipeline" / "measure-rules.json").read_text(encoding="utf-8")).items() if not k.startswith("_")}
 # Candidate photos resolved by hand with `npm run headshots` (scripts/headshots.mjs); keyed by civicAPI candidate_id.
 HEADSHOTS_PATH = ROOT / "pipeline" / "headshots.json"
 HEADSHOTS = json.loads(HEADSHOTS_PATH.read_text(encoding="utf-8")) if HEADSHOTS_PATH.exists() else {}
@@ -65,7 +68,7 @@ def load_county_index() -> tuple[set[str], dict[tuple[str, str], str]]:
 
 
 def candidates(raw: list[dict], office: str) -> list[dict]:
-    if office == "B":  # Yes and No only; blank-ballot lines (Massachusetts) fold into "Others"
+    if office == "B":  # Yes and No only; blank-ballot lines (Minnesota) fold into one "Blank" line
         raw = sorted(raw, key=lambda c: c["name"] not in ("Yes", "No"))
     ordered = sorted(raw, key=lambda c: -c["votes"])
     total = sum(c["votes"] for c in ordered)
@@ -84,7 +87,8 @@ def candidates(raw: list[dict], office: str) -> list[dict]:
     ]
     other_votes = sum(c["votes"] for c in rest)
     if other_votes:
-        out.append({"id": 0, "name": "Others", "party": "O", "partyName": "Other candidates", "votes": other_votes,
+        name, party_name = ("Blank", "No vote on the question") if office == "B" else ("Others", "Other candidates")
+        out.append({"id": 0, "name": name, "party": "O", "partyName": party_name, "votes": other_votes,
                     "pct": round(100 * other_votes / total, 2), "winner": False, "advanced": False, "photo": None})
     return out
 
@@ -144,9 +148,9 @@ def main() -> None:
     ids, by_name = load_county_index()
     races, counties = [], {"S": {}, "G": {}, "B": {}}
     latest = ""
-    stale = set(EXCLUSIONS) - {r["id"] for r in search["races"]}
+    stale = (set(EXCLUSIONS) | set(MEASURE_RULES)) - {r["id"] for r in search["races"]}
     if stale:
-        raise RuntimeError(f"exclusions.json names races the search no longer returns: {sorted(stale)}; remove them")
+        raise RuntimeError(f"exclusions.json or measure-rules.json names races the search no longer returns: {sorted(stale)}; remove them")
     for r in search["races"]:
         if r["id"] in EXCLUSIONS:
             continue
@@ -160,6 +164,13 @@ def main() -> None:
             # Virginia's questions sat like this for two days before civicAPI filled them, so it is a note, not a failure.
             print(f"note: {r['election_name']} has no votes and no update since before Election Day; if it was not on the Nov. 3 ballot, add it to pipeline/exclusions.json")
         winners = [c for c in cands if c["winner"]]
+        rule = MEASURE_RULES.get(r["id"])
+        if rule and office != "B":
+            raise RuntimeError(f"{r['election_name']}: measure-rules.json names it, but it is not a ballot measure")
+        if rule and winners:
+            yes = next(c["pct"] for c in cands if c["party"] == "Y")
+            if (winners[0]["party"] == "Y") != (yes >= rule["needs"]):
+                print(f"note: {r['election_name']} is called {winners[0]['party']} with Yes at {yes}% against its {rule['label']} rule; check measure-rules.json")
         holder = None
         if office in ("S", "G"):
             holder = baselines[{"S": "senate", "G": "governor"}[office]]["seat_holder"].get(r["province"])
@@ -182,6 +193,7 @@ def main() -> None:
             "district": r["district"] if office != "B" else f"{r['province']}-{r['id']}",  # measures route by id
             "num": district_num(r["district"]) if office == "H" else None,
             "title": r["election_name"] if office == "B" else None,
+            "rule": rule,  # a measure's pass rule beyond a plain majority; null otherwise
             "special": "special" in r["election_name"].lower(),
             "pctIn": detail["percent_reporting"],
             "updated": detail["last_updated"],

@@ -96,6 +96,7 @@ export function RaceCard({
         </p>
       )}
       {points && points.length >= 2 && <Sparkline race={race} points={points} />}
+      {race.rule && <p className="race-card__note">{race.rule.text}</p>}
       {note && <p className="race-card__note">{note}</p>}
     </article>
   );

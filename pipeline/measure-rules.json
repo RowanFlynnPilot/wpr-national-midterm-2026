@@ -1,0 +1,58 @@
+{
+  "_comment": "Measures whose Yes share is read against a rule other than a plain majority of the votes shown, by civicAPI race id. needs: the share Yes must reach; label: how the words print it; text: the sentence on the race card. build.py copies the entry onto the race as `rule`, fails if an id is not a measure in the search, and prints a note when civicAPI's call disagrees with the rule. Verified Nov. 8, 2026 against each state's rule; a Colorado amendment that only repeals constitutional language (Amendment 87) needs a majority and is not listed.",
+  "151041": {
+    "needs": 60,
+    "label": "60%",
+    "text": "Florida requires 60% of the vote to amend its constitution."
+  },
+  "151042": {
+    "needs": 60,
+    "label": "60%",
+    "text": "Florida requires 60% of the vote to amend its constitution."
+  },
+  "151043": {
+    "needs": 60,
+    "label": "60%",
+    "text": "Florida requires 60% of the vote to amend its constitution."
+  },
+  "170000": {
+    "needs": 55,
+    "label": "55%",
+    "text": "Colorado requires 55% of the vote for an amendment that adds to its constitution."
+  },
+  "170001": {
+    "needs": 55,
+    "label": "55%",
+    "text": "Colorado requires 55% of the vote for an amendment that adds to its constitution."
+  },
+  "170002": {
+    "needs": 55,
+    "label": "55%",
+    "text": "Colorado requires 55% of the vote for an amendment that adds to its constitution."
+  },
+  "170003": {
+    "needs": 55,
+    "label": "55%",
+    "text": "Colorado requires 55% of the vote for an amendment that adds to its constitution."
+  },
+  "170004": {
+    "needs": 55,
+    "label": "55%",
+    "text": "Colorado requires 55% of the vote for an amendment that adds to its constitution."
+  },
+  "170005": {
+    "needs": 55,
+    "label": "55%",
+    "text": "Colorado requires 55% of the vote for an amendment that adds to its constitution."
+  },
+  "154200": {
+    "needs": 66.67,
+    "label": "two-thirds",
+    "text": "New Hampshire requires two-thirds of the vote to amend its constitution."
+  },
+  "144104": {
+    "needs": 50,
+    "label": "50%",
+    "text": "Minnesota counts a ballot left blank on an amendment as a vote against it, so the shares here are of every ballot cast."
+  }
+}

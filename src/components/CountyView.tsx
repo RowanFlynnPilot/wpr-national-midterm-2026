@@ -107,7 +107,7 @@ function CountyRace({ race, row, loading, fips, baseline, onOpen }: { race: Race
             {others > 0 && (
               <li>
                 <span className="key" style={{ background: PARTY.O }} />
-                <span className="name">Others</span>
+                <span className="name">{race.cands.find((c) => c.party === "O")?.name ?? "Others"}</span>
                 <span className="votes">{votes(others)}</span>
                 <span className="value">{pct((100 * others) / reading.total)}</span>
               </li>

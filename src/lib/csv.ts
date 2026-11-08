@@ -1,4 +1,5 @@
 import { raceShift, turnoutVs2024, type Baseline } from "./shift";
+import { reportingShare } from "./format";
 import { stateName } from "./states";
 import { statusText } from "./status";
 import { raceTitle } from "./summary";
@@ -33,7 +34,7 @@ export function racesCsv(races: Race[], baseline: Baseline | null): string {
         b?.pct ?? null,
         b?.votes ?? null,
         r.margin,
-        r.pctIn,
+        reportingShare(r.pctIn, r.total) === null ? null : r.pctIn, // civicAPI gives Alaska's measures no share: blank, not 0
         r.total,
         r.calledAt,
         r.updated,

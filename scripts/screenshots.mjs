@@ -38,6 +38,8 @@ const VIEWS = {
   "missing-district": { hash: "#house-wi-99", clip: "panel" },
   "measures-ak": { hash: "#measures-ak", clip: "panel" }, // civicAPI gives Alaska's measures no reporting share: the rows say so instead of 0%
   "measures-lists": { hash: "#measures", clip: "under" }, // the latest calls and the failed measures under the map
+  "measure-threshold": { hash: "#measures-fl-151042", clip: "panel" }, // failed with Yes at 58%: Florida needs 60%, and the card says so
+  "measure-blank": { hash: "#measures-mn-144104", clip: "panel" }, // Minnesota's blank ballots as a "Blank" line, not "Other candidates"
   "senate-spotlight": { hash: "#senate", click: '.legend__item:has-text("Seat flipped")', clip: "map" },
   "senate-spotlight-legend": { hash: "#senate", click: '.legend__item:has-text("Democrat leads")', clip: "legend" },
   "senate-replay": { hash: "#senate", click: ".replay-start", fill: [".replay__scrub", "120"], clip: "legend" },

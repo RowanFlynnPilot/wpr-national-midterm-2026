@@ -79,7 +79,7 @@ before any data arrives.
 ## Pipeline
 
 - `pipeline/fetch.py` — writes `pipeline/raw/` (gitignored). Fails if counts are not exactly 35 Senate / 435 House / 36 governor. Also fetches statewide ballot measures: race types Referendum / Proposition / Ballot Measure with `election_type` "Statewide", no district or municipality, and a Yes/No answer set (133 on Nov. 5; one "official state firearm" vote with six options is excluded by that rule); fails under 100.
-- **Ballot measures are races with office `B`** (`build.py`): the answers are candidates with party `Y`/`N` (blank-ballot lines fold into Others), `title` holds the measure name, and `district` is `<state>-<civicAPI id>` so a measure routes like a district (`#measures-wi-179849`). Within a state they sort in natural title order (`title_key`: "Question 2" before "Question 10"), since civicAPI ids put Wisconsin's Question 2 before Question 1. County rows go to `counties-B.json` with the same row shape.
+- **Ballot measures are races with office `B`** (`build.py`): the answers are candidates with party `Y`/`N` (blank-ballot lines fold into one `Blank` line, party `O`, "No vote on the question"; the county page's remainder row takes that name), `title` holds the measure name, and `district` is `<state>-<civicAPI id>` so a measure routes like a district (`#measures-wi-179849`). Within a state they sort in natural title order (`title_key`: "Question 2" before "Question 10"), since civicAPI ids put Wisconsin's Question 2 before Question 1. County rows go to `counties-B.json` with the same row shape.
 - `pipeline/build.py` — normalizes to the front-end schema (`src/lib/types.ts`). Fails the build on impossible states (`check_race`): two winners, a winner plus runoff finalists, negative votes, shares past 100%, reporting outside 0–100, a Senate/governor race with no seat holder in baselines, or county rows summing more than 2% away from the statewide total. Party codes: Democratic→D, Republican→R, everything else→I (the panel shows the real party name). Candidates under 1% fold into "Others" (max 5 kept).
 - County rows: `[pctReporting, votes for race.cands[0..2] (excluding Others), all other votes]`. New England and Alaska use civicAPI's County/Borough aggregate rows, not towns or House districts.
 - Alaska: civicAPI uses the 2019 split census areas (02063, 02066); us-atlas still draws Valdez-Cordova (02261), so they're merged (`FIPS_MERGE`).
@@ -89,11 +89,23 @@ before any data arrives.
   `build.py` drops them before anything else and fails if an id is no longer in the search, so a stale line gets removed. It also prints a
   note for any race with no votes and no update since before Election Day; that is not a failure, because Virginia's three questions sat
   like that for two days before civicAPI filled them.
+- `pipeline/measure-rules.json` — hand-maintained pass rules for measures read against something other than a plain majority of the
+  votes shown, by civicAPI id: `{"needs": 60, "label": "60%", "text": "Florida requires 60% of the vote to amend its constitution."}`.
+  `build.py` copies the entry onto the race as `rule` (null otherwise), fails if an id is not a measure the search returns, and prints a
+  note when civicAPI's call disagrees with the rule. Nov. 8: Florida's three amendments (60%), Colorado Amendments 81–86 (55% for an
+  amendment that adds to the constitution; 87 only repeals and needs a majority), New Hampshire Question 1 (two-thirds) and Minnesota
+  Amendment 1 (a blank counts as No; civicAPI's blank lines are in the total, so the shares already read that way). Verify each new
+  entry against the state's rule before adding it. The leader, the map shading and the tab's tallies stay civicAPI's; only the words
+  change (see Race status rules).
 - `pipeline/baselines.json` — hand-maintained pre-election seat holders (Senate and governor by state) and pre-election totals. House baseline = 2024 result (D 215, R 220).
 
 ## Race status rules (`src/lib/status.ts`, `pipeline/build.py`)
 
-- Measures: **won** with winner `Y` reads "Passed", `N` "Failed"; otherwise "Not called. Yes leads by X points". No ranked-choice note, no flips, no majority line; the tab's bar is passed / leading yes / leading no / failed.
+- Measures: **won** with winner `Y` reads "Passed", `N` "Failed"; otherwise "Not called. Yes leads by X points". With a `rule`
+  (`pipeline/measure-rules.json`): "Failed: Yes 58.2% fell short of the 60% required" when Yes led but lost, "Not called. Yes leads by
+  2.2 points but is under the 55% needed" while Yes leads short of it (`failedText`, `measureLeadText`, `yesShare` in `status.ts`), the
+  race card carries the rule's sentence, and a failed measure Yes led shows "Failed · Yes 58.2%" in the panel rows rather than
+  "Failed by 16.4", which read as a No landslide. No ranked-choice note, no flips, no majority line; the tab's bar is passed / leading yes / leading no / failed.
 - **no votes yet** — `total` is 0 and no winner (`noVotesYet`): neutral fill, "No votes reported yet", never a painted lead. **won** — civicAPI `winner`. **runoff** — a candidate is `advanced`, or Louisiana House with no one at 50% (`MAJORITY_RUNOFF`; LA moved its House primaries to Nov. 3 with a Dec. 12 runoff, and civicAPI flags finalists only once second place is settled). **decided** — top-two finalists from one party (CA-04/07/11/14, CA-40): the seat counts for that party before a call. **leading** — everything else.
 - `unopposed` — one non-"Others" candidate. Florida doesn't print unopposed races, so FL-10 has zero votes; the card says so.
 - Ranked-choice note (Alaska, Maine federal races) appears only when no one has a majority of first choices; Alaska's adds that the tabulation runs around Nov. 18. `RUNOFF_DATE` puts "Dec. 12" on Louisiana runoff text. Same-party finals read "Seat decided: both finalists are Democrats. Winner not called".
@@ -106,7 +118,7 @@ before any data arrives.
 - `percent_reporting` is civicAPI's figure, labeled "% reporting". Some states show 100% while uncalled (CA counts ballots for weeks).
   Alaska's two measures carry 0 beside 200,000 votes: civicAPI gives them no share. `reportingShare` / `reportingText` in `format.ts` is
   the one rule for printing it (card, share card, table, rows, tooltips, county page, sparkline, takeaway): a zero beside a count is a
-  missing figure and reads "Share reporting not given" (or a dash in the table), never 0%.
+  missing figure and reads "Share reporting not given" (or a dash in the table and a blank `pct_reporting` in the CSV), never 0%.
 - civicAPI is slow to call measures: on Nov. 8 it had called 62 of 130, and 40 of the 68 uncalled stood at 99.9% reporting with leads up
   to 63 points. The panel's list is headed "Measures not yet called" and its note counts how many are at least 99% counted; the calls stay
   civicAPI's.
@@ -388,6 +400,20 @@ whole); it is for the newsroom and does not print. `parseHash`/`toHash` moved to
 - The House caption is "One hexagon per House district, placed near its voters", one line beside the controls at 1280.
 - The partner page's preview frame loads lazily, after the text and the snippet.
 
+## Polish pass, third round (Nov. 8, 2026, evening)
+
+- **Measures that need more than a majority say so.** Florida Amendment 2 drew 58.2% Yes and failed under Florida's 60% rule, and the
+  card read "Failed" with a check beside No at 41.8%; Colorado Amendment 85 showed a pale Yes lead at 51% while short of its 55%.
+  `pipeline/measure-rules.json` and the status rules above carry the threshold into the words (card, share card, tooltip, table status,
+  CSV, panel rows). New Hampshire Question 1 (64.8% Yes, two-thirds needed) is the other live case.
+- **Blank ballots are "Blank", not "Other candidates".** Minnesota counts a blank as a No on an amendment, so civicAPI reports 230,000
+  blank lines on Amendment 1; the measure's Others bucket is now named `Blank` / "No vote on the question" in `build.py`, and the county
+  page's remainder row takes the race's own name for it.
+- The CSV's `pct_reporting` is blank where the share is not given (Alaska's measures), matching the table's dash.
+- The main page's meta and Open Graph descriptions name the statewide ballot measures, as the compact and partner pages did.
+- Kansas governor added to the AP cross-check below: civicAPI's call stands; the mismatch is recorded.
+- The gate gained `measure-threshold` (Florida Amendment 2's card) and `measure-blank` (Minnesota Amendment 1's card).
+
 ## Review pass (Nov. 5, 2026, evening)
 
 Based on a survey of AP, Decision Desk HQ, NBC, ABC and 2024 accessibility audits (notes in `reports/polish-2026-11-05/README.md`):
@@ -446,7 +472,9 @@ commit conflicts in `pipeline/history.json`; that failed once on Nov. 7), fetche
 
 Every race civicAPI called by under 3 points (27 races) was checked against AP reporting. 26 agree. **NY-21** (Constantino R +2.1)
 is called by civicAPI and Decision Desk HQ but was not called by AP as of Nov. 5; left as civicAPI reports it. civicAPI called
-FL-13 nearly two days before AP. Its `percent_reporting` lags AP on several called races (TN-09, NJ-02, NY-02, TN-07, TN governor).
+FL-13 nearly two days before AP. Its `percent_reporting` lags AP on several called races (TN-09, NJ-02, NY-02, TN-07, TN governor). **Kansas governor**
+(Holscher D +0.7 at 95% in) was called by civicAPI on Nov. 7 and by Decision Desk HQ; on Nov. 8 NBC still had it too close to call and
+Masterson had asked for "another look". Left as civicAPI reports it.
 
 ## Next steps
 
