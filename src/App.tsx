@@ -14,7 +14,7 @@ import { PartyWords } from "./components/PartyWords";
 import { RaceTable } from "./components/RaceTable";
 import { Replay } from "./components/Replay";
 import { SinceVisit } from "./components/SinceVisit";
-import { SidePanel } from "./components/SidePanel";
+import { OverviewLists, SidePanel } from "./components/SidePanel";
 import { Tooltip, type HoverHandler, type HoverTarget, type MeasureSummary } from "./components/Tooltip";
 import { afterPaint, countyColumns, loadAtlas, loadBaseline, loadDemographics, loadHistory, readCounty, type Data } from "./lib/data";
 import type { Baseline } from "./lib/shift";
@@ -243,7 +243,7 @@ export function App({ data }: { data: Data }) {
   const raceNoun = `${racesByState.size} ${sel.office === "S" ? "Senate" : "governor"} races`;
   const mapCaption =
     sel.office === "H"
-      ? "One hexagon per House district, placed near where its voters live"
+      ? "One hexagon per House district, placed near its voters"
       : sel.office === "B"
         ? `Statewide ballot measures in ${measureCounts.size} states; darker means more`
         : mode === "states"
@@ -441,6 +441,7 @@ export function App({ data }: { data: Data }) {
             onSelect={(office, state, district, county) => select(county ? { office, state, district, county } : { office, state, district })}
           />
         </aside>
+        {!sel.state && <OverviewLists office={sel.office} chamber={chambers[sel.office]} now={clock} onSelect={(office, state, district) => select({ office, state, district })} />}
       </section>
 
       <Analysis

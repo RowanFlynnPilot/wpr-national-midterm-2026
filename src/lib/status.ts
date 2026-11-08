@@ -1,5 +1,5 @@
 import { NO_RESULTS, PALE, PARTY, PARTY_LABEL, PARTY_PLURAL } from "./colors";
-import { marginText } from "./format";
+import { centralTime, marginText } from "./format";
 import { stateName } from "./states";
 import type { Race } from "./types";
 
@@ -71,6 +71,22 @@ export function statusText(r: Race): string {
     case "leading":
       return `Not called. ${PARTY_LABEL[r.leader]} leads by ${marginText(r.margin)} points${rcvNote(r) ? " in first-choice votes" : ""}`;
   }
+}
+
+/** "Called Nov. 3, 10:32 p.m. CST", or null for a race civicAPI called without a time or has not called. */
+export function calledText(r: Race): string | null {
+  return r.calledAt ? `Called ${centralTime(r.calledAt)}` : null;
+}
+
+/**
+ * The status line of a race card or share card, in parts: the sentence, then the call time. "Winner called" beside a
+ * call time says the same thing twice, so there the time takes the words' place.
+ */
+export function statusParts(r: Race): string[] {
+  const text = statusText(r);
+  const called = calledText(r);
+  if (!called) return [text];
+  return text.startsWith("Winner called") ? [text.replace("Winner called", called)] : [text, called];
 }
 
 /** Ranked-choice states, shown only when no one has a majority of first choices. */

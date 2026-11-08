@@ -58,7 +58,7 @@ function Preview({ src }: { src: string }) {
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
   }, []);
-  return <iframe className="preview" src={src} title="Preview of the embedded results" style={{ height }} allow="clipboard-write; web-share" />;
+  return <iframe className="preview" src={src} title="Preview of the embedded results" style={{ height }} allow="clipboard-write; web-share" loading="lazy" />;
 }
 
 function Partners() {

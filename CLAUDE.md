@@ -99,7 +99,9 @@ before any data arrives.
 
 - **No House seat-by-seat flips.** civicAPI flags only ~50 of ~370 incumbents, and several states redrew maps in 2025–26. The House shows called/leading only; the panel explains why.
 - `percent_reporting` is civicAPI's figure, labeled "% reporting". Some states show 100% while uncalled (CA counts ballots for weeks).
-- `calledAt` is missing on ~34 races civicAPI called without a timestamp; the card shows "Winner called" for those.
+- `calledAt` is missing on ~34 races civicAPI called without a timestamp; the card shows "Winner called" for those. With a
+  timestamp the time takes the words' place ("Called Nov. 3, 10:32 p.m. CST"): `statusParts` in `status.ts` is the one rule,
+  for the race card and the share card.
 
 ## House hex cartogram (`scripts/hexmap.mjs`)
 
@@ -171,7 +173,8 @@ overview, "Compared with 2024" (the vote-weighted aggregate and the three bigges
 left and "How counties voted" on the right; for a selected statewide race, that race's shift sentence, scatter and patterns; for a
 selected measure, its Yes/No patterns alone. The House has no band (no district baseline, no district county rows). The panel
 keeps the glance, the still-counting list, the latest calls and the flips. The CLAUDE.md paragraphs above that place the scatter
-and patterns "on the panel" predate this move.
+and patterns "on the panel" predate this move. (Nov. 8: the latest calls, the runoffs and the flips left the panel too; see
+"Polish pass".)
 
 ## Three more statistics (Nov. 7, 2026, evening)
 
@@ -214,8 +217,8 @@ year has a page of its own, reachable three ways and shareable as a link.
   2024 presidential vote (`county2024` in `shift.ts`), then a block per statewide race and measure in the state (Senate,
   governor, measures; each title opens the race): every county column with votes, share and bar, Others when there are any,
   % reporting, votes, the county's votes against its own 2024 presidential vote (`countyTurnoutVs2024`), the shift
-  sentence and "Changed sides since 2024". `Back.tsx` is the shared step-back button. An unknown FIPS throws, like an
-  unknown measure.
+  sentence and "Changed sides since 2024". `Back.tsx` is the shared step-back button. A FIPS the atlas does not have shows the
+  state's list with a notice, like an unknown measure or district (see "Polish pass").
 
 ## Statement pass (Nov. 7, 2026)
 
@@ -342,6 +345,24 @@ whole); it is for the newsroom and does not print. `parseHash`/`toHash` moved to
   with `?to=<article>` when embedded), and "Save image" downloads the card. The toolbar's Copy link is unchanged: it copies
   the view itself (the article hash when embedded), and the stub exists for the preview.
 - `.stale` notice appears when `results.fetched` is more than three hours old (`isStale`, re-checked every minute).
+
+## Polish pass (Nov. 8, 2026)
+
+- **A link that names no race shows the state, not a blank page.** `#measures-wi-1`, `#house-wi-99` or `#governors-wi-55999`
+  used to throw from the panel and, with no error boundary, React unmounted the whole app. A URL is the reader's input
+  (a typo, a link truncated in a text message, a measure civicAPI renumbers), so `SidePanel` now checks the race with
+  `raceFor` (and the county against the atlas once it loads) and renders the state's list under a one-line notice
+  ("No measure matches that link. Showing Wisconsin instead.", `.panel__missing`, the stale notice's style). The hash is left
+  as typed, so Copy link and Escape behave as on any state list. The data still fails fast in `build.py`; `race.html` and
+  `share.html` still throw on a bad hash, since there it is a newsroom's setup error. The gate captures all three.
+- **The overview's calls, runoffs and flips sit under the map** (`OverviewLists` in `SidePanel.tsx`, rendered by App inside
+  the board as `.board__under`, grid area "under" spanning both columns; stacked under 960px it follows the panel, which is
+  where those lists read before). At laptop width the panel had run about a thousand pixels past the map, leaving the
+  column under the map blank; now the panel beside the map holds the finder, the glance and the races still being counted,
+  and the lists lay out `auto-fill` at panel width (two on a tablet, one on a phone). The measures and House panels still run
+  long when their still-counting lists do (`COUNTING_LISTED` 40); that is the data, not the layout.
+- The House caption is "One hexagon per House district, placed near its voters", one line beside the controls at 1280.
+- The partner page's preview frame loads lazily, after the text and the snippet.
 
 ## Review pass (Nov. 5, 2026, evening)
 

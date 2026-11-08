@@ -33,6 +33,9 @@ const VIEWS = {
   "county-panel": { hash: "#governors-wi-55073", clip: "panel" },
   "county-map": { hash: "#governors-wi-55073", settle: 900, clip: "map" },
   "county-finder": { hash: "#senate", fill: [".finder input", "wash"], clip: "panel" },
+  "missing-measure": { hash: "#measures-wi-1", clip: "panel" }, // a link that names no race: the state's list with a notice, not a blank page
+  "missing-county": { hash: "#governors-wi-55999", clip: "panel" },
+  "missing-district": { hash: "#house-wi-99", clip: "panel" },
   "senate-spotlight": { hash: "#senate", click: '.legend__item:has-text("Seat flipped")', clip: "map" },
   "senate-spotlight-legend": { hash: "#senate", click: '.legend__item:has-text("Democrat leads")', clip: "legend" },
   "senate-replay": { hash: "#senate", click: ".replay-start", fill: [".replay__scrub", "120"], clip: "legend" },

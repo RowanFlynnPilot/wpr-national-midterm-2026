@@ -1192,20 +1192,38 @@ a {
 .board {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 360px;
+  grid-template-areas: "map panel" "under under";
   gap: 0;
   margin-top: 1.5rem;
   border-bottom: 1px solid var(--rule);
 }
 
 .board__map {
+  grid-area: map;
   min-width: 0;
   padding: 0 1.5rem 1.5rem 0;
 }
 
 .board__panel {
+  grid-area: panel;
   padding: 0 0 1.5rem 1.5rem;
   border-left: 1px solid var(--rule);
   scroll-margin-top: 1rem;
+}
+
+/* The overview's calls, runoffs and flips: a row of panel-width lists under the map and the panel, so the panel beside the map
+   holds only what fits beside it (the finder, the glance, the races still being counted). */
+.board__under {
+  grid-area: under;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+  gap: 0.5rem 2.5rem;
+  padding: 1.25rem 0 1.5rem;
+  border-top: 1px solid var(--rule);
+}
+
+.panel__missing {
+  margin: 0 0 1rem;
 }
 
 .map-toolbar {
@@ -3086,6 +3104,7 @@ table.races {
   }
   .board {
     grid-template-columns: 1fr;
+    grid-template-areas: "map" "panel" "under";
   }
   .board__map {
     padding: 0 0 1.25rem;
@@ -3095,8 +3114,12 @@ table.races {
     border-left: 0;
     border-top: 1px solid var(--rule);
   }
+  .board__under {
+    padding: 1.1rem 0 0.5rem;
+    border-top: 0; /* it follows the panel's last list row, which ends in a rule */
+  }
   .board {
-    border-bottom: 0; /* stacked, the panel's last list row already ends in a rule; a second one 1.5rem under it read as an empty band */
+    border-bottom: 0; /* stacked, the last list row already ends in a rule; a second one 1.5rem under it read as an empty band */
   }
 }
 

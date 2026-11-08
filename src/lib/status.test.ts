@@ -1,7 +1,25 @@
 import { describe, expect, it } from "vitest";
 import { NO_RESULTS, PALE, PARTY } from "./colors";
 import { race } from "./fixture";
-import { RUNOFF, raceFill, raceStatus, rcvNote, statusText } from "./status";
+import { RUNOFF, calledText, raceFill, raceStatus, rcvNote, statusParts, statusText } from "./status";
+
+describe("statusParts", () => {
+  it("a timed call reads as the time alone, not 'Winner called' and the time", () => {
+    expect(calledText(race("S", "AL"))).toBe("Called Nov. 3, 9:42 p.m. CST");
+    expect(statusParts(race("S", "AL"))).toEqual(["Called Nov. 3, 9:42 p.m. CST"]);
+    expect(statusParts(race("S", "TX"))).toEqual(["Called Nov. 3, 9:42 p.m. CST. Flipped from Republican"]);
+  });
+  it("a call without a time keeps the words; an uncalled race has no time", () => {
+    expect(calledText(race("H", "NY-21"))).toBeNull();
+    expect(statusParts(race("H", "NY-21"))).toEqual(["Winner called"]);
+    expect(statusParts(race("S", "AK"))).toHaveLength(1);
+    expect(statusParts(race("S", "AK"))[0]).toMatch(/^Not called/);
+  });
+  it("a measure keeps Passed or Failed beside the time", () => {
+    const passed = { ...race("S", "AL"), office: "B" as const, winner: "Y" as const };
+    expect(statusParts(passed)).toEqual(["Passed", "Called Nov. 3, 9:42 p.m. CST"]);
+  });
+});
 
 describe("raceStatus", () => {
   it("won: civicAPI winner, with or without a call timestamp", () => {

@@ -1,6 +1,6 @@
 import { PALE, PARTY, PARTY_LABEL } from "../lib/colors";
 import { apNumber, marginText, pct, timeAgo } from "../lib/format";
-import { raceDistrict } from "../lib/route";
+import { raceDistrict, raceFor } from "../lib/route";
 import { HOME_STATE, stateName } from "../lib/states";
 import { RUNOFF, noVotesYet, raceFill, raceStatus } from "../lib/status";
 import type { Geo } from "../lib/geo";
@@ -36,11 +36,84 @@ interface Props {
 }
 
 export function SidePanel(props: Props) {
-  const { office, state, district, county } = props;
-  if (county && state && (office === "S" || office === "G")) return <CountyView {...props} office={office} state={state} fips={county} />;
-  if (district) return office === "B" ? <MeasureView {...props} district={district} /> : <DistrictView {...props} district={district} />;
-  if (state) return office === "H" ? <HouseStateView {...props} state={state} /> : office === "B" ? <MeasuresStateView {...props} state={state} /> : <StateView {...props} state={state} />;
+  const { office, state, district, county, races, geo } = props;
+  const statewide = office === "S" || office === "G";
+  // A county page until the shapes prove the FIPS is not one (the atlas is the county list; the hash only checks the state prefix).
+  if (county && state && statewide && (!geo || geo.counties.some((c) => c.id === county))) return <CountyView {...props} office={office} state={state} fips={county} />;
+  if (district && raceFor(races, { office, state, district })) return office === "B" ? <MeasureView {...props} district={district} /> : <DistrictView {...props} district={district} />;
+  if (state) {
+    const list = office === "H" ? <HouseStateView {...props} state={state} /> : office === "B" ? <MeasuresStateView {...props} state={state} /> : <StateView {...props} state={state} />;
+    // A link that names a race or county the data does not have (a typo, a truncated link, a renumbered measure) is the
+    // reader's input, not the data's: the state's list stands in, and says so. The data itself still fails fast in build.py.
+    const missing = county && statewide ? "county" : district ? (office === "B" ? "measure" : "House district") : null;
+    if (!missing) return list;
+    return (
+      <>
+        <p className="stale panel__missing" role="status">
+          No {missing} matches that link. Showing {stateName(state)} instead.
+        </p>
+        {list}
+      </>
+    );
+  }
   return <Overview {...props} />;
+}
+
+/**
+ * The overview's lists that belong to the map rather than beside it: the latest calls, the runoffs and the seats that
+ * changed parties. App lays them under the map on wide screens (the panel had run a screen past the map there) and after
+ * the panel when the board is stacked, which is where they read before.
+ */
+export function OverviewLists({ office, chamber, now, onSelect }: Pick<Props, "office" | "chamber" | "now" | "onSelect">) {
+  const pick = (r: Race) => onSelect(office, r.state, raceDistrict(r));
+  const flips = office === "S" || office === "G";
+  if (!chamber.latestCalls.length && !chamber.runoffs.length && !flips) return null;
+  return (
+    <div className="board__under">
+      {chamber.latestCalls.length > 0 && (
+        <section className="board__list" aria-labelledby="calls-title">
+          <h2 id="calls-title" className="panel__title">
+            Latest calls
+          </h2>
+          <p className="panel__note">Newest first. Times are civicAPI’s; some early calls carry no time and are not listed.</p>
+          <ul className="race-rows">
+            {chamber.latestCalls.map((r) => (
+              <RaceRow key={r.id} race={r} when={timeAgo(r.calledAt as string, now)} onClick={() => pick(r)} />
+            ))}
+          </ul>
+        </section>
+      )}
+      {chamber.runoffs.length > 0 && (
+        <section className="board__list" aria-labelledby="runoffs-title">
+          <h2 id="runoffs-title" className="panel__title">
+            Headed to runoffs
+          </h2>
+          <p className="panel__note">No candidate won a majority, so the top two meet again.</p>
+          <ul className="race-rows">
+            {chamber.runoffs.map((r) => (
+              <RaceRow key={r.id} race={r} onClick={() => pick(r)} />
+            ))}
+          </ul>
+        </section>
+      )}
+      {flips && (
+        <section className="board__list" aria-labelledby="flips-title">
+          <h2 id="flips-title" className="panel__title">
+            Seats that changed parties
+          </h2>
+          {chamber.flips.length ? (
+            <ul className="race-rows">
+              {chamber.flips.map((r) => (
+                <RaceRow key={r.id} race={r} onClick={() => pick(r)} />
+              ))}
+            </ul>
+          ) : (
+            <p className="panel__note">No seats have changed parties among called races.</p>
+          )}
+        </section>
+      )}
+    </div>
+  );
 }
 
 function shortTitle(race: Race): string {
@@ -115,7 +188,7 @@ function RaceRow({ race, onClick, showOffice = false, when, points }: RowProps) 
 
 const COUNTING_LISTED = 40;
 
-function Overview({ office, chamber, popularVote, races, history, now, geo, onSelect }: Props) {
+function Overview({ office, chamber, popularVote, races, history, geo, onSelect }: Props) {
   const counting = chamber.uncalled.filter((r) => !r.runoff);
   const listed = counting.slice(0, COUNTING_LISTED); // mid-replay, hundreds are uncalled; the table has them all
   const pick = (r: Race) => onSelect(office, r.state, raceDistrict(r));
@@ -161,42 +234,6 @@ function Overview({ office, chamber, popularVote, races, history, now, geo, onSe
               <RaceRow key={r.id} race={r} onClick={() => pick(r)} />
             ))}
           </ul>
-        </>
-      )}
-      {chamber.latestCalls.length > 0 && (
-        <>
-          <h2 className="panel__title">Latest calls</h2>
-          <p className="panel__note">Newest first. Times are civicAPI’s; some early calls carry no time and are not listed.</p>
-          <ul className="race-rows">
-            {chamber.latestCalls.map((r) => (
-              <RaceRow key={r.id} race={r} when={timeAgo(r.calledAt as string, now)} onClick={() => pick(r)} />
-            ))}
-          </ul>
-        </>
-      )}
-      {chamber.runoffs.length > 0 && (
-        <>
-          <h2 className="panel__title">Headed to runoffs</h2>
-          <p className="panel__note">No candidate won a majority, so the top two meet again.</p>
-          <ul className="race-rows">
-            {chamber.runoffs.map((r) => (
-              <RaceRow key={r.id} race={r} onClick={() => pick(r)} />
-            ))}
-          </ul>
-        </>
-      )}
-      {office !== "H" && !measures && (
-        <>
-          <h2 className="panel__title">Seats that changed parties</h2>
-          {chamber.flips.length ? (
-            <ul className="race-rows">
-              {chamber.flips.map((r) => (
-                <RaceRow key={r.id} race={r} onClick={() => pick(r)} />
-              ))}
-            </ul>
-          ) : (
-            <p className="panel__note">No seats have changed parties among called races.</p>
-          )}
         </>
       )}
     </div>

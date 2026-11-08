@@ -2,7 +2,7 @@ import { PARTY } from "../lib/colors";
 import { centralTime, pct, votes } from "../lib/format";
 import { raceShift, shiftText, type Baseline } from "../lib/shift";
 import { stateName } from "../lib/states";
-import { statusText } from "../lib/status";
+import { statusParts, statusText } from "../lib/status";
 import { measureShortTitle, raceTitle } from "../lib/summary";
 import type { Candidate, Race } from "../lib/types";
 
@@ -31,9 +31,7 @@ export function RaceShare({ race, baseline, hash }: { race: Race; baseline: Base
   const title = measure ? measureShortTitle(race) : raceTitle(race);
   const kind = measure ? `${stateName(race.state)} ballot measure` : race.office === "H" ? "U.S. House" : race.office === "S" ? "U.S. Senate" : "Governor's race";
   const kicker = `Nov. 3, 2026 · ${kind}${race.special ? " · Special election" : ""}`;
-  // "Winner called" and a call time say the same thing twice: the time takes the words' place.
-  const status = statusText(race);
-  const line = race.calledAt ? (status.startsWith("Winner called") ? status.replace("Winner called", `Called ${centralTime(race.calledAt)}`) : `${status} · Called ${centralTime(race.calledAt)}`) : status;
+  const line = statusParts(race).join(" · ");
   const shift = baseline ? raceShift(race, baseline) : null;
   const meta = cardMeta(race, hash);
   return (

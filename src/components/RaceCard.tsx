@@ -2,7 +2,7 @@ import { PARTY } from "../lib/colors";
 import { centralTime, pct, votes } from "../lib/format";
 import type { HistoryPoint } from "../lib/history";
 import { countyFlips, countyFlipsText, headToHead, raceShift, shiftText, turnoutVs2024, type Baseline } from "../lib/shift";
-import { rcvNote, statusText } from "../lib/status";
+import { calledText, rcvNote, statusParts } from "../lib/status";
 import { Sparkline } from "./Sparkline";
 import { raceTitle } from "../lib/summary";
 import type { CountyResults, Race } from "../lib/types";
@@ -34,13 +34,15 @@ export function RaceCard({
         <H>{raceTitle(race)}</H>
         <p className={race.winner ? "status" : "status status--open"}>
           {race.flip && race.winner && race.prior ? (
-            <span className="flip-tag" style={{ borderColor: PARTY[race.winner] }}>
-              Flipped from {race.prior === "D" ? "Democrat" : "Republican"}
-            </span>
+            <>
+              <span className="flip-tag" style={{ borderColor: PARTY[race.winner] }}>
+                Flipped from {race.prior === "D" ? "Democrat" : "Republican"}
+              </span>
+              {calledText(race) && <span>{calledText(race)}</span>}
+            </>
           ) : (
-            <span>{statusText(race)}</span>
+            statusParts(race).map((part) => <span key={part}>{part}</span>)
           )}
-          {race.calledAt && <span>Called {centralTime(race.calledAt)}</span>}
         </p>
       </header>
       <ol className="cands">
