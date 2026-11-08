@@ -241,7 +241,7 @@ year has a page of its own, reachable three ways and shareable as a link.
 `document.body` resizes (standard WPR shape, same as wpr-auto-loan and wpr-tip-desk). The snippet forwards the article's
 hash into the iframe so a shared link opens on the right view, and passes the article URL as `?host=` so "Copy link"
 (`src/lib/share.ts`) produces an article link, not the Pages URL. Only `https://*.wausaupilotandreview.com` is accepted as a host.
-`allow="clipboard-write"` is what lets the copy button work inside the frame.
+`allow="clipboard-write; web-share"` is what lets the copy buttons and the share sheet work inside the frame.
 
 Another newsroom embeds the same page with `?home=<its state>` and without `?host=` (Copy link then gives the Pages URL, since only
 WPR's domain is accepted as a host): `f.src = 'https://rowanflynnpilot.github.io/wpr-national-midterm-2026/?home=MN' + location.hash;`
@@ -256,7 +256,7 @@ last thing to know.
   f.src = 'https://rowanflynnpilot.github.io/wpr-national-midterm-2026/?host='
     + encodeURIComponent(location.origin + location.pathname) + location.hash;
   f.style.cssText = 'width:100%;border:0;min-height:900px';
-  f.allow = 'clipboard-write';
+  f.allow = 'clipboard-write; web-share';
   f.title = '2026 midterm election results';
   window.addEventListener('message', function (e) {
     if (e.origin !== 'https://rowanflynnpilot.github.io') return;
@@ -326,6 +326,18 @@ whole); it is for the newsroom and does not print. `parseHash`/`toHash` moved to
   the measures tally and, from the 2024 baseline, how far the Senate vote moved). `scripts/share-image.mjs` screenshots it to
   `dist/share.png` as the last step of `npm run build` and stamps `?v=<fetched>` onto the og:image URL in `dist/index.html`
   so crawlers refetch after each data run. Open Graph and Twitter tags live in `index.html`.
+- **A card and a link for every race** (Nov. 7, night). `share.html#<race hash>` renders `RaceShare` (the race's title, where it
+  stands, up to four candidates with photos or an initial disc, shares, votes and the shift line; a measure's title gets
+  smaller type and three lines). The same script walks every race hash (the page lists them in `#card-index`, so the route
+  grammar stays in TypeScript), screenshots each to `dist/share/<hash>.jpg` (JPEG: 639 cards are 37 MB, about 40 s a build)
+  and writes `dist/s/<hash>.html`, a stub page whose meta tags carry that card (`cardMeta` in `RaceShare.tsx`, copied from the
+  page's `#card-meta`) and whose script sends a reader on to the app at the race's hash, or to the article named by `?to=`
+  when it is on WPR's domain (the publisher pattern is `PUBLISHER` in `share.ts`, read from the page). A hash fragment
+  never reaches a crawler, so this is the only way a shared race link gets its own preview. Stubs are `noindex`.
+- `ShareRace.tsx`, on every race view in the panel and on `race.html`: "Share this race" opens the device's share sheet
+  (`navigator.share`; the iframe needs `allow="web-share"`), else copies the stub link (`raceShareUrl`: `s/<hash>.html`,
+  with `?to=<article>` when embedded), and "Save image" downloads the card. The toolbar's Copy link is unchanged: it copies
+  the view itself (the article hash when embedded), and the stub exists for the preview.
 - `.stale` notice appears when `results.fetched` is more than three hours old (`isStale`, re-checked every minute).
 
 ## Review pass (Nov. 5, 2026, evening)

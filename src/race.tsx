@@ -5,28 +5,22 @@ import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { CountyMap } from "./components/CountyMap";
 import { RaceCard } from "./components/RaceCard";
+import { ShareRace } from "./components/ShareRace";
 import { loadAtlas, loadBaseline, loadCountySet, loadHistory, loadResults } from "./lib/data";
 import { EMBED_ID, initEmbedHeight } from "./lib/embed";
 import { centralTime, relativeAge } from "./lib/format";
 import type { Geo } from "./lib/geo";
 import type { History } from "./lib/history";
-import { parseHash, toHash } from "./lib/route";
+import { parseHash, raceFor, toHash } from "./lib/route";
 import { shareUrl } from "./lib/share";
 import type { Baseline } from "./lib/shift";
 import { raceTitle } from "./lib/summary";
-import type { CountyResults, Race, Results, Selection } from "./lib/types";
+import type { CountyResults, Results, Selection } from "./lib/types";
 import "./styles.css";
 import "./compact.css";
 import "./race.css";
 
 const REFRESH_MS = 15 * 60 * 1000;
-
-/** The race a hash names, or null when it names an overview or an unknown race. */
-function findRace(results: Results, sel: Selection): Race | null {
-  if (!sel.state) return null;
-  const r = results.races.find((x) => x.office === sel.office && x.state === sel.state && (sel.office === "H" || sel.office === "B" ? x.district === sel.district : true));
-  return r ?? null;
-}
 
 function RaceEmbed({ initial, sel }: { initial: Results; sel: Selection }) {
   const [results, setResults] = useState(initial);
@@ -57,7 +51,7 @@ function RaceEmbed({ initial, sel }: { initial: Results; sel: Selection }) {
     };
   }, [countyOffice, results.fetched]);
 
-  const race = findRace(results, sel);
+  const race = raceFor(results.races, sel);
   if (!race) return <p className="load-error">No race matches this link.</p>;
   const ago = relativeAge(results.updated, now);
   const full = shareUrl(window.location.search, `#${toHash(sel)}`, new URL("./", window.location.href).href);
@@ -73,6 +67,9 @@ function RaceEmbed({ initial, sel }: { initial: Results; sel: Selection }) {
       </header>
       <RaceCard race={race} heading="h1" points={history[String(race.id)]} baseline={baseline} counties={counties} />
       {countyOffice && counties && geo && <CountyMap race={race} counties={counties} geo={geo} />}
+      <div className="race-actions">
+        <ShareRace race={race} />
+      </div>
       <a className="compact__more" href={full} target="_top">
         Every race, every state, every county →
       </a>
@@ -89,7 +86,7 @@ initEmbedHeight(`${EMBED_ID}-race-${toHash(sel)}`);
 root.render(<p className="loading">Loading the race…</p>);
 loadResults()
   .then((results) => {
-    const race = findRace(results, sel);
+    const race = raceFor(results.races, sel);
     document.title = `${race ? raceTitle(race) : "Race"}: 2026 result — Wausau Pilot & Review`;
     root.render(
       <StrictMode>

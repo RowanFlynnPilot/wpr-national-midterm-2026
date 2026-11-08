@@ -16,6 +16,7 @@ import { CountyView } from "./CountyView";
 import { EmbedRace } from "./EmbedRace";
 import { MarginStrip } from "./MarginStrip";
 import { RaceCard } from "./RaceCard";
+import { ShareRace } from "./ShareRace";
 
 interface Props {
   office: Office;
@@ -267,7 +268,10 @@ function StateView({ office, state, races, counties, geo, history, baseline, onS
       {race ? (
         <>
           <RaceCard race={race} heading="h2" points={history[String(race.id)]} baseline={baseline} counties={countyData} />
-          <EmbedRace race={race} />
+          <div className="race-actions">
+            <ShareRace race={race} />
+            <EmbedRace race={race} />
+          </div>
           {geo && countyData && <CountyMap race={race} counties={countyData} geo={geo} />}
         </>
       ) : (
@@ -387,7 +391,10 @@ function MeasureView({ races, district, counties, geo, history, onSelect }: Prop
     <div className="panel">
       <Back label={`All ${stateName(race.state)} measures`} onClick={() => onSelect("B", race.state, null)} />
       <RaceCard race={race} heading="h2" points={history[String(race.id)]} />
-      <EmbedRace race={race} />
+      <div className="race-actions">
+        <ShareRace race={race} />
+        <EmbedRace race={race} />
+      </div>
       {geo && counties && <CountyMap race={race} counties={counties.B} geo={geo} />}
     </div>
   );
@@ -400,7 +407,10 @@ function DistrictView({ races, district, history, onSelect }: Props & { district
     <div className="panel">
       <Back label={`All ${stateName(race.state)} districts`} onClick={() => onSelect("H", race.state, null)} />
       <RaceCard race={race} heading="h2" points={history[String(race.id)]} />
-      <EmbedRace race={race} />
+      <div className="race-actions">
+        <ShareRace race={race} />
+        <EmbedRace race={race} />
+      </div>
       {raceStatus(race) === "leading" && (
         <p className="panel__note">
           {PARTY_LABEL[race.leader]} {race.cands[0]?.name} leads by {race.marginVotes.toLocaleString("en-US")} votes.

@@ -429,9 +429,64 @@ a {
 
 /* ---------- embed this race (newsroom) ---------- */
 
+.race-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.6rem;
+  margin: 0.5rem 0 0.2rem;
+}
+
+.share-race-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--teal);
+  border-radius: 6px;
+  background: var(--paper-raised);
+  font: 600 0.75rem/1.3 var(--sans);
+  color: var(--teal-ink);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.share-race-link svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.share-race-link.is-copied {
+  background: var(--teal);
+  color: #fff;
+}
+
+.share-race-link--image {
+  border-color: var(--rule-strong);
+  color: var(--ink-2);
+}
+
+.share-race-link--failed {
+  display: grid;
+  gap: 0.3rem;
+  width: 100%;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.share-race-link--failed input {
+  width: 100%;
+  font: 0.6875rem/1.3 var(--mono);
+}
+
 .embed-race {
   display: inline-block;
-  margin: 0.4rem 0 0.2rem;
+  margin: 0;
   padding: 0.3rem 0.7rem;
   border: 1px dashed var(--rule-strong);
   border-radius: 6px;
@@ -1386,6 +1441,7 @@ a {
   .replay__exit,
   .back,
   .embed-race,
+  .share-race-link,
   .map-back,
   .show-all,
   .segmented button {
@@ -3228,7 +3284,7 @@ table.races {
   .patterns__pick,
   .margin-legend .segmented,
   .finder,
-  .embed-race {
+  .race-actions {
     display: none;
   }
   .legend__item {

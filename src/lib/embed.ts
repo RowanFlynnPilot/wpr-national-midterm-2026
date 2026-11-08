@@ -45,7 +45,7 @@ export function raceEmbedSnippet(slug: string, title: string, raceHtml: string):
     "  var f = document.createElement('iframe');",
     `  f.src = '${js(raceHtml)}?host=' + encodeURIComponent(location.origin + location.pathname) + '#${js(slug)}';`,
     "  f.style.cssText = 'width:100%;border:0;min-height:520px';",
-    "  f.allow = 'clipboard-write';",
+    "  f.allow = 'clipboard-write; web-share';",
     `  f.title = '${js(attr(title))}: 2026 result';`,
     "  window.addEventListener('message', function (e) {",
     `    if (e.origin !== '${js(origin)}') return;`,

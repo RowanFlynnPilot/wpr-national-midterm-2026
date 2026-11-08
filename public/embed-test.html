@@ -27,7 +27,7 @@ body{margin:0;background:#fff;color:#222;font:16px/1.6 Georgia,serif}
   var f = document.createElement('iframe');
   f.src = './index.html?host=' + encodeURIComponent('https://wausaupilotandreview.com/embed-test/') + location.hash;
   f.style.cssText = 'width:100%;border:0;min-height:900px;display:block';
-  f.allow = 'clipboard-write';
+  f.allow = 'clipboard-write; web-share';
   f.title = '2026 midterm election results';
   var log = document.getElementById('log');
   window.addEventListener('message', function (e) {

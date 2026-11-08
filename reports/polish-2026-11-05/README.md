@@ -280,3 +280,11 @@ Every county in a state with a Senate or governor race has a shareable page (`#g
 2024. Reached from a combobox at the top of every overview panel ("How did your county vote?"), a click on a county inside
 a zoomed state, or a link. The home state can also come from `?home=` so another newsroom can embed the page around its
 own state. Screenshots: `county-wi`, `county-panel`, `county-map`, `county-finder`, `senate-home-mn`.
+
+## A card for every race (Nov. 7, night)
+
+Every race has a 1200×630 share card (`dist/share/<hash>.jpg`) and a stub page (`dist/s/<hash>.html`) carrying it in its
+Open Graph and Twitter tags, so a shared race link previews as that race rather than as the national card. "Share this
+race" and "Save image" sit on every race view and on the single-race embed. Checked by eye: Wisconsin governor, Maine Senate
+(flip wording), Mississippi Senate (three candidates), Florida Amendment 3 (a 113-character title), Florida District 10
+(unopposed, no votes).

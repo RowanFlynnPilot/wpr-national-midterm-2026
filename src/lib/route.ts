@@ -22,5 +22,11 @@ export function toHash({ office, state, district, county }: Selection): string {
   return [OFFICE_SLUG[office], state?.toLowerCase(), district?.split("-")[1]?.toLowerCase() ?? county].filter(Boolean).join("-");
 }
 
+/** The race a selection names, or null for an overview, a state list or an unknown race. */
+export function raceFor(races: Race[], sel: Selection): Race | null {
+  if (!sel.state) return null;
+  return races.find((r) => r.office === sel.office && r.state === sel.state && (sel.office === "H" || sel.office === "B" ? r.district === sel.district : true)) ?? null;
+}
+
 /** The district key a race's own view needs: a House district or a measure carries it, a statewide race does not. */
 export const raceDistrict = (r: Race): string | null => (r.office === "H" || r.office === "B" ? r.district : null);
