@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { PALE, PARTY, PARTY_LABEL } from "../lib/colors";
-import { apNumber, marginText, pct, timeAgo } from "../lib/format";
+import { apNumber, marginText, pct, reportingShare, timeAgo } from "../lib/format";
 import { raceDistrict, raceFor } from "../lib/route";
 import { HOME_STATE, stateName } from "../lib/states";
 import { RUNOFF, noVotesYet, raceFill, raceStatus } from "../lib/status";
@@ -56,7 +57,7 @@ export function SidePanel(props: Props) {
       </>
     );
   }
-  return <Overview {...props} />;
+  return <Overview key={office} {...props} />; // keyed so an expanded list folds back when the office changes
 }
 
 /**
@@ -64,10 +65,11 @@ export function SidePanel(props: Props) {
  * changed parties. App lays them under the map on wide screens (the panel had run a screen past the map there) and after
  * the panel when the board is stacked, which is where they read before.
  */
-export function OverviewLists({ office, chamber, now, onSelect }: Pick<Props, "office" | "chamber" | "now" | "onSelect">) {
+export function OverviewLists({ office, chamber, races, now, onSelect }: Pick<Props, "office" | "chamber" | "races" | "now" | "onSelect">) {
   const pick = (r: Race) => onSelect(office, r.state, raceDistrict(r));
   const flips = office === "S" || office === "G";
-  if (!chamber.latestCalls.length && !chamber.runoffs.length && !flips) return null;
+  const failed = office === "B" ? races.filter((r) => r.office === "B" && r.winner === "N") : [];
+  if (!chamber.latestCalls.length && !chamber.runoffs.length && !flips && !failed.length) return null;
   return (
     <div className="board__under">
       {chamber.latestCalls.length > 0 && (
@@ -112,6 +114,18 @@ export function OverviewLists({ office, chamber, now, onSelect }: Pick<Props, "o
           )}
         </section>
       )}
+      {failed.length > 0 && (
+        <section className="board__list" aria-labelledby="failed-title">
+          <h2 id="failed-title" className="panel__title">
+            Measures that failed
+          </h2>
+          <ul className="race-rows">
+            {failed.map((r) => (
+              <RaceRow key={r.id} race={r} onClick={() => pick(r)} />
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }
@@ -144,6 +158,8 @@ function RaceRow({ race, onClick, showOffice = false, when, points }: RowProps) 
   if (!lead) return null;
   const status = raceStatus(race);
   const measure = race.office === "B";
+  const share = reportingShare(race.pctIn, race.total);
+  const inText = share ? `${share} in` : "share not given";
   const [big, small] =
     noVotesYet(race)
       ? ["—", "no votes yet"]
@@ -154,8 +170,8 @@ function RaceRow({ race, onClick, showOffice = false, when, points }: RowProps) 
       : status === "runoff"
         ? ["Runoff", "no majority"]
         : status === "decided"
-          ? [`${race.partyDecided} seat`, `${Math.round(race.pctIn)}% in`]
-          : [race.margin < 0.1 ? "<0.1" : `+${marginText(race.margin)}`, `${Math.round(race.pctIn)}% in`];
+          ? [`${race.partyDecided} seat`, inText]
+          : [race.margin < 0.1 ? "<0.1" : `+${marginText(race.margin)}`, inText];
   // "Question 2 - Prohibit Closing..." splits into the label and the subject; a title without a dash stays whole.
   const [measureLabel, measureSubject] = measure ? splitMeasureTitle(measureShortTitle(race)) : [null, null];
   const where = showOffice ? (measureLabel ?? OFFICE_SINGULAR[race.office]) : shortTitle(race);
@@ -186,14 +202,16 @@ function RaceRow({ race, onClick, showOffice = false, when, points }: RowProps) 
   );
 }
 
-const COUNTING_LISTED = 40;
+const COUNTING_LISTED = 12; // the panel then ends near the map; a button shows the rest in place
 
 function Overview({ office, chamber, popularVote, races, history, geo, onSelect }: Props) {
+  const [showAll, setShowAll] = useState(false);
   const counting = chamber.uncalled.filter((r) => !r.runoff);
-  const listed = counting.slice(0, COUNTING_LISTED); // mid-replay, hundreds are uncalled; the table has them all
+  const listed = showAll ? counting : counting.slice(0, COUNTING_LISTED);
   const pick = (r: Race) => onSelect(office, r.state, raceDistrict(r));
   const measures = office === "B";
-  const failed = measures ? races.filter((r) => r.office === "B" && r.winner === "N") : [];
+  // civicAPI is slow to call measures: on Nov. 8, 40 of the 68 it had not called stood at 99.9% reporting.
+  const counted = measures ? counting.filter((r) => r.pctIn >= 99).length : 0;
   const homeSeats = races.filter((r) => r.office === "H" && r.state === HOME_STATE).length;
   return (
     <div className="panel">
@@ -212,29 +230,26 @@ function Overview({ office, chamber, popularVote, races, history, geo, onSelect 
         </section>
       )}
       <HomeGlance races={races} onSelect={onSelect} />
-      <h2 className="panel__title">{measures ? "Measures" : `${OFFICE_NAME[office] === "Governors" ? "Governor" : OFFICE_NAME[office]} races`} still being counted</h2>
+      <h2 className="panel__title">{measures ? "Measures not yet called" : `${OFFICE_NAME[office] === "Governors" ? "Governor" : OFFICE_NAME[office]} races still being counted`}</h2>
       {counting.length ? (
         <>
-          <p className="panel__note">Closest first. Leads are in percentage points.</p>
+          <p className="panel__note">
+            Closest first. Leads are in percentage points.
+            {counted > 0 && ` civicAPI is slow to call measures: ${counted} of these ${counting.length} are at least 99% counted.`}
+          </p>
           <ul className="race-rows">
             {listed.map((r) => (
               <RaceRow key={r.id} race={r} points={history[String(r.id)]} onClick={() => pick(r)} />
             ))}
           </ul>
-          {counting.length > listed.length && <p className="panel__note">And {counting.length - listed.length} more; every race is in the table below.</p>}
+          {counting.length > listed.length && (
+            <button type="button" className="show-all" onClick={() => setShowAll(true)}>
+              Show all {counting.length} {measures ? "measures" : "races"}
+            </button>
+          )}
         </>
       ) : (
         <p className="panel__note">Every {measures ? "measure" : `${OFFICE_SINGULAR[office].toLowerCase()} race`} has been called.</p>
-      )}
-      {measures && failed.length > 0 && (
-        <>
-          <h2 className="panel__title">Measures that failed</h2>
-          <ul className="race-rows">
-            {failed.map((r) => (
-              <RaceRow key={r.id} race={r} onClick={() => pick(r)} />
-            ))}
-          </ul>
-        </>
       )}
     </div>
   );

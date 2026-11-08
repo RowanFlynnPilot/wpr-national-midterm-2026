@@ -1,6 +1,6 @@
 import { PARTY, PARTY_LABEL } from "../lib/colors";
 import { countyColumns, readCounty } from "../lib/data";
-import { pct, timeAgo, votes } from "../lib/format";
+import { pct, reportingText, timeAgo, votes } from "../lib/format";
 import { countyFlip, countyFlips, countyFlipsText, countyShift, raceShift, shiftText, type Baseline } from "../lib/shift";
 import { stateName } from "../lib/states";
 import { statusText } from "../lib/status";
@@ -106,7 +106,7 @@ function TipBody({ target, race, counties, baseline, now }: { target: TipTarget;
           {target.name}, {target.state}
         </div>
         <div className="tooltip__status">
-          {reading ? `${Math.round(reading.pctIn)}% reporting` : "No votes reported yet"}
+          {reading ? reportingText(reading.pctIn, reading.total) : "No votes reported yet"}
         </div>
         {reading && (
           <ul className="tooltip__rows">
@@ -134,7 +134,7 @@ function TipBody({ target, race, counties, baseline, now }: { target: TipTarget;
   const flips = baseline && counties ? countyFlips(race, counties[String(race.id)] ?? {}, baseline) : null;
   const lead = race.cands[0];
   const photo = lead?.photo && lead.party !== "O" ? `./headshots/${lead.photo}` : null;
-  const timing = race.winner && race.calledAt ? `Called ${timeAgo(race.calledAt, now)}` : !race.winner && !race.runoff ? `${Math.round(race.pctIn)}% reporting` : null;
+  const timing = race.winner && race.calledAt ? `Called ${timeAgo(race.calledAt, now)}` : !race.winner && !race.runoff ? reportingText(race.pctIn, race.total) : null;
   return (
     <>
       <div className={photo ? "tooltip__head tooltip__head--photo" : "tooltip__head"}>

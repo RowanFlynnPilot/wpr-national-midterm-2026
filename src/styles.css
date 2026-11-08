@@ -412,7 +412,7 @@ a {
 }
 
 .analysis__grid--one {
-  grid-template-columns: minmax(0, 36rem);
+  grid-template-columns: minmax(0, 1fr); /* a measure's band holds one block; at half width its bars were short and the right half blank */
 }
 
 .analysis .panel__title {

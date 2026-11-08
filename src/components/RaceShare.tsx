@@ -1,5 +1,5 @@
 import { PARTY } from "../lib/colors";
-import { centralTime, pct, votes } from "../lib/format";
+import { centralTime, pct, reportingShare, reportingText, votes } from "../lib/format";
 import { raceShift, shiftText, type Baseline } from "../lib/shift";
 import { stateName } from "../lib/states";
 import { statusParts, statusText } from "../lib/status";
@@ -12,7 +12,9 @@ const ROWS = 4; // candidates shown; the rest of a crowded ballot is in the app
 export function cardMeta(race: Race, hash: string): { hash: string; title: string; description: string; alt: string } {
   const [a, b] = race.cands.filter((c) => c.party !== "O");
   const lead = a ? `${a.name} ${pct(a.pct)}` : "";
-  const standing = race.total === 0 ? "" : b ? ` ${lead}, ${b.name} ${pct(b.pct)}; ${Math.round(race.pctIn)}% reporting.` : ` ${lead}; ${Math.round(race.pctIn)}% reporting.`;
+  const share = reportingShare(race.pctIn, race.total);
+  const reporting = share ? `; ${share} reporting.` : ".";
+  const standing = race.total === 0 ? "" : b ? ` ${lead}, ${b.name} ${pct(b.pct)}${reporting}` : ` ${lead}${reporting}`;
   const status = statusText(race);
   return {
     hash,
@@ -54,7 +56,7 @@ export function RaceShare({ race, baseline, hash }: { race: Race; baseline: Base
       </main>
       <footer className="share__foot">
         <span>
-          {noVotes ? "No votes reported" : `${Math.round(race.pctIn)}% reporting · ${votes(race.total)} votes`} · Updated {centralTime(race.updated)}
+          {noVotes ? "No votes reported" : `${reportingText(race.pctIn, race.total)} · ${votes(race.total)} votes`} · Updated {centralTime(race.updated)}
         </span>
         <span>wausaupilotandreview.com</span>
       </footer>

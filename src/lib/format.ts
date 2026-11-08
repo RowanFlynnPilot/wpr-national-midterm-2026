@@ -12,6 +12,20 @@ export function marginText(points: number): string {
   return points < 0.1 ? "<0.1" : points.toFixed(1);
 }
 
+/**
+ * civicAPI's percent reporting as "74%", or null when it gives none for a race that has votes (the two Alaska
+ * measures carry 0 beside 200,000 votes): a zero next to a count is a missing figure, not a share.
+ */
+export function reportingShare(pctIn: number, total: number): string | null {
+  return pctIn === 0 && total > 0 ? null : `${Math.round(pctIn)}%`;
+}
+
+/** "74% reporting", or the words for a share civicAPI did not give. */
+export function reportingText(pctIn: number, total: number): string {
+  const share = reportingShare(pctIn, total);
+  return share ? `${share} reporting` : "Share reporting not given";
+}
+
 const AP_MONTHS = ["Jan.", "Feb.", "March", "April", "May", "June", "July", "Aug.", "Sept.", "Oct.", "Nov.", "Dec."];
 const CENTRAL = new Intl.DateTimeFormat("en-US", {
   timeZone: "America/Chicago",

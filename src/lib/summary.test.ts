@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { RESULTS, race } from "./fixture";
 import { chamber, controller, dek, headline, housePopularVote, secured } from "./summary";
+import type { Race } from "./types";
 
 const senate = chamber(RESULTS, "S");
 const house = chamber(RESULTS, "H");
@@ -37,13 +38,19 @@ describe("chamber", () => {
     expect(governors.flips.map((r) => r.state)).toEqual(["NV", "TX"]);
     expect(house.flips).toEqual([]); // House flips are deliberately not tracked
   });
+  it("puts a race with no votes yet after the close ones, not first", () => {
+    const open = RESULTS.races.find((r) => r.office === "S" && !r.winner) as Race;
+    const empty: Race = { ...open, id: 1, state: "ZZ", total: 0, margin: 0, marginVotes: 0 };
+    const c = chamber({ ...RESULTS, races: [...RESULTS.races, empty] }, "S");
+    expect(c.uncalled.map((r) => r.state)).toEqual(["MS", "AK", "ZZ"]);
+  });
   it("tallies ballot measures as passed (Y), failed (N) and leading, with no majority line", () => {
     const measures = chamber(RESULTS, "B");
     expect(measures.total).toBe(4);
     expect(measures.majority).toBe(0);
     expect(measures.won).toEqual({ D: 0, R: 0, I: 0, O: 0, Y: 1, N: 1 }); // WI Question 3 / MO Amendment 3
     expect(measures.leading).toEqual({ D: 0, R: 0, I: 0, O: 0, Y: 1, N: 1 }); // VA Question 1 (no votes yet) / CA Proposition 4
-    expect(measures.uncalled.map((r) => r.state)).toEqual(["VA", "CA"]); // closest first; no votes counts as a zero margin
+    expect(measures.uncalled.map((r) => r.state)).toEqual(["CA", "VA"]); // VA has no votes yet, so it follows the close count // closest first; no votes counts as a zero margin
   });
   it("lists the latest calls newest first, skipping calls civicAPI gave no timestamp", () => {
     expect(race("H", "NY-21").calledAt).toBeNull();

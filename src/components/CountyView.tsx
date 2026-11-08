@@ -1,6 +1,6 @@
 import { PARTY } from "../lib/colors";
 import { countyColumns, readCounty } from "../lib/data";
-import { pct, votes } from "../lib/format";
+import { pct, reportingText, votes } from "../lib/format";
 import type { Geo } from "../lib/geo";
 import type { Demographics } from "../lib/patterns";
 import { raceDistrict } from "../lib/route";
@@ -114,7 +114,7 @@ function CountyRace({ race, row, loading, fips, baseline, onOpen }: { race: Race
             )}
           </ul>
           <p className="county-race__foot">
-            {Math.round(reading.pctIn)}% reporting · {votes(reading.total)} votes
+            {reportingText(reading.pctIn, reading.total)} · {votes(reading.total)} votes
             {turnout !== null && ` · ${Math.round(turnout)}% of the county’s 2024 presidential vote`}
           </p>
           {shift && (

@@ -84,6 +84,11 @@ before any data arrives.
 - County rows: `[pctReporting, votes for race.cands[0..2] (excluding Others), all other votes]`. New England and Alaska use civicAPI's County/Borough aggregate rows, not towns or House districts.
 - Alaska: civicAPI uses the 2019 split census areas (02063, 02066); us-atlas still draws Valdez-Cordova (02261), so they're merged (`FIPS_MERGE`).
 - A few counties come without FIPS (Le Flore OK, Lewis and Clark MT, Oglala Lakota SD, three MN); resolved by name against us-atlas. Any unresolved county fails the build.
+- `pipeline/exclusions.json` — hand-maintained list of civicAPI race ids its Nov. 3 search returns that were not on the Nov. 3 ballot
+  (`{"<id>": "<reason>"}`; the Kansas Supreme Court Justices Amendment was decided at the Aug. 4 primary and sat here with no votes).
+  `build.py` drops them before anything else and fails if an id is no longer in the search, so a stale line gets removed. It also prints a
+  note for any race with no votes and no update since before Election Day; that is not a failure, because Virginia's three questions sat
+  like that for two days before civicAPI filled them.
 - `pipeline/baselines.json` — hand-maintained pre-election seat holders (Senate and governor by state) and pre-election totals. House baseline = 2024 result (D 215, R 220).
 
 ## Race status rules (`src/lib/status.ts`, `pipeline/build.py`)
@@ -99,6 +104,12 @@ before any data arrives.
 
 - **No House seat-by-seat flips.** civicAPI flags only ~50 of ~370 incumbents, and several states redrew maps in 2025–26. The House shows called/leading only; the panel explains why.
 - `percent_reporting` is civicAPI's figure, labeled "% reporting". Some states show 100% while uncalled (CA counts ballots for weeks).
+  Alaska's two measures carry 0 beside 200,000 votes: civicAPI gives them no share. `reportingShare` / `reportingText` in `format.ts` is
+  the one rule for printing it (card, share card, table, rows, tooltips, county page, sparkline, takeaway): a zero beside a count is a
+  missing figure and reads "Share reporting not given" (or a dash in the table), never 0%.
+- civicAPI is slow to call measures: on Nov. 8 it had called 62 of 130, and 40 of the 68 uncalled stood at 99.9% reporting with leads up
+  to 63 points. The panel's list is headed "Measures not yet called" and its note counts how many are at least 99% counted; the calls stay
+  civicAPI's.
 - `calledAt` is missing on ~34 races civicAPI called without a timestamp; the card shows "Winner called" for those. With a
   timestamp the time takes the words' place ("Called Nov. 3, 10:32 p.m. CST"): `statusParts` in `status.ts` is the one rule,
   for the race card and the share card.
@@ -118,7 +129,7 @@ Each district's target = vote-weighted centroid of the counties it covers (from 
 - `HOME_STATE` (`src/lib/states.ts`) drives the Wisconsin shortcut: a toolbar chip that selects it on the current tab, a resting teal outline on both maps (replaced by the selected outline once picked), the "Wisconsin at a glance" block (Senate and governor races, then the measures, then the House delegation; `GLANCE_ORDER`) at the top of every overview panel, the outlined dots on the House margin strip and the last "thing to know". It is "WI" unless the page is opened with `?home=<postal code>` (`homeState`), so another newsroom can embed the tool around its own state (see WordPress embed); an unknown code fails the page at load, since it is a setup error. The masthead, the sales copy and the headline stay WPR's.
 - `RaceTable.tsx`: each row expands (chevron, or click the row) into the full `RaceCard` with every candidate, votes, photos, call and update times and the count sparkline, plus an "Open on the map" button; the state cell still opens the panel. Columns: State/District, Leading candidate (sortable by share), Runner-up, Margin (with the trend glyph), Reporting, Votes, Called (relative time; "No time given" for calls civicAPI left unstamped), Status. Filters: All, Not called, Flipped (Senate and governors), Within 5 points. A summary line counts called and not called; "Download CSV" writes the filtered, sorted rows via `src/lib/csv.ts` (one row per race, top two candidates spelled out, status and timing). Reporting, Votes and Called hide under 960px (they are in the expanded row; with them the table scrolled sideways on tablets), Runner-up under 700px.
 - Map pass (Nov. 6): the key (`Legend.tsx`) is a row of toggle buttons on the states and hex views; pressing one spotlights those races (`legendKey`/`inSpotlight` in `status.ts`, `spotlight` state in App, cleared when the office or mode changes; "Seat flipped" and "Called in the last 3 hours" are entries too; the latter appears only while `isFresh` finds one, `FRESH_MS`) and dims everything else to 22% (`.is-out`, `.is-dim`); "Show all" clears it. Fresh calls get a dashed teal ring (`.fresh-outlines`, `.hex--fresh`). Hover is an ink outline drawn on top (`.hover-outline`, `.hex-hover`) rather than a darkened fill, fills cross-fade over 400 ms when a refresh changes a call, both maps fade in once on mount (`map-in`, off under reduced motion) and the state group and hex blob carry one soft drop shadow for elevation. The tooltip leads with the leader's headshot (when the manifest has one), the call time or % reporting, and a share bar per candidate. A zoomed state names its five biggest counties by votes (`.county-labels`, 9px scaled by `zoomScale`, skipping any within `LABEL_GAP` of a bigger one; hidden under 700px where they would be 3px).
-- Replay election night (`src/lib/replay.ts`, `Replay.tsx`): `callOrder` is every timestamped call oldest first; position i of the scrubber shows `resultsAfter(results, i, calls)`, the results with every later call undone (winner, flip, call time and the candidate's winner flag cleared; leads and votes stay as they are today, since the count history starts later). The ~34 calls civicAPI left unstamped are undone at every position but the last. App derives `results` from the live results and the position, so the maps, tabs, headline, panel and table all replay together, and the board's `clock` is the position's call time (so "Called in the last 3 hours" and the latest-calls ages follow the replay); the masthead and the stale notice keep the real time. Play steps one call every 45 ms; the control shows on the states and hex views and the measures map, and leaving the states mode exits the replay. The overview's "still being counted" list caps at 40 rows (`COUNTING_LISTED`), since mid-replay hundreds are uncalled.
+- Replay election night (`src/lib/replay.ts`, `Replay.tsx`): `callOrder` is every timestamped call oldest first; position i of the scrubber shows `resultsAfter(results, i, calls)`, the results with every later call undone (winner, flip, call time and the candidate's winner flag cleared; leads and votes stay as they are today, since the count history starts later). The ~34 calls civicAPI left unstamped are undone at every position but the last. App derives `results` from the live results and the position, so the maps, tabs, headline, panel and table all replay together, and the board's `clock` is the position's call time (so "Called in the last 3 hours" and the latest-calls ages follow the replay); the masthead and the stale notice keep the real time. Play steps one call every 45 ms; the control shows on the states and hex views and the measures map, and leaving the states mode exits the replay. The overview's "still being counted" list shows 12 rows (`COUNTING_LISTED`) and a "Show all N" button that expands it in place (`Overview` is keyed by office so it folds back on a tab change); mid-replay hundreds are uncalled.
 - Since your last visit (`src/lib/visits.ts`, `SinceVisit.tsx`): localStorage keeps the ids of the races this browser had seen called and when (`wpr-midterm-2026-last-visit`, written on every results load, read once at mount before the first write); the strip under the tabs lists the races called since, newest first, five shown plus a count, dismissable, hidden during replay. Storage failures (private windows) leave the page as it was. Nothing leaves the browser.
 - How close the House was (`MarginStrip.tsx`, on the House overview): every district as one dot on a margin axis in 2-point columns, Democratic wins left and Republican right, full color when called and pale when leading, Wisconsin's districts outlined in ink, each dot clickable with a native title. The 38-and-over columns hold dozens of safe seats each and are drawn as one labeled bar so they don't flatten the rest; a home-state seat there stays a dot. Dot pitch shrinks only as far as the tallest ordinary column needs.
 - Print (`@media print`): controls, replay, the visit strip, tooltips, the open sponsor slot and expanders are hidden, the key reads as plain entries, the map shadows go, the table starts a new page and links print as text.
@@ -360,7 +371,20 @@ whole); it is for the newsroom and does not print. `parseHash`/`toHash` moved to
   where those lists read before). At laptop width the panel had run about a thousand pixels past the map, leaving the
   column under the map blank; now the panel beside the map holds the finder, the glance and the races still being counted,
   and the lists lay out `auto-fill` at panel width (two on a tablet, one on a phone). The measures and House panels still run
-  long when their still-counting lists do (`COUNTING_LISTED` 40); that is the data, not the layout.
+  long when their still-counting lists did (`COUNTING_LISTED` 40); the second round below capped the list.
+
+## Polish pass, second round (Nov. 8, 2026, afternoon)
+
+- **A Kansas measure that was not on the ballot** is excluded in the pipeline (`pipeline/exclusions.json`, see Pipeline).
+- **Races with no votes yet sort last** among the uncalled (`chamber.uncalled` in `summary.ts`): a zero margin is not a close count, and
+  they had led a list captioned "Closest first".
+- **One rule for a missing reporting share** (`reportingShare`, see Known data limits).
+- **The panel ends near the map on every tab.** The still-counting list shows 12 rows and a "Show all N" button (the House had 29 rows and
+  the measures 40, running 1,300 and 3,000 px past the map at 1280), and "Measures that failed" moved under the map into `OverviewLists`
+  beside the latest calls, where the Senate's flips already sit.
+- **A measure's analysis band spans the width**: `.analysis__grid--one` was capped at 36rem, leaving the right half blank and the result
+  bars short.
+- The gate gained `measures-ak` (the rows without a share) and `measures-lists` (the under-map lists on the measures tab; clip `under`).
 - The House caption is "One hexagon per House district, placed near its voters", one line beside the controls at 1280.
 - The partner page's preview frame loads lazily, after the text and the snippet.
 

@@ -36,6 +36,8 @@ const VIEWS = {
   "missing-measure": { hash: "#measures-wi-1", clip: "panel" }, // a link that names no race: the state's list with a notice, not a blank page
   "missing-county": { hash: "#governors-wi-55999", clip: "panel" },
   "missing-district": { hash: "#house-wi-99", clip: "panel" },
+  "measures-ak": { hash: "#measures-ak", clip: "panel" }, // civicAPI gives Alaska's measures no reporting share: the rows say so instead of 0%
+  "measures-lists": { hash: "#measures", clip: "under" }, // the latest calls and the failed measures under the map
   "senate-spotlight": { hash: "#senate", click: '.legend__item:has-text("Seat flipped")', clip: "map" },
   "senate-spotlight-legend": { hash: "#senate", click: '.legend__item:has-text("Democrat leads")', clip: "legend" },
   "senate-replay": { hash: "#senate", click: ".replay-start", fill: [".replay__scrub", "120"], clip: "legend" },
@@ -65,7 +67,7 @@ const aborted = (r) => r.failure()?.errorText === "net::ERR_ABORTED";
 
 // clip: screenshot one region instead of the page. It is scrolled into view before any hover, because an element
 // screenshot scrolls to its target, and a pointer left behind by that scroll would leave the hovered element.
-const CLIPS = { map: ".map-frame", table: ".table-section", legend: ".board__map", panel: ".board__panel", since: ".since", chambers: ".chambers-frame", takeaways: ".takeaways", analysis: ".analysis-slot" };
+const CLIPS = { map: ".map-frame", table: ".table-section", legend: ".board__map", panel: ".board__panel", under: ".board__under", since: ".since", chambers: ".chambers-frame", takeaways: ".takeaways", analysis: ".analysis-slot" };
 
 const [outDir = "screens", ...only] = process.argv.slice(2);
 const names = only.length ? only.filter((n) => n !== "compact" && n !== "race" && n !== "partners") : Object.keys(VIEWS);

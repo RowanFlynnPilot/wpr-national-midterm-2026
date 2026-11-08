@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { apNumber, centralTime, marginText, relativeAge, timeAgo } from "./format";
+import { apNumber, centralTime, marginText, relativeAge, reportingShare, reportingText, timeAgo } from "./format";
 
 describe("apNumber", () => {
   it("spells out one through nine and formats larger numbers", () => {
@@ -14,6 +14,16 @@ describe("marginText", () => {
   it("shows one decimal and a floor for near-ties", () => {
     expect(marginText(2.26)).toBe("2.3");
     expect(marginText(0.04)).toBe("<0.1");
+  });
+});
+
+describe("reportingShare", () => {
+  it("rounds the share, and gives none for a zero beside a vote count", () => {
+    expect(reportingShare(73.9, 214_246)).toBe("74%");
+    expect(reportingShare(0, 0)).toBe("0%"); // nothing counted yet: zero is the truth
+    expect(reportingShare(0, 204_985)).toBeNull(); // Alaska's measures: civicAPI gives no share
+    expect(reportingText(99.9, 1_912_061)).toBe("100% reporting");
+    expect(reportingText(0, 204_985)).toBe("Share reporting not given");
   });
 });
 

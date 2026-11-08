@@ -1,5 +1,5 @@
 import { PARTY, PARTY_LABEL } from "../lib/colors";
-import { marginText } from "../lib/format";
+import { marginText, reportingShare } from "../lib/format";
 import { readings, side, spanText, type HistoryPoint } from "../lib/history";
 import type { Race } from "../lib/types";
 
@@ -17,7 +17,8 @@ export function Sparkline({ race, points }: { race: Race; points: HistoryPoint[]
   const y = (m: number) => H / 2 - ((H / 2 - PAD) * m) / peak;
   const d = series.map((r, i) => `${i ? "L" : "M"}${x(r.t).toFixed(1)},${y(r.margin).toFixed(1)}`).join("");
   const color = PARTY[current];
-  const label = `${PARTY_LABEL[current]} ${last.margin >= 0 ? "ahead" : "behind"} by ${marginText(Math.abs(last.margin))} points, from ${first.margin >= 0 ? "ahead" : "behind"} by ${marginText(Math.abs(first.margin))} over ${spanText(points)}; reporting ${Math.round(first.pctIn)}% to ${Math.round(last.pctIn)}%`;
+  const s0 = reportingShare(first.pctIn, race.total), s1 = reportingShare(last.pctIn, race.total);
+  const label = `${PARTY_LABEL[current]} ${last.margin >= 0 ? "ahead" : "behind"} by ${marginText(Math.abs(last.margin))} points, from ${first.margin >= 0 ? "ahead" : "behind"} by ${marginText(Math.abs(first.margin))} over ${spanText(points)}${s0 && s1 ? `; reporting ${s0} to ${s1}` : ""}`;
   return (
     <figure className="spark">
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
@@ -27,7 +28,7 @@ export function Sparkline({ race, points }: { race: Race; points: HistoryPoint[]
       </svg>
       <figcaption>
         Margin over {spanText(points)}: {signed(first.margin)} → <strong>{signed(last.margin)}</strong>
-        <span className="muted"> · {Math.round(first.pctIn)}% → {Math.round(last.pctIn)}% reporting</span>
+        {s0 && s1 && <span className="muted"> · {s0} → {s1} reporting</span>}
       </figcaption>
     </figure>
   );

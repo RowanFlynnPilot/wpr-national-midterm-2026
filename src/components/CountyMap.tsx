@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { MARGIN_BINS, MARGIN_RAMP, NO_RESULTS, marginColor } from "../lib/colors";
 import { countyColumns, readCounty } from "../lib/data";
-import { pct } from "../lib/format";
+import { pct, reportingShare } from "../lib/format";
 import { stateShape, type Geo } from "../lib/geo";
 import type { CountyResults, Party, Race } from "../lib/types";
 
@@ -61,7 +61,7 @@ export function CountyMap({ race, counties, geo }: { race: Race; counties: Count
                 .slice(0, 2)
                 .map(({ c, share }) => `${c.name.split(" ").slice(-1)[0]} ${pct(share)}`)
                 .join(", ")}
-              <span className="muted"> ({Math.round(reading.pctIn)}% in)</span>
+              {reportingShare(reading.pctIn, reading.total) && <span className="muted"> ({reportingShare(reading.pctIn, reading.total)} in)</span>}
             </>
           ) : (
             <span className="muted">Point at or tap a county for its result</span>

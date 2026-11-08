@@ -68,7 +68,8 @@ export function chamber(results: Results, office: Office): Chamber {
     leading,
     before,
     flips: races.filter((r) => r.flip),
-    uncalled: races.filter((r) => !r.winner).sort((a, z) => a.margin - z.margin),
+    // closest first; a race with no votes yet goes last, since its zero margin is not a close count
+    uncalled: races.filter((r) => !r.winner).sort((a, z) => Number(a.total === 0) - Number(z.total === 0) || a.margin - z.margin),
     runoffs: races.filter((r) => r.runoff),
     latestCalls: races
       .filter((r): r is Race & { calledAt: string } => r.calledAt !== null)

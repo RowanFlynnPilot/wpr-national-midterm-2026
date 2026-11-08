@@ -1,0 +1,4 @@
+{
+  "_comment": "civicAPI races that its Nov. 3 search returns but that were not on the Nov. 3 ballot. Key: civicAPI race id; value: the reason. build.py drops them and fails if one is no longer in the search, so a stale line is removed rather than kept.",
+  "87167": "Kansas Supreme Court Justices Amendment: decided at the Aug. 4, 2026 primary (rejected); civicAPI lists it under Nov. 3 with no votes and no update since Oct. 16"
+}

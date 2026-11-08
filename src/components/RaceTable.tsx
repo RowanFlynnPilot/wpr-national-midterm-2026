@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PARTY } from "../lib/colors";
 import { racesCsv } from "../lib/csv";
-import { apNumber, marginText, pct, timeAgo, votes } from "../lib/format";
+import { apNumber, marginText, pct, reportingShare, timeAgo, votes } from "../lib/format";
 import { side, trend, type History } from "../lib/history";
 import { marginLabel, raceShift, type Baseline } from "../lib/shift";
 import { stateName } from "../lib/states";
@@ -234,7 +234,7 @@ export function RaceTable({ office, races, history, baseline, now, onSelect }: P
                     {r.unopposed ? "Unopposed" : marginText(r.margin)}
                   </td>
                   {shifts && <ShiftCell shift={shiftOf(r)} />}
-                  <td className="num tablet-hide">{Math.round(r.pctIn)}%</td>
+                  <td className="num tablet-hide">{reportingShare(r.pctIn, r.total) ?? "—"}</td>
                   <td className="num tablet-hide">{votes(r.total)}</td>
                   <td className="tablet-hide called-cell">{r.calledAt ? timeAgo(r.calledAt, now) : r.winner ? "No time given" : "—"}</td>
                   <td>

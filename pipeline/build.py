@@ -4,6 +4,7 @@ Reads  pipeline/raw/search.json, pipeline/raw/races/*.json, pipeline/baselines.j
 Writes public/data/results.json      every Senate, House and Governor race
        public/data/counties-S.json   county results for each Senate race
        public/data/counties-G.json   county results for each Governor race
+       public/data/counties-B.json   county results for each statewide ballot measure
 """
 import json
 import re
@@ -24,6 +25,9 @@ KEEP_MIN_PCT = 1.0
 MAX_CANDS = 5
 COUNTY_CANDS = 3
 COUNTY_TOLERANCE_PCT = 2.0  # county rows normally sum within 0.3% of the statewide total; more means a broken feed
+ELECTION_DAY = "2026-11-03"
+# Races civicAPI's Nov. 3 search returns that were not on the Nov. 3 ballot (a Kansas amendment decided in August), by id.
+EXCLUSIONS = {int(k): v for k, v in json.loads((ROOT / "pipeline" / "exclusions.json").read_text(encoding="utf-8")).items() if not k.startswith("_")}
 # Candidate photos resolved by hand with `npm run headshots` (scripts/headshots.mjs); keyed by civicAPI candidate_id.
 HEADSHOTS_PATH = ROOT / "pipeline" / "headshots.json"
 HEADSHOTS = json.loads(HEADSHOTS_PATH.read_text(encoding="utf-8")) if HEADSHOTS_PATH.exists() else {}
@@ -140,13 +144,21 @@ def main() -> None:
     ids, by_name = load_county_index()
     races, counties = [], {"S": {}, "G": {}, "B": {}}
     latest = ""
+    stale = set(EXCLUSIONS) - {r["id"] for r in search["races"]}
+    if stale:
+        raise RuntimeError(f"exclusions.json names races the search no longer returns: {sorted(stale)}; remove them")
     for r in search["races"]:
+        if r["id"] in EXCLUSIONS:
+            continue
         detail = json.loads((RAW / "races" / f"{r['id']}.json").read_text())
         office = OFFICE_CODE[r["type"]]
         cands = candidates(detail["candidates"], office)
         if office == "B" and [c["party"] for c in cands if c["party"] != "O"] not in (["Y", "N"], ["N", "Y"]):
             raise RuntimeError(f"{r['election_name']}: measure without a Yes/No pair")
         check_race(r["election_name"], detail, cands)
+        if sum(c["votes"] for c in cands) == 0 and detail["last_updated"] < ELECTION_DAY:
+            # Virginia's questions sat like this for two days before civicAPI filled them, so it is a note, not a failure.
+            print(f"note: {r['election_name']} has no votes and no update since before Election Day; if it was not on the Nov. 3 ballot, add it to pipeline/exclusions.json")
         winners = [c for c in cands if c["winner"]]
         holder = None
         if office in ("S", "G"):

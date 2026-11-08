@@ -1,5 +1,5 @@
 import { PARTY } from "../lib/colors";
-import { centralTime, pct, votes } from "../lib/format";
+import { centralTime, pct, reportingText, votes } from "../lib/format";
 import type { HistoryPoint } from "../lib/history";
 import { countyFlips, countyFlipsText, headToHead, raceShift, shiftText, turnoutVs2024, type Baseline } from "../lib/shift";
 import { calledText, rcvNote, statusParts } from "../lib/status";
@@ -79,7 +79,7 @@ export function RaceCard({
         <p className="race-card__note">This candidate ran unopposed, and the state reports no votes for the race.</p>
       ) : (
         <footer className="race-card__foot">
-          <span>{Math.round(race.pctIn)}% reporting</span>
+          <span>{reportingText(race.pctIn, race.total)}</span>
           <span>{votes(race.total)} votes</span>
           <span>Updated {centralTime(race.updated, false)}</span>
         </footer>

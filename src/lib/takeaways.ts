@@ -1,4 +1,4 @@
-import { marginText, pct } from "./format";
+import { marginText, pct, reportingShare } from "./format";
 import { raceDistrict } from "./route";
 import { biggestShifts, marginLabel, officeShift, ticketPairs, type Baseline, type TicketPair } from "./shift";
 import { HOME_STATE, stateName } from "./states";
@@ -28,8 +28,9 @@ export function takeaways(results: Results, chambers: Record<Office, Chamber>, b
   const closest = open(["S", "G"]) ?? open(["H"]);
   if (closest) {
     const lead = closest.cands[0] as Race["cands"][number];
+    const share = reportingShare(closest.pctIn, closest.total);
     out.push({
-      text: `The closest race still being counted is ${raceTitle(closest)}, where ${lead.name} leads by ${marginText(closest.margin)} points with ${Math.round(closest.pctIn)}% in.`,
+      text: `The closest race still being counted is ${raceTitle(closest)}, where ${lead.name} leads by ${marginText(closest.margin)} points${share ? ` with ${share} in` : ""}.`,
       to: toRace(closest),
     });
   } else {

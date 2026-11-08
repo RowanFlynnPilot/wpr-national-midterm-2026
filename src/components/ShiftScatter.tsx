@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { reportingShare } from "../lib/format";
 import { PARTY } from "../lib/colors";
 import { readCounty } from "../lib/data";
 import type { Geo } from "../lib/geo";
@@ -53,7 +54,7 @@ export function ShiftScatter({ races, counties, demographics, baseline, geo }: P
           r: Math.sqrt(reading.total),
           color: s.shift >= 0 ? PARTY.D : PARTY.R,
           partial: reading.pctIn < COUNTED,
-          title: `${names.get(fips) ?? fips}, ${race.state}: ${s.shift >= 0 ? "D" : "R"} +${Math.abs(s.shift).toFixed(1)} since 2024 · ${Math.round(density).toLocaleString("en-US")} per sq. mi. · ${reading.total.toLocaleString("en-US")} votes${reading.pctIn < COUNTED ? ` · ${Math.round(reading.pctIn)}% counted` : ""}`,
+          title: `${names.get(fips) ?? fips}, ${race.state}: ${s.shift >= 0 ? "D" : "R"} +${Math.abs(s.shift).toFixed(1)} since 2024 · ${Math.round(density).toLocaleString("en-US")} per sq. mi. · ${reading.total.toLocaleString("en-US")} votes${reading.pctIn < COUNTED && reportingShare(reading.pctIn, reading.total) ? ` · ${reportingShare(reading.pctIn, reading.total)} counted` : ""}`,
         });
       }
     }
