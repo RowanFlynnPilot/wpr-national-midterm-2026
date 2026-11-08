@@ -36,8 +36,21 @@ export const FIPS_BY_CODE: Record<string, string> = Object.fromEntries(
   Object.entries(STATES).map(([fips, s]) => [s.code, fips]),
 );
 
-/** Wausau Pilot & Review's readers: a toolbar shortcut, a resting outline on the maps, and a block on the overview panel. */
-export const HOME_STATE = "WI";
+/**
+ * The home state drives a toolbar shortcut, a resting outline on both maps, the "at a glance" block on every overview
+ * panel, the outlined districts on the House margin strip and the last "thing to know". It is Wisconsin, Wausau Pilot &
+ * Review's, unless the page is opened with ?home=<postal code>, which lets another newsroom embed the tool around its own
+ * state. An unknown code is a setup error and fails the page.
+ */
+export function homeState(search: string): string {
+  const code = new URLSearchParams(search).get("home");
+  if (code === null) return "WI";
+  const upper = code.toUpperCase();
+  if (!(upper in STATE_NAME) || upper === "DC") throw new Error(`unknown home state ${code}`);
+  return upper;
+}
+
+export const HOME_STATE = homeState(typeof location === "undefined" ? "" : location.search);
 
 /** States too small to label or click comfortably on the national map; they get callout chips. */
 export const SMALL_STATES = ["MA", "RI", "CT", "NJ", "DE", "MD"];

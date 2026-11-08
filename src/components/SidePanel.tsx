@@ -117,6 +117,7 @@ function Overview({ office, chamber, popularVote, races, history, now, onSelect 
   const pick = (r: Race) => onSelect(office, r.state, routeOf(r));
   const measures = office === "B";
   const failed = measures ? races.filter((r) => r.office === "B" && r.winner === "N") : [];
+  const homeSeats = races.filter((r) => r.office === "H" && r.state === HOME_STATE).length;
   return (
     <div className="panel">
       {office === "H" && <PopularVoteBlock vote={popularVote} />}
@@ -126,7 +127,8 @@ function Overview({ office, chamber, popularVote, races, history, now, onSelect 
             How close the House was
           </h2>
           <p className="panel__note">
-            Each dot is one district by its margin, Democratic wins to the left and Republican to the right; pale dots are not yet called. Wisconsin’s eight are outlined.
+            Each dot is one district by its margin, Democratic wins to the left and Republican to the right; pale dots are not yet called. {stateName(HOME_STATE)}’s{" "}
+            {apNumber(homeSeats)} {homeSeats === 1 ? "is" : "are"} outlined.
           </p>
           <MarginStrip races={races} onSelect={(r) => onSelect("H", r.state, r.district)} />
         </section>
