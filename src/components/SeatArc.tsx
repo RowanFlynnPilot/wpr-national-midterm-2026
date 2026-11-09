@@ -5,15 +5,13 @@ import { seatLabel, type Chamber } from "../lib/summary";
 import type { Race } from "../lib/types";
 import type { HoverPoint } from "./Tooltip";
 
-const W = 200;
 const OUTER = 98;
 const INNER = 34;
-const H = OUTER + 8;
 
 interface Props {
   chamber: Chamber;
   onHover?: (seat: Seat | null, at?: HoverPoint) => void; // without it the arc is a picture (the share card)
-  onSelect?: (race: Race) => void;
+  onSelect?: (race: Race, at: HoverPoint) => void;
 }
 
 /** Every seat as a dot in a half circle: secured seats at the ends, leads pale, runoffs gray, the majority line as a tick. */
@@ -29,10 +27,15 @@ export const SeatArc = memo(function SeatArc({ chamber: c, onHover, onSelect }: 
     return { pos, r: 0.4 * Math.min(rowGap, along) };
   }, [total]);
   const majorityAngle = c.majority > 0 ? Math.PI * (1 - c.majority / c.total) : null;
-  const at = (e: React.PointerEvent): HoverPoint => ({ clientX: e.clientX, clientY: e.clientY, pointerType: e.pointerType });
+  // The drawing reaches past the outer ring by a dot (and its hover stroke) or by the majority tick, whichever is farther;
+  // the Senate's dots are 5 units and were cut at the sides and the bottom when the box stopped at the ring.
+  const pad = Math.max(r, 5) + 1;
+  const half = OUTER + pad;
+  // A click is always a mouse or a pen here: under a coarse pointer the dots take no events.
+  const at = (e: React.MouseEvent, pointerType = "mouse"): HoverPoint => ({ clientX: e.clientX, clientY: e.clientY, pointerType });
   return (
-    <svg className="seat-arc" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={seatLabel(c)}>
-      <g transform={`translate(${W / 2} ${H - 2})`}>
+    <svg className="seat-arc" viewBox={`${-half} ${-half} ${2 * half} ${half + pad}`} role="img" aria-label={seatLabel(c)}>
+      <g>
         {pos.map((s, i) => {
           const seat = seats[i] as Seat;
           return (
@@ -44,13 +47,13 @@ export const SeatArc = memo(function SeatArc({ chamber: c, onHover, onSelect }: 
               r={r}
               fill={seat.color}
               style={{ animationDelay: `${Math.min(i, total - 1 - i) * 3}ms` }}
-              onPointerEnter={onHover && ((e) => onHover(seat, at(e)))}
+              onPointerEnter={onHover && ((e) => onHover(seat, at(e, e.pointerType)))}
               onPointerLeave={onHover && (() => onHover(null))}
               onClick={
                 seat.race && onSelect
                   ? (e) => {
                       e.stopPropagation(); // the card around the arc selects the whole office
-                      onSelect(seat.race as Race);
+                      onSelect(seat.race as Race, at(e));
                     }
                   : undefined
               }

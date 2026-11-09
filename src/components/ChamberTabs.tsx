@@ -1,17 +1,21 @@
 import { useCallback, useRef, useState } from "react";
 import { PARTY } from "../lib/colors";
 import { apNumber } from "../lib/format";
+import type { History } from "../lib/history";
 import type { Seat } from "../lib/seats";
 import type { Baseline } from "../lib/shift";
 import { OFFICE_NAME, secured, type Chamber } from "../lib/summary";
 import type { Office, Race } from "../lib/types";
 import { useCountUp } from "../lib/countUp";
 import { SeatArc } from "./SeatArc";
+import { SeatPopover } from "./SeatPopover";
 import { Tooltip, type HoverPoint, type TipTarget } from "./Tooltip";
 
 interface Props {
   chambers: Record<Office, Chamber>;
   office: Office;
+  races: Race[]; // the seat pop-up reads its race from here, so a refresh or a replay step updates an open card
+  history: History;
   baseline: Baseline | null; // the 2024 presidential vote, for the seat tooltip's shift line
   now: number;
   onChange: (office: Office) => void;
@@ -26,16 +30,35 @@ interface SeatHover {
   y: number;
 }
 
-export function ChamberTabs({ chambers, office, baseline, now, onChange, onSelectRace }: Props) {
+/** The seat whose race is open in the pop-up, and where its dot was clicked, in the frame's coordinates. */
+interface SeatOpen {
+  raceId: number;
+  x: number;
+  y: number;
+}
+
+export function ChamberTabs({ chambers, office, races, history, baseline, now, onChange, onSelectRace }: Props) {
   const frameRef = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState<SeatHover | null>(null);
-  // A seat under the pointer names its race in the same tooltip the maps use; a finger never hovers.
+  const [open, setOpen] = useState<SeatOpen | null>(null);
+  const openRace = open ? races.find((r) => r.id === open.raceId) : undefined;
+  // A seat under the pointer names its race in the same tooltip the maps use; a finger never hovers, and no tooltip
+  // joins an open pop-up.
   const onHover = useCallback((seat: Seat | null, at?: HoverPoint) => {
     const frame = frameRef.current;
-    if (!seat || !at || at.pointerType === "touch" || !frame) return setHover(null);
+    if (!seat || !at || at.pointerType === "touch" || !frame || open) return setHover(null);
     const rect = frame.getBoundingClientRect();
     setHover({ seat, x: at.clientX - rect.left, y: at.clientY - rect.top });
+  }, [open]);
+  // A click on a seat opens its race under the dot instead of changing the view: the panel is below the fold here.
+  const onSeat = useCallback((race: Race, at: HoverPoint) => {
+    const frame = frameRef.current;
+    if (!frame) return;
+    const rect = frame.getBoundingClientRect();
+    setHover(null);
+    setOpen({ raceId: race.id, x: at.clientX - rect.left, y: at.clientY - rect.top });
   }, []);
+  const close = useCallback(() => setOpen(null), []);
   // WAI-ARIA tabs: the active tab is the only tab stop; Left/Right/Home/End move and select.
   const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const i = ORDER.indexOf(office);
@@ -54,9 +77,24 @@ export function ChamberTabs({ chambers, office, baseline, now, onChange, onSelec
     <div className="chambers-frame" ref={frameRef} onPointerLeave={() => setHover(null)}>
       <div className="chambers" role="tablist" aria-label="Choose a set of races" onKeyDown={onKeyDown}>
         {ORDER.map((o) => (
-          <ChamberTab key={o} c={chambers[o]} active={o === office} onClick={() => onChange(o)} onHover={onHover} onSelectRace={onSelectRace} />
+          <ChamberTab key={o} c={chambers[o]} active={o === office} onClick={() => onChange(o)} onHover={onHover} onSelectRace={onSeat} />
         ))}
       </div>
+      {open && openRace && frameRef.current && (
+        <SeatPopover
+          race={openRace}
+          points={history[String(openRace.id)]}
+          baseline={baseline}
+          x={open.x}
+          y={open.y}
+          frameWidth={frameRef.current.clientWidth}
+          onOpen={() => {
+            close();
+            onSelectRace(openRace);
+          }}
+          onClose={close}
+        />
+      )}
       {hover && frameRef.current && (
         <Tooltip
           target={seatTarget(hover.seat)}
@@ -85,7 +123,7 @@ interface TabProps {
   active: boolean;
   onClick: () => void;
   onHover: (seat: Seat | null, at?: HoverPoint) => void;
-  onSelectRace: (race: Race) => void;
+  onSelectRace: (race: Race, at: HoverPoint) => void;
 }
 
 /** The card is the click target for the office; the tab button inside it carries the keyboard and screen-reader role. */

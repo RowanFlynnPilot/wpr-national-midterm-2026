@@ -248,7 +248,7 @@ export function RaceTable({ office, races, history, baseline, now, onSelect }: P
                     <td colSpan={columns} id={`race-detail-${r.id}`}>
                       <div className="detail">
                         <RaceCard race={r} heading="h3" points={points} baseline={baseline} />
-                        <button type="button" className="detail__open" onClick={() => onSelect(r)}>
+                        <button type="button" className="open-map" onClick={() => onSelect(r)}>
                           Open on the map →
                         </button>
                       </div>

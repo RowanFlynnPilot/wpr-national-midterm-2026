@@ -159,7 +159,17 @@ export function App({ data }: { data: Data }) {
     }
   }, []);
 
-  const selectRace = useCallback((r: Race) => select({ office: r.office, state: r.state, district: raceDistrict(r) }), [select]);
+  // A race chosen from away from the board (a seat's pop-up, the table, the analysis band): the map and the panel are what
+  // changed, so on wide screens the board scrolls into view too (under 960px `select` scrolls to the panel).
+  const selectRace = useCallback(
+    (r: Race) => {
+      select({ office: r.office, state: r.state, district: raceDistrict(r) });
+      if (!window.matchMedia("(max-width: 959px)").matches) {
+        requestAnimationFrame(() => document.getElementById("board")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+      }
+    },
+    [select],
+  );
 
   const chambers = useMemo(
     () => ({ S: chamber(results, "S"), H: chamber(results, "H"), G: chamber(results, "G"), B: chamber(results, "B") }),
@@ -305,7 +315,7 @@ export function App({ data }: { data: Data }) {
         <TitleSlot />
       </section>
 
-      <ChamberTabs chambers={chambers} office={sel.office} baseline={baseline} now={clock} onChange={(office) => select({ office, state: sel.state, district: null }, false)} onSelectRace={selectRace} />
+      <ChamberTabs chambers={chambers} office={sel.office} races={results.races} history={history} baseline={baseline} now={clock} onChange={(office) => select({ office, state: sel.state, district: null }, false)} onSelectRace={selectRace} />
       <Takeaways items={toKnow} onSelect={select} />
       {visit && replay === null && (
         <SinceVisit

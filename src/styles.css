@@ -1949,6 +1949,53 @@ a {
   pointer-events: none;
 }
 
+/* the race behind a seat, under the clicked dot; it overlaps whatever is below the cards */
+.seat-popover {
+  position: absolute;
+  z-index: 6; /* over the seat tooltip */
+  box-sizing: border-box;
+  padding: 1rem 1.1rem 1rem;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--paper-raised);
+  box-shadow: 0 12px 36px rgba(29, 27, 23, 0.18);
+  animation: tip-in 120ms ease-out both;
+}
+
+.seat-popover:focus {
+  outline: none; /* focus lands here on open so Escape and Tab start inside; the close button and the link show their own rings */
+}
+
+.seat-popover .race-card__head h3 {
+  padding-right: 2rem; /* room for the close button */
+  font-size: 1.25rem;
+}
+
+.seat-popover__close {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.55rem;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.seat-popover__close svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
 @keyframes tip-in {
   from {
     opacity: 0;
@@ -2800,7 +2847,8 @@ a {
   font-size: 1.25rem;
 }
 
-.detail__open {
+/* "Open on the map", under the table's expanded card and the seat pop-up */
+.open-map {
   margin-top: 0.75rem;
   padding: 0.4rem 0.8rem;
   border: 1px solid var(--rule-strong);
@@ -2994,7 +3042,7 @@ table.races {
   }
   .expander:hover,
   .csv:hover,
-  .detail__open:hover {
+  .open-map:hover {
     border-color: var(--ink-2);
     color: var(--ink);
   }
@@ -3015,6 +3063,11 @@ table.races {
   .seat-arc__seat.is-race:hover {
     stroke: var(--ink);
     stroke-width: 1.5;
+  }
+
+  .seat-popover__close:hover {
+    background: rgba(29, 27, 23, 0.06);
+    color: var(--ink);
   }
 
   .takeaway:hover {
@@ -3303,7 +3356,8 @@ table.races {
   .demo-ribbon,
   .touch-hint,
   .expander-col,
-  .detail__open,
+  .open-map,
+  .seat-popover,
   .patterns__pick,
   .margin-legend .segmented,
   .finder,
@@ -3372,7 +3426,8 @@ table.races {
   .national-map,
   .hex-map,
   .seat-arc__seat,
-  .tooltip {
+  .tooltip,
+  .seat-popover {
     animation: none;
   }
   .seat-arc__seat {

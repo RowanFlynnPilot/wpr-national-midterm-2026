@@ -61,6 +61,8 @@ const VIEWS = {
   "senate-counties-tx": { hash: "#senate-tx", click: 'button[role="radio"]:has-text("Counties")', settle: 900, clip: "map" },
   "senate-arc-hover": { hash: "#senate", hover: ".seat-arc__seat.is-race >> nth=6", clip: "chambers" },
   "house-arc-hover": { hash: "#house", hover: ".seat-arc__seat.is-race >> nth=300", clip: "chambers" },
+  "senate-arc-click": { hash: "#senate", click: ".seat-arc__seat.is-race >> nth=6", clip: "popover" }, // a click on a seat opens its race under the dot
+  "governors-arc-click": { hash: "#governors", click: ".seat-arc__seat.is-race >> nth=20", clip: "popover" },
   "house-keyboard": { hash: "#house", focus: 'polygon.hex[tabindex="0"]', keys: ["ArrowRight", "ArrowRight", "ArrowDown"], clip: "map" },
 };
 
@@ -69,7 +71,7 @@ const aborted = (r) => r.failure()?.errorText === "net::ERR_ABORTED";
 
 // clip: screenshot one region instead of the page. It is scrolled into view before any hover, because an element
 // screenshot scrolls to its target, and a pointer left behind by that scroll would leave the hovered element.
-const CLIPS = { map: ".map-frame", table: ".table-section", legend: ".board__map", panel: ".board__panel", under: ".board__under", since: ".since", chambers: ".chambers-frame", takeaways: ".takeaways", analysis: ".analysis-slot" };
+const CLIPS = { map: ".map-frame", table: ".table-section", legend: ".board__map", panel: ".board__panel", under: ".board__under", since: ".since", chambers: ".chambers-frame", popover: ".seat-popover", takeaways: ".takeaways", analysis: ".analysis-slot" };
 
 const [outDir = "screens", ...only] = process.argv.slice(2);
 const names = only.length ? only.filter((n) => n !== "compact" && n !== "race" && n !== "partners") : Object.keys(VIEWS);
