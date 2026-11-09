@@ -1146,6 +1146,12 @@ a {
   cursor: pointer; /* a seat with a race opens it; holdovers only name themselves */
 }
 
+.seat-arc__seat:focus-visible {
+  outline: none; /* the browser's box would not follow the dot; a stroke does, and the tooltip opens with it */
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+
 .seat-arc__seat {
   transition: fill 400ms ease; /* a replay step or a refresh recolors rather than snaps */
   animation: seat-in 260ms ease-out both; /* staggered from both ends toward the undecided middle; opacity only, so 700 dots cost the first frame little */

@@ -41,6 +41,7 @@ export function ChamberTabs({ chambers, office, races, history, baseline, now, o
   const frameRef = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState<SeatHover | null>(null);
   const [open, setOpen] = useState<SeatOpen | null>(null);
+  const opener = useRef<HTMLElement | SVGElement | null>(null); // the seat that had focus when the pop-up opened; focus returns to it
   const openRace = open ? races.find((r) => r.id === open.raceId) : undefined;
   // A seat under the pointer names its race in the same tooltip the maps use; a finger never hovers, and no tooltip
   // joins an open pop-up.
@@ -55,12 +56,19 @@ export function ChamberTabs({ chambers, office, races, history, baseline, now, o
     const frame = frameRef.current;
     if (!frame) return;
     const rect = frame.getBoundingClientRect();
+    const active = document.activeElement;
+    opener.current = active instanceof SVGElement && active.classList.contains("seat-arc__seat") ? active : null;
     setHover(null);
     setOpen({ raceId: race.id, x: at.clientX - rect.left, y: at.clientY - rect.top });
   }, []);
-  const close = useCallback(() => setOpen(null), []);
+  const close = useCallback(() => {
+    setOpen(null);
+    opener.current?.focus({ preventScroll: true });
+    opener.current = null;
+  }, []);
   // WAI-ARIA tabs: the active tab is the only tab stop; Left/Right/Home/End move and select.
   const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!(e.target as HTMLElement).matches('[role="tab"]')) return; // the arcs' seats handle their own arrow keys
     const i = ORDER.indexOf(office);
     const next =
       e.key === "ArrowRight" ? ORDER[(i + 1) % ORDER.length]
@@ -75,7 +83,9 @@ export function ChamberTabs({ chambers, office, races, history, baseline, now, o
   };
   return (
     <div className="chambers-frame" ref={frameRef} onPointerLeave={() => setHover(null)}>
-      <div className="chambers" role="tablist" aria-label="Choose a set of races" onKeyDown={onKeyDown}>
+      {/* The tab list owns its four tabs by id: a tablist may hold nothing but tabs, and each card also holds its arc of seat buttons. */}
+      <div role="tablist" aria-label="Choose a set of races" aria-owns={ORDER.map((o) => `chamber-tab-${o}`).join(" ")} />
+      <div className="chambers" onKeyDown={onKeyDown}>
         {ORDER.map((o) => (
           <ChamberTab key={o} c={chambers[o]} active={o === office} onClick={() => onChange(o)} onHover={onHover} onSelectRace={onSeat} />
         ))}
@@ -137,7 +147,7 @@ function ChamberTab({ c, active, onClick, onHover, onSelectRace }: TabProps) {
   const rightShown = useCountUp(right.n);
   return (
     <div className={`chamber${active ? " is-active" : ""}`} onClick={onClick}>
-      <button type="button" role="tab" data-office={c.office} aria-selected={active} aria-controls="board" tabIndex={active ? 0 : -1} className="chamber__tab">
+      <button type="button" id={`chamber-tab-${c.office}`} role="tab" data-office={c.office} aria-selected={active} aria-controls="board" tabIndex={active ? 0 : -1} className="chamber__tab">
         <span className="chamber__head">
           <span className="chamber__name">{OFFICE_NAME[c.office]}</span>
           <span className="chamber__rule">{rule}</span>

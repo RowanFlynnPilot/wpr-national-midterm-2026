@@ -63,6 +63,8 @@ const VIEWS = {
   "house-arc-hover": { hash: "#house", hover: ".seat-arc__seat.is-race >> nth=300", clip: "chambers" },
   "senate-arc-click": { hash: "#senate", click: ".seat-arc__seat.is-race >> nth=6", clip: "popover" }, // a click on a seat opens its race under the dot
   "governors-arc-click": { hash: "#governors", click: ".seat-arc__seat.is-race >> nth=20", clip: "popover" },
+  "senate-arc-keys": { hash: "#senate", focus: ".seat-arc__seat.is-race", keys: ["ArrowRight", "ArrowRight"], clip: "chambers" }, // keyboard: focus walks the seats and shows the tooltip
+  "senate-arc-enter": { hash: "#senate", focus: ".seat-arc__seat.is-race", keys: ["ArrowRight", "Enter"], clip: "popover" }, // Enter opens the race's pop-up
   "house-keyboard": { hash: "#house", focus: 'polygon.hex[tabindex="0"]', keys: ["ArrowRight", "ArrowRight", "ArrowDown"], clip: "map" },
 };
 
@@ -104,7 +106,6 @@ for (const width of WIDTHS) {
     }
     await page.waitForFunction(() => !document.querySelector(".map-pending"), null, { timeout: 15000 });
     if (view.then) await page.click(view.then); // a second control, after the first click's view is up
-    if (view.clip) await page.locator(CLIPS[view.clip]).scrollIntoViewIfNeeded();
     if (view.hover) {
       if (view.beforeHover) await page.waitForTimeout(view.beforeHover); // a zoom still moving would slide out from under the pointer
       await page.locator(view.hover).first().hover();
@@ -114,8 +115,9 @@ for (const width of WIDTHS) {
     if (view.focus) {
       await page.locator(view.focus).first().focus();
       for (const key of view.keys ?? []) await page.keyboard.press(key);
-      await page.waitForSelector(".tooltip");
+      await page.waitForSelector(".tooltip, .seat-popover");
     }
+    if (view.clip) await page.locator(CLIPS[view.clip]).scrollIntoViewIfNeeded(); // after the steps above, which may be what creates it (the seat pop-up)
     if (!view.clip) {
       // the analysis band renders when scrolled near: step down the whole page and back so a full-page capture includes it
       const height = await page.evaluate(() => document.body.scrollHeight);

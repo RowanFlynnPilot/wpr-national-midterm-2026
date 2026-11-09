@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { PALE, PARTY, PARTY_LABEL } from "../lib/colors";
-import { apNumber, marginText, pct, reportingShare, timeAgo } from "../lib/format";
+import { apNumber, centralTime, marginText, pct, reportingShare, timeAgo } from "../lib/format";
 import { raceDistrict, raceFor } from "../lib/route";
 import { HOME_STATE, stateName } from "../lib/states";
 import { RUNOFF, noVotesYet, raceFill, raceStatus, yesShare } from "../lib/status";
@@ -83,6 +83,11 @@ export function OverviewLists({ office, chamber, races, now, onSelect }: Pick<Pr
               <RaceRow key={r.id} race={r} when={timeAgo(r.calledAt as string, now)} onClick={() => pick(r)} />
             ))}
           </ul>
+          {now - Date.parse((chamber.latestCalls[0] as Race).calledAt as string) > QUIET_MS && (
+            <p className="panel__note panel__note--foot">
+              Nothing here has been called since {centralTime((chamber.latestCalls[0] as Race).calledAt as string)}. The count goes on; the calls are civicAPI’s.
+            </p>
+          )}
         </section>
       )}
       {chamber.runoffs.length > 0 && (
@@ -206,7 +211,10 @@ function RaceRow({ race, onClick, showOffice = false, when, points }: RowProps) 
   );
 }
 
-const COUNTING_LISTED = 12; // the panel then ends near the map; a button shows the rest in place
+/** A day without a call: the latest-calls list then says the count is slow rather than the page stuck. */
+const QUIET_MS = 24 * 3600e3;
+
+const COUNTING_LISTED = 8; // the House and measures panels run past their maps even so; a button shows the rest in place
 
 function Overview({ office, chamber, popularVote, races, history, geo, onSelect }: Props) {
   const [showAll, setShowAll] = useState(false);
