@@ -8,7 +8,7 @@ export function callOrder(results: Results): Race[] {
 }
 
 function uncall(r: Race): Race {
-  return { ...r, winner: null, flip: null, calledAt: null, cands: r.cands.map((c) => (c.winner ? { ...c, winner: false } : c)) };
+  return { ...r, winner: null, flip: null, calledAt: null, undone: true, cands: r.cands.map((c) => (c.winner ? { ...c, winner: false } : c)) };
 }
 
 /**

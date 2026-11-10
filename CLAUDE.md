@@ -97,6 +97,17 @@ before any data arrives.
   Amendment 1 (a blank counts as No; civicAPI's blank lines are in the total, so the shares already read that way). Verify each new
   entry against the state's rule before adding it. The leader, the map shading and the tab's tallies stay civicAPI's; only the words
   change (see Race status rules).
+- `pipeline/key-dates.json` — hand-maintained (Nov. 9): what happens next in states with a candidate race not yet called, and each
+  state's recount rule in a sentence. `{"dates": [{"date", "end"?, "state", "offices"?, "text", "source"}], "recounts": {"<state>":
+  {"offices"?, "text", "source"}}}`; `date` and `end` are ISO days, `offices` limits an entry to some of S/G/H (absent means all), and
+  `source` is the state's own page or statute (kept in the file, not sent to the page). `build.py` (`key_dates`, `check_note`,
+  `recount_for`) fails on an unknown key, a date before Election Day, an end before its date, a state with no race in the search,
+  an office outside S/G/H, an empty sentence or a source that is not https; it writes the dates into `results.json` as `dates` in
+  (date, state) order and each candidate race's `recount` sentence (null for measures and states without an entry), and prints a
+  note for every date already past, which is the cue to delete it. Every entry was read on the state's own calendar or statute
+  (Tennessee's and Mississippi's statutes on law.justia.com, since the states publish theirs through a vendor). Verify a new entry
+  the same way before adding it, and leave out anything that could not be confirmed on a primary source. Upkeep: remove dates as
+  they pass and a state's entries once its last race is called; the page already hides both.
 - `pipeline/baselines.json` — hand-maintained pre-election seat holders (Senate and governor by state) and pre-election totals. House baseline = 2024 result (D 215, R 220).
 
 ## Race status rules (`src/lib/status.ts`, `pipeline/build.py`)
@@ -108,8 +119,15 @@ before any data arrives.
   "Failed by 16.4", which read as a No landslide. No ranked-choice note, no flips, no majority line; the tab's bar is passed / leading yes / leading no / failed.
 - **no votes yet** — `total` is 0 and no winner (`noVotesYet`): neutral fill, "No votes reported yet", never a painted lead. **won** — civicAPI `winner`. **runoff** — a candidate is `advanced`, or Louisiana House with no one at 50% (`MAJORITY_RUNOFF`; LA moved its House primaries to Nov. 3 with a Dec. 12 runoff, and civicAPI flags finalists only once second place is settled). **decided** — top-two finalists from one party (CA-04/07/11/14, CA-40): the seat counts for that party before a call. **leading** — everything else.
 - `unopposed` — one non-"Others" candidate. Florida doesn't print unopposed races, so FL-10 has zero votes; the card says so.
-- Ranked-choice note (Alaska, Maine federal races) appears only when no one has a majority of first choices; Alaska's adds that the tabulation runs around Nov. 18. `RUNOFF_DATE` puts "Dec. 12" on Louisiana runoff text. Same-party finals read "Seat decided: both finalists are Democrats. Winner not called".
+- Ranked-choice note (Alaska, Maine federal races) appears only when no one has a majority of first choices; Alaska's adds that the tabulation runs on Nov. 18. `RUNOFF_DATE` puts "Dec. 12" on Louisiana runoff text. Same-party finals read "Seat decided: both finalists are Democrats. Winner not called".
 - Each race carries civicAPI's `last_updated` as `updated`; the race card footer shows it, so a race civicAPI stops updating is visible as such.
+- **Why a race is not called** (`whyNotCalled` in `status.ts`, a `race-card__note` led by "Why isn’t this called?"): null for a called
+  race, a measure, a race with no votes and a race whose call a replay has undone (`undone`). A runoff gets one sentence and nothing
+  else ("No candidate won the majority Louisiana requires, so the top two finishers meet in a runoff on Dec. 12."). Otherwise the
+  reasons that apply, in this order: ranked choice with no first-choice majority; civicAPI's reporting share under 100% (rounded,
+  and only when `reportingShare` gives one); a lead under one point, in votes and points ("first-choice lead" in a ranked-choice
+  race), followed by the state's `recount` sentence when it has one. No reason in hand means no line: there is no catch-all
+  sentence, so a race at 100% with a lead of a point or more (California's same-party finals) says nothing.
 - Nevada's "None of These Candidates" is party `O`, "Ballot option".
 
 ## Known data limits (deliberate choices)
@@ -141,7 +159,7 @@ Each district's target = vote-weighted centroid of the counties it covers (from 
 - `HOME_STATE` (`src/lib/states.ts`) drives the Wisconsin shortcut: a toolbar chip that selects it on the current tab, a resting teal outline on both maps (replaced by the selected outline once picked), the "Wisconsin at a glance" block (Senate and governor races, then the measures, then the House delegation; `GLANCE_ORDER`) at the top of every overview panel, the outlined dots on the House margin strip and the last "thing to know". It is "WI" unless the page is opened with `?home=<postal code>` (`homeState`), so another newsroom can embed the tool around its own state (see WordPress embed); an unknown code fails the page at load, since it is a setup error. The masthead, the sales copy and the headline stay WPR's.
 - `RaceTable.tsx`: each row expands (chevron, or click the row) into the full `RaceCard` with every candidate, votes, photos, call and update times and the count sparkline, plus an "Open on the map" button; the state cell still opens the panel. Columns: State/District, Leading candidate (sortable by share), Runner-up, Margin (with the trend glyph), Reporting, Votes, Called (relative time; "No time given" for calls civicAPI left unstamped), Status. Filters: All, Not called, Flipped (Senate and governors), Within 5 points. A summary line counts called and not called; "Download CSV" writes the filtered, sorted rows via `src/lib/csv.ts` (one row per race, top two candidates spelled out, status and timing). Reporting, Votes and Called hide under 960px (they are in the expanded row; with them the table scrolled sideways on tablets), Runner-up under 700px, and on the measures table Margin too (`phone-hide`; the Yes and No shares beside it say the same). Under 390px the header labels wrap, the cells tighten and the party dash narrows so the longest names stay whole (see "Review pass (Nov. 9, 2026, evening)").
 - Map pass (Nov. 6): the key (`Legend.tsx`) is a row of toggle buttons on the states and hex views; pressing one spotlights those races (`legendKey`/`inSpotlight` in `status.ts`, `spotlight` state in App, cleared when the office or mode changes; "Seat flipped" and "Called in the last 3 hours" are entries too; the latter appears only while `isFresh` finds one, `FRESH_MS`) and dims everything else to 22% (`.is-out`, `.is-dim`); "Show all" clears it. Fresh calls get a dashed teal ring (`.fresh-outlines`, `.hex--fresh`). Hover is an ink outline drawn on top (`.hover-outline`, `.hex-hover`) rather than a darkened fill, fills cross-fade over 400 ms when a refresh changes a call, both maps fade in once on mount (`map-in`, off under reduced motion) and the state group and hex blob carry one soft drop shadow for elevation. The tooltip leads with the leader's headshot (when the manifest has one), the call time or % reporting, and a share bar per candidate. A zoomed state names its five biggest counties by votes (`.county-labels`, 9px scaled by `zoomScale`, skipping any within `LABEL_GAP` of a bigger one; hidden under 700px where they would be 3px).
-- Replay election night (`src/lib/replay.ts`, `Replay.tsx`): `callOrder` is every timestamped call oldest first; position i of the scrubber shows `resultsAfter(results, i, calls)`, the results with every later call undone (winner, flip, call time and the candidate's winner flag cleared; leads and votes stay as they are today, since the count history starts later). The ~34 calls civicAPI left unstamped are undone at every position but the last. App derives `results` from the live results and the position, so the maps, tabs, headline, panel and table all replay together, and the board's `clock` is the position's call time (so "Called in the last 3 hours" and the latest-calls ages follow the replay); the masthead and the stale notice keep the real time. Play steps one call every 45 ms; the control shows on the states and hex views and the measures map, and leaving the states mode exits the replay. The overview's "still being counted" list shows 12 rows (`COUNTING_LISTED`) and a "Show all N" button that expands it in place (`Overview` is keyed by office so it folds back on a tab change); mid-replay hundreds are uncalled.
+- Replay election night (`src/lib/replay.ts`, `Replay.tsx`): `callOrder` is every timestamped call oldest first; position i of the scrubber shows `resultsAfter(results, i, calls)`, the results with every later call undone (winner, flip, call time and the candidate's winner flag cleared, and `undone` set on the race so the card gives no reason it is uncalled; leads and votes stay as they are today, since the count history starts later). The ~34 calls civicAPI left unstamped are undone at every position but the last. App derives `results` from the live results and the position, so the maps, tabs, headline, panel and table all replay together, and the board's `clock` is the position's call time (so "Called in the last 3 hours" and the latest-calls ages follow the replay); the masthead and the stale notice keep the real time. Play steps one call every 45 ms; the control shows on the states and hex views and the measures map, and leaving the states mode exits the replay. The overview's "still being counted" list shows 12 rows (`COUNTING_LISTED`) and a "Show all N" button that expands it in place (`Overview` is keyed by office so it folds back on a tab change); mid-replay hundreds are uncalled.
 - Since your last visit (`src/lib/visits.ts`, `SinceVisit.tsx`): localStorage keeps the ids of the races this browser had seen called and when (`wpr-midterm-2026-last-visit`, written on every results load, read once at mount before the first write); the strip under the tabs lists the races called since, newest first, five shown plus a count, dismissable, hidden during replay. Storage failures (private windows) leave the page as it was. Nothing leaves the browser.
 - How close the House was (`MarginStrip.tsx`, on the House overview): every district as one dot on a margin axis in 2-point columns, Democratic wins left and Republican right, full color when called and pale when leading, Wisconsin's districts outlined in ink, each dot clickable with a native title. The 38-and-over columns hold dozens of safe seats each and are drawn as one labeled bar so they don't flatten the rest; a home-state seat there stays a dot. Dot pitch shrinks only as far as the tallest ordinary column needs.
 - Print (`@media print`): controls, replay, the visit strip, tooltips, the open sponsor slot and expanders are hidden, the key reads as plain entries, the map shadows go, the table starts a new page and links print as text.
@@ -268,9 +286,34 @@ county pages with no new source.
   real result a reader there may want; nothing is folded.
 - **Seen in civicAPI's files and left**: Marathon County, Wisconsin (55073) carries the same figures in WI-07 (race 87489: Alfonso
   34,468, Clark 26,381, 87.9% reporting) and in the governor's race (87491: Tiffany 34,468, Crowley 26,381, 87.9%). It is the only
-  one of the House county rows that matches a statewide row in its county, so one of the two is a copy. Which one is not known;
-  the page shows both as civicAPI reports them.
+  one of the House county rows that matches a statewide row in its county. The county clerk's unofficial summary (checked Nov. 9)
+  has Tiffany 34,468 and Crowley 26,381 for governor and Alfonso 32,382 and Clark 27,685 for Congress, so the WI-07 row is the
+  copy: it overstates Alfonso by 2,086 votes and understates Clark by 1,304 in that county. The page still shows both as civicAPI
+  reports them (civicAPI is the only source); reported to Rowan, not corrected.
 - Gate: `county-house` (Marion, Indiana: a split county in a state with no Senate or governor race) and `house-finder`.
+
+## What happens next, and why a race is not called (Nov. 9, 2026, late night)
+
+Two additions for the days after the election, when the page's readers ask what the count is waiting for.
+
+- **What happens next** (`KeyDates.tsx`, `upcoming` in `src/lib/next.ts`): the first block under the map on the Senate, governor and
+  House overviews (`OverviewLists`, before the latest calls). It lists the dates from `pipeline/key-dates.json` for states where
+  that office still has a race without a winner, honoring an entry's `offices`, soonest first, each kept until its day (or its
+  `end`) is over in Central time. Six show (`LISTED`) with a "Show all N dates" button; the block is keyed by office so it folds
+  back on a tab change. The note says where the dates come from and that they can change. No block on the measures tab (the file
+  covers only states with a candidate race open) and none during a replay (App passes no dates then: the dates are today's).
+  On Nov. 9 the Senate tab had seven dates (Mississippi, Alaska), the governor tab four (Alaska) and the House tab 23.
+- **Why isn’t this called?** on every uncalled candidate race card (see Race status rules). The share card and the tooltips do not
+  carry it.
+- Alaska's ranked-choice note now says the tabulation runs "on Nov. 18" (it said "around"): the Division of Elections calendar
+  gives that day.
+- **Left out of the dates file because no primary source confirmed them**: Alaska's recount request deadlines and contest date,
+  California's Dec. 8 date, Maine's recount request date, Minnesota's county canvass window and recount request date, Tennessee's
+  county and state certification dates, whether Mississippi has a recount at all (secondary reports only; it has no recount
+  sentence), whether FL-27's recount was ordered (the state's site says "Machine Recount Indicated"), and the outcome of ME-02's
+  ranked-choice tabulation, which began Nov. 9. Kansas and Wisconsin dates were verified but have no uncalled race, so they are
+  not in the file.
+- Gate: `key-dates` (the House overview's under-map lists) and `why-not-called` (Mississippi Senate's panel).
 
 ## Statement pass (Nov. 7, 2026)
 

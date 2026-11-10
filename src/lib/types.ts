@@ -30,6 +30,8 @@ export interface Race {
   num: number | null;
   title: string | null; // a measure's name, e.g. "Wisconsin Question 3 - ..."; null for candidate races
   rule: MeasureRule | null; // measures only; null when a plain majority passes it
+  recount: string | null; // the state's recount rule in a sentence (pipeline/key-dates.json); null for measures and states without one
+  undone?: true; // set by a replay on a race whose call it has undone (src/lib/replay.ts): its numbers are today's
   special: boolean;
   pctIn: number;
   updated: string; // civicAPI's last_updated for this race
@@ -47,6 +49,15 @@ export interface Race {
   cands: Candidate[];
 }
 
+/** One step of the count still ahead in a state (pipeline/key-dates.json): a calendar day, or a span when `end` is set. */
+export interface KeyDate {
+  date: string; // ISO day, e.g. "2026-11-18"
+  end?: string;
+  state: string;
+  offices?: Office[]; // the tabs it belongs to; absent means every office the state still has open
+  text: string;
+}
+
 export interface Results {
   updated: string;
   fetched: string;
@@ -55,6 +66,7 @@ export interface Results {
     governor: { before: { D: number; R: number }; not_up: { D: number; R: number } };
     house: { before: { D: number; R: number } };
   };
+  dates: KeyDate[]; // in (date, state) order
   races: Race[];
 }
 

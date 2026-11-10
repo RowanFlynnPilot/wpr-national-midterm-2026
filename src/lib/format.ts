@@ -43,6 +43,9 @@ export function reportingText(pctIn: number, total: number): string {
 }
 
 const AP_MONTHS = ["Jan.", "Feb.", "March", "April", "May", "June", "July", "Aug.", "Sept.", "Oct.", "Nov.", "Dec."];
+
+/** "Nov. 18" from an ISO day ("2026-11-18"): a calendar date, so no time zone can move it. */
+export const apDay = (iso: string) => `${AP_MONTHS[Number(iso.slice(5, 7)) - 1]} ${Number(iso.slice(8, 10))}`;
 const CENTRAL = new Intl.DateTimeFormat("en-US", {
   timeZone: "America/Chicago",
   month: "numeric",

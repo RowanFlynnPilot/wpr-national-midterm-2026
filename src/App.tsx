@@ -452,7 +452,7 @@ export function App({ data }: { data: Data }) {
             onSelect={(office, state, district, county) => select(county ? { office, state, district, county } : { office, state, district })}
           />
         </aside>
-        {!sel.state && <OverviewLists office={sel.office} chamber={chambers[sel.office]} races={results.races} now={clock} onSelect={(office, state, district) => select({ office, state, district })} />}
+        {!sel.state && <OverviewLists office={sel.office} chamber={chambers[sel.office]} races={results.races} dates={replay === null ? results.dates : []} now={clock} onSelect={(office, state, district) => select({ office, state, district })} />}
       </section>
 
       <Analysis

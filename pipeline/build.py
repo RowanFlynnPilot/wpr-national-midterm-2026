@@ -1,6 +1,6 @@
 """Normalize raw civicAPI responses into the static JSON the explorer reads.
 
-Reads  pipeline/raw/search.json, pipeline/raw/races/*.json, pipeline/baselines.json
+Reads  pipeline/raw/search.json, pipeline/raw/races/*.json, pipeline/baselines.json, pipeline/key-dates.json
 Writes public/data/results.json      every Senate, House and Governor race
        public/data/counties-S.json   county results for each Senate race
        public/data/counties-G.json   county results for each Governor race
@@ -9,6 +9,7 @@ Writes public/data/results.json      every Senate, House and Governor race
 """
 import json
 import re
+from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
@@ -36,6 +37,9 @@ EXCLUSIONS = {int(k): v for k, v in json.loads((ROOT / "pipeline" / "exclusions.
 # Measures read against a pass rule other than a plain majority (Florida 60%, Colorado 55%, New Hampshire two-thirds, Minnesota's
 # blank-counts-as-No), by id: {"needs": share Yes must reach, "label": how it prints, "text": the sentence on the card}.
 MEASURE_RULES = {int(k): v for k, v in json.loads((ROOT / "pipeline" / "measure-rules.json").read_text(encoding="utf-8")).items() if not k.startswith("_")}
+# What happens next in states with a race not yet called, and each state's recount rule (hand-kept, verified against the
+# states' own calendars and statutes): {"dates": [{date, end?, state, offices?, text, source}], "recounts": {state: {offices?, text, source}}}.
+KEY_DATES = json.loads((ROOT / "pipeline" / "key-dates.json").read_text(encoding="utf-8"))
 # Candidate photos resolved by hand with `npm run headshots` (scripts/headshots.mjs); keyed by civicAPI candidate_id.
 HEADSHOTS_PATH = ROOT / "pipeline" / "headshots.json"
 HEADSHOTS = json.loads(HEADSHOTS_PATH.read_text(encoding="utf-8")) if HEADSHOTS_PATH.exists() else {}
@@ -151,12 +155,54 @@ def check_race(name: str, detail: dict, cands: list[dict]) -> None:
         raise RuntimeError(f"{name}: percent_reporting {detail['percent_reporting']}")
 
 
+def key_dates(states: set[str], fetched: str) -> list[dict]:
+    """Check pipeline/key-dates.json and return its dates for the page: `source` dropped, in (date, state) order."""
+    for d in KEY_DATES["dates"]:
+        extra = set(d) - {"date", "end", "state", "offices", "text", "source"}
+        if extra:
+            raise RuntimeError(f"key-dates.json: unknown keys {sorted(extra)} in {d}")
+        day, end = date.fromisoformat(d["date"]), date.fromisoformat(d.get("end", d["date"]))
+        if day < date.fromisoformat(ELECTION_DAY) or end < day:
+            raise RuntimeError(f"key-dates.json: {d['date']} is before Election Day or after its own end ({d['text']})")
+        check_note(f"date {d['date']}", d, states)
+    for state, entry in KEY_DATES["recounts"].items():
+        extra = set(entry) - {"offices", "text", "source"}
+        if extra:
+            raise RuntimeError(f"key-dates.json: unknown keys {sorted(extra)} in the {state} recount entry")
+        check_note(f"{state} recount", {**entry, "state": state}, states)
+    today = fetched[:10]
+    for d in KEY_DATES["dates"]:
+        if d.get("end", d["date"]) < today:
+            print(f"  note: key-dates.json has a date already past, {d['date']} {d['state']}: remove it")
+    page = [{k: v for k, v in d.items() if k != "source"} for d in KEY_DATES["dates"]]
+    return sorted(page, key=lambda d: (d["date"], d["state"]))
+
+
+def check_note(name: str, entry: dict, states: set[str]) -> None:
+    """One key-dates.json entry: a state in the results, offices among S/G/H, a sentence and an https source."""
+    if entry["state"] not in states:
+        raise RuntimeError(f"key-dates.json: {name} names {entry['state']}, which has no race in the search")
+    if not set(entry.get("offices", [])) <= {"S", "G", "H"}:
+        raise RuntimeError(f"key-dates.json: {name} has offices other than S, G and H")
+    if not entry["text"].strip() or not entry["source"].startswith("https://"):
+        raise RuntimeError(f"key-dates.json: {name} needs a sentence and an https source")
+
+
+def recount_for(state: str, office: str) -> str | None:
+    """The state's recount rule in a sentence, for a candidate race it applies to; None otherwise."""
+    entry = KEY_DATES["recounts"].get(state)
+    if office == "B" or entry is None or office not in entry.get("offices", ["S", "G", "H"]):
+        return None
+    return entry["text"]
+
+
 def main() -> None:
     search = json.loads((RAW / "search.json").read_text())
     baselines = json.loads((ROOT / "pipeline" / "baselines.json").read_text())
     ids, by_name = load_county_index()
     races, counties = [], {"S": {}, "G": {}, "B": {}, "H": {}}
     latest = ""
+    dates = key_dates({r["province"] for r in search["races"]}, search["fetched_at"])
     stale = (set(EXCLUSIONS) | set(MEASURE_RULES)) - {r["id"] for r in search["races"]}
     if stale:
         raise RuntimeError(f"exclusions.json or measure-rules.json names races the search no longer returns: {sorted(stale)}; remove them")
@@ -203,6 +249,7 @@ def main() -> None:
             "num": district_num(r["district"]) if office == "H" else None,
             "title": r["election_name"] if office == "B" else None,
             "rule": rule,  # a measure's pass rule beyond a plain majority; null otherwise
+            "recount": recount_for(r["province"], office),  # the state's recount rule in a sentence, candidate races only
             "special": "special" in r["election_name"].lower(),
             "pctIn": detail["percent_reporting"],
             "updated": detail["last_updated"],
@@ -240,6 +287,7 @@ def main() -> None:
         "updated": latest,
         "fetched": search["fetched_at"],
         "baselines": {k: {kk: vv for kk, vv in v.items() if kk != "seat_holder"} for k, v in baselines.items() if not k.startswith("_")},
+        "dates": dates,  # what happens next, by state (pipeline/key-dates.json)
         "races": races,
     }
     (OUT / "results.json").write_text(json.dumps(payload, separators=(",", ":")))

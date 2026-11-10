@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { PALE, PARTY, PARTY_LABEL } from "../lib/colors";
 import { apNumber, centralTime, marginText, pct, reportingShare, signedMargin, timeAgo } from "../lib/format";
+import { upcoming } from "../lib/next";
 import { raceDistrict, raceFor } from "../lib/route";
 import { HOME_STATE, stateName } from "../lib/states";
 import { RUNOFF, noVotesYet, raceFill, raceStatus, yesShare } from "../lib/status";
 import type { Geo } from "../lib/geo";
 import { side, trend, type History } from "../lib/history";
 import { measureShortTitle, OFFICE_NAME, OFFICE_SINGULAR, type Chamber, type PopularVote } from "../lib/summary";
-import type { CountySets, Office, Race } from "../lib/types";
+import type { CountySets, KeyDate, Office, Race } from "../lib/types";
 import type { Demographics } from "../lib/patterns";
 import type { Baseline } from "../lib/shift";
 import { Back } from "./Back";
@@ -15,6 +16,7 @@ import { CountyFinder } from "./CountyFinder";
 import { CountyMap } from "./CountyMap";
 import { CountyView } from "./CountyView";
 import { EmbedRace } from "./EmbedRace";
+import { KeyDates } from "./KeyDates";
 import { MarginStrip } from "./MarginStrip";
 import { RaceCard } from "./RaceCard";
 import { ShareRace } from "./ShareRace";
@@ -61,16 +63,25 @@ export function SidePanel(props: Props) {
 
 /**
  * The overview's lists that belong to the map rather than beside it: the latest calls, the runoffs and the seats that
- * changed parties. App lays them under the map on wide screens (the panel had run a screen past the map there) and after
+ * changed parties, led by the dates still ahead (none during a replay: App passes no dates then). App lays them under the map on wide screens (the panel had run a screen past the map there) and after
  * the panel when the board is stacked, which is where they read before.
  */
-export function OverviewLists({ office, chamber, races, now, onSelect }: Pick<Props, "office" | "chamber" | "races" | "now" | "onSelect">) {
+export function OverviewLists({
+  office,
+  chamber,
+  races,
+  dates,
+  now,
+  onSelect,
+}: Pick<Props, "office" | "chamber" | "races" | "now" | "onSelect"> & { dates: KeyDate[] }) {
   const pick = (r: Race) => onSelect(office, r.state, raceDistrict(r));
   const flips = office === "S" || office === "G";
   const failed = office === "B" ? races.filter((r) => r.office === "B" && r.winner === "N") : [];
-  if (!chamber.latestCalls.length && !chamber.runoffs.length && !flips && !failed.length) return null;
+  const next = upcoming(dates, races, office, now);
+  if (!next.length && !chamber.latestCalls.length && !chamber.runoffs.length && !flips && !failed.length) return null;
   return (
     <div className="board__under">
+      {next.length > 0 && <KeyDates key={office} dates={next} />}
       {chamber.latestCalls.length > 0 && (
         <section className="board__list" aria-labelledby="calls-title">
           <h2 id="calls-title" className="panel__title">

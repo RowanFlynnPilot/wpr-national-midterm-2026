@@ -2,7 +2,7 @@ import { PARTY } from "../lib/colors";
 import { centralTime, pct, reportingText, votes } from "../lib/format";
 import type { HistoryPoint } from "../lib/history";
 import { countyFlips, countyFlipsText, headToHead, raceShift, shiftText, summedNote, turnoutVs2024, type Baseline } from "../lib/shift";
-import { calledText, rcvNote, statusParts } from "../lib/status";
+import { calledText, rcvNote, statusParts, whyNotCalled } from "../lib/status";
 import { Sparkline } from "./Sparkline";
 import { raceTitle } from "../lib/summary";
 import type { CountyResults, Race } from "../lib/types";
@@ -29,6 +29,7 @@ export function RaceCard({
   const noVotes = race.total === 0;
   const leadVotes = race.cands[0]?.votes ?? 0;
   const note = rcvNote(race);
+  const why = whyNotCalled(race);
   return (
     <article className="race-card">
       <header className="race-card__head">
@@ -97,6 +98,11 @@ export function RaceCard({
         </p>
       )}
       {points && points.length >= 2 && <Sparkline race={race} points={points} />}
+      {why && (
+        <p className="race-card__note">
+          <strong>Why isn’t this called?</strong> {why}
+        </p>
+      )}
       {race.rule && <p className="race-card__note">{race.rule.text}</p>}
       {note && <p className="race-card__note">{note}</p>}
     </article>

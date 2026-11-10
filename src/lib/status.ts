@@ -1,5 +1,5 @@
 import { NO_RESULTS, PALE, PARTY, PARTY_LABEL, PARTY_PLURAL } from "./colors";
-import { centralTime, marginWords, pct } from "./format";
+import { centralTime, marginWords, pct, reportingShare, votes } from "./format";
 import { stateName } from "./states";
 import type { Race } from "./types";
 
@@ -112,6 +112,30 @@ export function rcvNote(r: Race): string | null {
   if (top > 50) return null;
   const where = r.state === "AK" ? stateName("AK") : r.state === "ME" && r.office !== "G" ? "Maine, in federal races," : null;
   if (!where) return null;
-  const when = r.state === "AK" ? " Alaska runs that tabulation once all ballots are in, around Nov. 18." : "";
+  const when = r.state === "AK" ? " Alaska runs that tabulation once all ballots are in, on Nov. 18." : "";
   return `${where} uses ranked-choice voting. These are first-choice votes; if no candidate tops 50%, lower finishers are eliminated and their ballots go to voters' next choices.${when}`;
+}
+
+/**
+ * Why a race has no winner yet, from the data in hand: a runoff, ranked choice, votes still out, or a lead under a point
+ * (followed by the state's recount rule when pipeline/key-dates.json has one). Null when none of those applies, for
+ * measures, and for a race whose call a replay has undone, since its numbers are today's.
+ */
+export function whyNotCalled(r: Race): string | null {
+  if (r.winner || r.undone || r.office === "B" || noVotesYet(r)) return null;
+  if (raceStatus(r) === "runoff") {
+    const when = RUNOFF_DATE[r.state];
+    return `No candidate won the majority ${stateName(r.state)} requires, so the top two finishers meet in a runoff${when ? ` on ${when}` : ""}.`;
+  }
+  const ranked = rcvNote(r) !== null;
+  const share = reportingShare(r.pctIn, r.total);
+  const reasons: string[] = [];
+  if (ranked) reasons.push("No candidate has a majority of first-choice votes; if that holds, ranked-choice rounds decide the race.");
+  if (share !== null && Math.round(r.pctIn) < 100) reasons.push(`Not all of the vote is in: civicAPI shows ${share} reporting.`);
+  if (r.margin < 1) {
+    const lead = ranked ? "first-choice lead" : "lead";
+    reasons.push(`The ${lead} is ${votes(r.marginVotes)} ${r.marginVotes === 1 ? "vote" : "votes"}, or ${marginWords(r.margin)} points.`);
+    if (r.recount) reasons.push(r.recount);
+  }
+  return reasons.length ? reasons.join(" ") : null;
 }

@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { NO_RESULTS, PALE, PARTY } from "./colors";
-import { race } from "./fixture";
-import { RUNOFF, calledText, raceFill, raceStatus, rcvNote, statusParts, statusText } from "./status";
+import { RESULTS, race } from "./fixture";
+import { callOrder, resultsAfter } from "./replay";
+import { RUNOFF, calledText, raceFill, raceStatus, rcvNote, statusParts, statusText, whyNotCalled } from "./status";
 
 describe("statusParts", () => {
   it("a timed call reads as the time alone, not 'Winner called' and the time", () => {
@@ -118,7 +119,7 @@ describe("ballot measures", () => {
 
 describe("rcvNote", () => {
   it("Alaska and Maine federal races, only while nobody has a majority of first choices", () => {
-    expect(rcvNote(race("S", "AK"))).toMatch(/^Alaska uses ranked-choice voting.*around Nov\. 18\.$/);
+    expect(rcvNote(race("S", "AK"))).toMatch(/^Alaska uses ranked-choice voting.*on Nov\. 18\.$/);
     expect(rcvNote(race("G", "AK"))).toMatch(/^Alaska uses ranked-choice voting/);
     expect(rcvNote(race("H", "AK-AL"))).not.toBeNull();
     const maineClose = { ...race("S", "ME"), cands: race("S", "ME").cands.map((c, i) => ({ ...c, pct: i === 0 ? 49 : c.pct })) };
@@ -130,5 +131,37 @@ describe("rcvNote", () => {
     expect(rcvNote(race("S", "MS"))).toBeNull();
     const maineGovernor = { ...race("S", "ME"), office: "G" as const, cands: race("S", "ME").cands.map((c) => ({ ...c, pct: 45 })) };
     expect(rcvNote(maineGovernor)).toBeNull();
+  });
+});
+
+describe("whyNotCalled", () => {
+  it("gives the share still out and a lead under a point", () => {
+    expect(whyNotCalled(race("S", "MS"))).toMatch(/^Not all of the vote is in: civicAPI shows \d+% reporting\. The lead is [\d,]+ votes, or 0\.\d points\.$/);
+  });
+
+  it("leads with ranked choice where no one has a majority of first choices", () => {
+    const why = whyNotCalled(race("S", "AK"));
+    expect(why).toMatch(/^No candidate has a majority of first-choice votes; if that holds, ranked-choice rounds decide the race\. Not all/);
+    expect(why).toMatch(/The first-choice lead is [\d,]+ votes, or 0\.\d points\.$/);
+  });
+
+  it("ends a lead under a point with the recount rule the race carries", () => {
+    const rule = "Tennessee has no recount on request.";
+    expect(whyNotCalled({ ...race("H", "TN-04"), recount: rule })).toMatch(/points\. Tennessee has no recount on request\.$/);
+    expect(whyNotCalled({ ...race("H", "AK-AL"), recount: rule })).not.toContain("Tennessee");
+  });
+
+  it("names the runoff and its date, and nothing else", () => {
+    expect(whyNotCalled(race("H", "LA-06"))).toBe("No candidate won the majority Louisiana requires, so the top two finishers meet in a runoff on Dec. 12.");
+  });
+
+  it("says nothing with no reason in hand, for a called race, a measure, or a call a replay has undone", () => {
+    expect(whyNotCalled(race("H", "CA-40"))).toBeNull();
+    expect(whyNotCalled(race("S", "TX"))).toBeNull();
+    expect(whyNotCalled(race("B", "CA-150571"))).toBeNull();
+    const before = resultsAfter(RESULTS, 0, callOrder(RESULTS));
+    const undone = before.races.filter((r) => r.undone);
+    expect(undone.length).toBeGreaterThan(2);
+    expect(undone.every((r) => r.winner === null && whyNotCalled(r) === null)).toBe(true);
   });
 });
