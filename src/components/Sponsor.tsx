@@ -81,7 +81,7 @@ export function OpenSlot({ slot }: { slot: Slot }) {
       <span className="sponsor__eyebrow" id={`slot-${slot}`}>
         Sponsorship available
       </span>
-      <p className="sponsor__pitch">Reach Wisconsin readers following every race, every hour.</p>
+      <p className="sponsor__pitch">Reach Wisconsin readers following every race in the country.</p>
       <a className="sponsor__book" href={`mailto:${SALES_EMAIL}?subject=${subject}`} onClick={copy}>
         Book this placement →
       </a>

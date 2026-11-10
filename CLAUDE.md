@@ -459,9 +459,11 @@ A fresh walk of every view at 360 to 1600 px against the live data. Wording and 
   all four tables: no sideways overflow, no word broken mid-word. A scratch script did the measuring; the gate does not cover 360.
 - **The refresh is not hourly in practice.** The workflow's cron is hourly, but GitHub ran it 14 times between Nov. 6 09:21 UTC and
   Nov. 9 17:28 UTC, with gaps of 4 to 11 hours (scheduled workflows on free runners are delayed and dropped under load; every run that
-  started succeeded). The footer ("refreshed hourly"), the sponsor line ("every race, every hour") and `partners.tsx` still say hourly.
-  Left for Rowan to decide: an outside trigger for `workflow_dispatch`, or copy that says "several times a day". The stale notice
-  (three hours) is what a reader sees meanwhile.
+  started succeeded). Rowan chose softer copy over an outside trigger for `workflow_dispatch` (Nov. 9, night): the footer, the
+  partner page, the meta and Open Graph descriptions and the race stubs' descriptions say "several times a day", and the open
+  sponsor slot's line is "Reach Wisconsin readers following every race in the country." (it was "every race, every hour"). Do not
+  write "hourly" in reader-facing copy again. The cron stays hourly, since that is the request GitHub is given. The stale notice is
+  still three hours (`STALE_AFTER_MS`), so with these gaps it shows for much of the day; raising it is Rowan's call.
 - Seen and left: the ticket table's Alaska row reads "R +2.0" beside a pale blue map (explained by the lede now); NC-05's reporting
   share fell from 100% to 87% in civicAPI's own figures; the filter labels wrap to two lines at 360.
 

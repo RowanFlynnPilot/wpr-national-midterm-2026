@@ -20,4 +20,4 @@ npm run data        # fetch the latest results (Python 3, standard library only)
 npm run dev
 ```
 
-`npm run build` writes the static site to `dist/`, including the share image. `npm test` runs the unit tests, `npm run screens` captures every view at four widths, and `npm run headshots` resolves candidate photos (by hand; the result is committed). A GitHub Actions workflow refreshes the data and redeploys to GitHub Pages hourly and on every push. See CLAUDE.md for the details.
+`npm run build` writes the static site to `dist/`, including the share image. `npm test` runs the unit tests, `npm run screens` captures every view at four widths, and `npm run headshots` resolves candidate photos (by hand; the result is committed). A GitHub Actions workflow refreshes the data and redeploys to GitHub Pages on an hourly schedule (GitHub starts it less often in practice) and on every push. See CLAUDE.md for the details.

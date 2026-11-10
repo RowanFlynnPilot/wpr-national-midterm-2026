@@ -36,7 +36,7 @@ export function raceShareUrl(search: string, hash: string, href: string): string
   return url.toString();
 }
 
-/** Three hours: the results workflow runs hourly, so anything older means the feed or the deploy has stalled. */
+/** Three hours. The results workflow asks for an hourly run, but GitHub starts it every 4 to 11 hours, so between runs the page says when it was last fetched. */
 export const STALE_AFTER_MS = 3 * 60 * 60 * 1000;
 
 export function isStale(fetchedIso: string, now: number): boolean {

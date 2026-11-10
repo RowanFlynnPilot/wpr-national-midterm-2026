@@ -135,7 +135,7 @@ export function App({ data }: { data: Data }) {
     };
   }, [results.fetched]);
 
-  // A tab left open should notice when the hourly data run has stalled.
+  // A tab left open should notice when the data run has stalled.
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), 60_000);
@@ -481,7 +481,7 @@ export function App({ data }: { data: Data }) {
         <FooterSeal />
         <div className="sources__text">
         <p>
-          Results and race calls from <a href="https://civicapi.org">civicAPI</a>, refreshed hourly, which may call races at
+          Results and race calls from <a href="https://civicapi.org">civicAPI</a>, refreshed several times a day, which may call races at
           different times than the Associated Press and other decision desks. Results are unofficial until states certify them.
           Not affiliated with or endorsed by civicAPI, the Associated Press or any election authority.
         </p>

@@ -19,7 +19,7 @@ export function cardMeta(race: Race, hash: string): { hash: string; title: strin
   return {
     hash,
     title: `${raceTitle(race)}: 2026 result`,
-    description: `${status}${/[.!?]$/.test(status) ? "" : "."}${standing} From Wausau Pilot & Review's results page, updated hourly.`,
+    description: `${status}${/[.!?]$/.test(status) ? "" : "."}${standing} From Wausau Pilot & Review's results page, updated several times a day.`,
     alt: `${raceTitle(race)}: ${status}`,
   };
 }

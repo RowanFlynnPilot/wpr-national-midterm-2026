@@ -78,7 +78,7 @@ function Partners() {
           <h1>Put every 2026 result on your site, with your state up front</h1>
           <p className="hero__dek">
             Wausau Pilot &amp; Review built a reader-facing explorer of every U.S. Senate, House and governor race and every
-            statewide ballot measure in the Nov. 3 midterms. It refreshes every hour while the counting goes on. Other
+            statewide ballot measure in the Nov. 3 midterms. It refreshes several times a day while the counting goes on. Other
             newsrooms are welcome to embed it, free, with their own state in the shortcut, the glance block and the maps.
           </p>
         </section>
@@ -87,7 +87,7 @@ function Partners() {
           <section>
             <h2 className="partners__title">What your readers get</h2>
             <ul className="partners__list">
-              <li>Every race, called or still being counted, with the candidates, votes and the time of each call, refreshed hourly from civicAPI.</li>
+              <li>Every race, called or still being counted, with the candidates, votes and the time of each call, refreshed several times a day from civicAPI.</li>
               <li>Your state first: a shortcut chip, an at-a-glance block of its races and questions, an outline on both maps, and a sentence about it among the things to know.</li>
               <li>A page for every county in your state, with its vote in each race and how it compares with the 2024 presidential vote.</li>
               <li>County maps, the swing since 2024, an election-night replay, a sortable table with a CSV download, and a share card for every race.</li>
@@ -99,7 +99,7 @@ function Partners() {
             <ul className="partners__list">
               <li>Leave the masthead, the footer and the civicAPI credit as they are. The page says who made it and where the numbers come from.</li>
               <li>Introduce it as from Wausau Pilot &amp; Review where it appears, with a link to wausaupilotandreview.com.</li>
-              <li>Tell us where it runs, so we can let you know when something changes or when the hourly refresh stops after certification.</li>
+              <li>Tell us where it runs, so we can let you know when something changes or when the refresh stops after certification.</li>
               <li>Know what it is: race calls are civicAPI’s and can differ from the Associated Press, and every result is unofficial until the states certify.</li>
             </ul>
           </section>
@@ -155,7 +155,7 @@ function Partners() {
         <FooterSeal />
         <div className="sources__text">
           <p>
-            Results and race calls from <a href="https://civicapi.org">civicAPI</a>, refreshed hourly. Map boundaries from the U.S. Census Bureau via
+            Results and race calls from <a href="https://civicapi.org">civicAPI</a>, refreshed several times a day. Map boundaries from the U.S. Census Bureau via
             us-atlas; county demographics from the 2017–2021 American Community Survey; the 2024 presidential vote from the MIT Election Data and
             Science Lab (CC0). Not affiliated with or endorsed by civicAPI, the Associated Press or any election authority.
           </p>

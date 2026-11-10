@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { afterPaint, loadCounties, loadResults } from "./data";
 import type { CountySets, Results } from "./types";
 
-/** Refetch the results this often while the tab is open; the data run deploys hourly. */
+/** Refetch the results this often while the tab is open; the data run deploys several times a day. */
 export const REFRESH_MS = 15 * 60 * 1000;
 /** A tab that becomes visible again refetches only if its data is at least this old. */
 export const MIN_GAP_MS = 5 * 60 * 1000;
