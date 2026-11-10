@@ -6,14 +6,15 @@ const OFFICE_BY_SLUG: Record<string, Office> = Object.fromEntries(Object.entries
 
 /**
  * "#house-wi-03" -> { H, WI, "WI-03" }; "#measures-wi-179849" -> { B, WI, "WI-179849" }; "#senate-tx" -> { S, TX, null };
- * "#governors-wi-55073" -> { G, WI, null, county 55073 } (a county FIPS inside the state); "" -> the Senate overview.
+ * "#governors-wi-55073" and "#house-in-18097" -> { office, state, null, county } (a county FIPS inside the state; no House
+ * district number has five digits); "" -> the Senate overview.
  */
 export function parseHash(hash: string): Selection {
   const [slug = "", st, dist] = hash.replace(/^#/, "").toLowerCase().split("-");
   const office = OFFICE_BY_SLUG[slug] ?? "S";
   const state = st && /^[a-z]{2}$/.test(st) ? st.toUpperCase() : null;
-  const district = (office === "H" || office === "B") && state && dist ? `${state}-${dist.toUpperCase()}` : null; // a measure's key is its id
-  const county = (office === "S" || office === "G") && state && dist && /^\d{5}$/.test(dist) && dist.slice(0, 2) === FIPS_BY_CODE[state] ? dist : undefined;
+  const county = office !== "B" && state && dist && /^\d{5}$/.test(dist) && dist.slice(0, 2) === FIPS_BY_CODE[state] ? dist : undefined;
+  const district = (office === "H" || office === "B") && state && dist && !county ? `${state}-${dist.toUpperCase()}` : null; // a measure's key is its id
   return county ? { office, state, district, county } : { office, state, district };
 }
 

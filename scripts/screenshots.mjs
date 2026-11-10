@@ -33,6 +33,8 @@ const VIEWS = {
   "county-panel": { hash: "#governors-wi-55073", clip: "panel" },
   "county-map": { hash: "#governors-wi-55073", settle: 900, clip: "map" },
   "county-finder": { hash: "#senate", fill: [".finder input", "wash"], clip: "panel" },
+  "county-house": { hash: "#house-in-18097", clip: "panel" }, // Marion, Indiana: no Senate or governor race, and the county is split between two districts
+  "house-finder": { hash: "#house-wa", clip: "panel" }, // the finder under a state's district rows
   "missing-measure": { hash: "#measures-wi-1", clip: "panel" }, // a link that names no race: the state's list with a notice, not a blank page
   "missing-county": { hash: "#governors-wi-55999", clip: "panel" },
   "missing-district": { hash: "#house-wi-99", clip: "panel" },

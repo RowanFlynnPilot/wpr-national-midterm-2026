@@ -23,7 +23,7 @@ interface Props {
   office: Office;
   state: string | null;
   district: string | null;
-  county: string | null; // a county FIPS on the Senate and governor views: its own page
+  county: string | null; // a county FIPS on the Senate, governor and House views: its own page
   races: Race[];
   chamber: Chamber;
   popularVote: PopularVote;
@@ -38,15 +38,14 @@ interface Props {
 
 export function SidePanel(props: Props) {
   const { office, state, district, county, races, geo } = props;
-  const statewide = office === "S" || office === "G";
   // A county page until the shapes prove the FIPS is not one (the atlas is the county list; the hash only checks the state prefix).
-  if (county && state && statewide && (!geo || geo.counties.some((c) => c.id === county))) return <CountyView {...props} office={office} state={state} fips={county} />;
+  if (county && state && office !== "B" && (!geo || geo.counties.some((c) => c.id === county))) return <CountyView {...props} office={office} state={state} fips={county} />;
   if (district && raceFor(races, { office, state, district })) return office === "B" ? <MeasureView {...props} district={district} /> : <DistrictView {...props} district={district} />;
   if (state) {
     const list = office === "H" ? <HouseStateView {...props} state={state} /> : office === "B" ? <MeasuresStateView {...props} state={state} /> : <StateView {...props} state={state} />;
     // A link that names a race or county the data does not have (a typo, a truncated link, a renumbered measure) is the
     // reader's input, not the data's: the state's list stands in, and says so. The data itself still fails fast in build.py.
-    const missing = county && statewide ? "county" : district ? (office === "B" ? "measure" : "House district") : null;
+    const missing = county && office !== "B" ? "county" : district ? (office === "B" ? "measure" : "House district") : null;
     if (!missing) return list;
     return (
       <>
@@ -386,7 +385,7 @@ function Delegation({ races }: { races: Race[] }) {
   );
 }
 
-function HouseStateView({ state, races, onSelect }: Props & { state: string }) {
+function HouseStateView({ office, state, races, geo, onSelect }: Props & { state: string }) {
   const house = races.filter((r) => r.office === "H" && r.state === state).sort((a, b) => (a.num ?? 0) - (b.num ?? 0));
   const statewide = races.filter((r) => r.state === state && r.office !== "H");
   return (
@@ -402,6 +401,7 @@ function HouseStateView({ state, races, onSelect }: Props & { state: string }) {
           <RaceRow key={r.id} race={r} onClick={() => onSelect("H", state, r.district)} />
         ))}
       </ul>
+      <CountyFinder geo={geo} races={races} office={office} onSelect={(o, st, fips) => onSelect(o, st, null, fips)} />
       {statewide.length > 0 && (
         <>
           <h3 className="panel__subtitle">Also on the ballot in {stateName(state)}</h3>

@@ -81,10 +81,11 @@ export function App({ data }: { data: Data }) {
   useEffect(() => {
     if (mode !== "states") setReplay(null); // county views have no history to replay
   }, [mode]);
-  // A county page (from the finder, a county click or a link) needs a county map; the states mode has none.
+  // A county page (from the finder, a county click or a link) needs a county map; the states mode has none. The House
+  // has one map, the hexes, so a county page there leaves the mode (and a replay) alone.
   useEffect(() => {
-    if (sel.county && mode === "states") setMode("counties");
-  }, [sel.county, mode]);
+    if (sel.county && sel.office !== "H" && mode === "states") setMode("counties");
+  }, [sel.county, sel.office, mode]);
   const [hover, setHover] = useState<Hover | null>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);

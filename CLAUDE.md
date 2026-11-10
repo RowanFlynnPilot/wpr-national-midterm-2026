@@ -10,7 +10,7 @@ No Python dependencies (stdlib only). Node 22.
 
 ```
 npm install
-npm run data      # fetch civicAPI + rebuild public/data/{results,counties-S,counties-G,counties-B}.json + record the count history
+npm run data      # fetch civicAPI + rebuild public/data/{results,counties-S,counties-G,counties-B,counties-H}.json + record the count history
 npm run dev       # local server
 npm run build     # type-check + production build to dist/
 npm test          # Vitest: src/lib/*.test.ts against src/lib/__fixtures__/races.json (19 real races frozen Nov. 5)
@@ -81,7 +81,7 @@ before any data arrives.
 - `pipeline/fetch.py` — writes `pipeline/raw/` (gitignored). Fails if counts are not exactly 35 Senate / 435 House / 36 governor. Also fetches statewide ballot measures: race types Referendum / Proposition / Ballot Measure with `election_type` "Statewide", no district or municipality, and a Yes/No answer set (133 on Nov. 5; one "official state firearm" vote with six options is excluded by that rule); fails under 100.
 - **Ballot measures are races with office `B`** (`build.py`): the answers are candidates with party `Y`/`N` (blank-ballot lines fold into one `Blank` line, party `O`, "No vote on the question"; the county page's remainder row takes that name), `title` holds the measure name, and `district` is `<state>-<civicAPI id>` so a measure routes like a district (`#measures-wi-179849`). Within a state they sort in natural title order (`title_key`: "Question 2" before "Question 10"), since civicAPI ids put Wisconsin's Question 2 before Question 1. County rows go to `counties-B.json` with the same row shape.
 - `pipeline/build.py` — normalizes to the front-end schema (`src/lib/types.ts`). Fails the build on impossible states (`check_race`): two winners, a winner plus runoff finalists, negative votes, shares past 100%, reporting outside 0–100, a Senate/governor race with no seat holder in baselines, or county rows summing more than 2% away from the statewide total. Party codes: Democratic→D, Republican→R, everything else→I (the panel shows the real party name). Candidates under 1% fold into "Others" (max 5 kept).
-- County rows: `[pctReporting, votes for race.cands[0..2] (excluding Others), all other votes]`. New England and Alaska use civicAPI's County/Borough aggregate rows, not towns or House districts.
+- County rows: `[pctReporting, votes for race.cands[0..2] (excluding Others), all other votes]`. New England and Alaska use civicAPI's County/Borough aggregate rows, not towns or House districts. House races get the same rows in `counties-H.json` (a district's part of each county it covers; see "A county page in all 50 states"), which the hex map script already read from the raw files.
 - Alaska: civicAPI uses the 2019 split census areas (02063, 02066); us-atlas still draws Valdez-Cordova (02261), so they're merged (`FIPS_MERGE`).
 - A few counties come without FIPS (Le Flore OK, Lewis and Clark MT, Oglala Lakota SD, three MN); resolved by name against us-atlas. Any unresolved county fails the build.
 - `pipeline/exclusions.json` — hand-maintained list of civicAPI race ids its Nov. 3 search returns that were not on the Nov. 3 ballot
@@ -132,7 +132,7 @@ Each district's target = vote-weighted centroid of the counties it covers (from 
 
 ## Front end
 
-- `src/App.tsx` — selection state + hash routing (`#senate`, `#senate-tx`, `#house-wi`, `#house-wi-03`, `#governors-ks`, `#measures`, `#measures-wi`, `#measures-wi-179849`, and a county page `#governors-wi-55073`; see County pages).
+- `src/App.tsx` — selection state + hash routing (`#senate`, `#senate-tx`, `#house-wi`, `#house-wi-03`, `#governors-ks`, `#measures`, `#measures-wi`, `#measures-wi-179849`, and a county page `#governors-wi-55073` or `#house-in-18097`; see County pages).
 - `src/lib/summary.ts` — chamber tallies, data-driven headline and dek. Senate majority 51 (VP is a Republican), House 218, no majority marker for governors. `latestCalls` = the 8 newest calls with a `calledAt` for the office (the ~34 calls civicAPI timestamps are skipped; the panel says so); shown on the overview panel with `timeAgo`.
 - `src/components/NationalMap.tsx` — states/counties map on us-atlas Albers USA (pre-projected; no projection at runtime). Small NE states get callout chips.
 - `src/components/NationalMap.tsx` has a `measures` mode (states shaded by how many statewide measures they have, `measureCountColor`; the tooltip gives passed/failed/not called); the measures tab has no counties toggle, each measure's card carries its own county map. For the other offices it has three modes: states, counties (margin bins) and "Still counting" (`remaining`: share of each county's vote still out, teal ramp from `remainingColor`; the legend names civicAPI's % reporting as the source). Both county modes zoom to the selected state (CSS transform on `.map-zoom`, non-scaling strokes, "All states" button to return; no animation under `prefers-reduced-motion`).
@@ -220,28 +220,57 @@ All in `src/lib/shift.ts`, from the results and the 2024 baseline already in han
 
 ## County pages and the county finder (Nov. 7, 2026, night)
 
-A county is the one place every reader in the country has, so every county in a state electing a senator or governor this
-year has a page of its own, reachable three ways and shareable as a link.
+A county is the one place every reader in the country has, so every county in the 50 states has a page of its own, reachable
+three ways and shareable as a link. (Until Nov. 9 only states electing a senator or governor had them; see "A county page in
+all 50 states" below, which this section now includes.)
 
-- **Route**: `#senate-wi-55073` / `#governors-wi-55073`, the third segment a county FIPS inside the state (`Selection.county`,
-  optional; `parseHash` drops a FIPS from another state, and the House and measures views have no county pages).
-  Opening one forces the counties map mode (an effect in App); choosing the states mode leaves the page (`pickMode`),
-  since that map cannot show one county. Escape steps county → state → overview.
-- **Finder** (`CountyFinder.tsx`, a WAI-ARIA combobox): "How did your county vote?" at the top of every overview panel and
-  under a state's county map on the Senate and governor views. Every word typed must appear in the county's name or state
+- **Route**: `#senate-wi-55073` / `#governors-wi-55073` / `#house-in-18097`, the third segment a county FIPS inside the state
+  (`Selection.county`, optional). On the House view five digits that begin with the state's FIPS prefix are a county (no
+  district number has five digits); a FIPS from another state reads as a district the state does not have and gets the
+  missing-district notice. The measures view has no county pages, since a measure's id sits in that segment.
+  On the Senate and governor views opening one forces the counties map mode (an effect in App) and choosing the states mode
+  leaves the page (`pickMode`), since that map cannot show one county; the House has one map, the hexes, so a county page
+  there leaves the mode alone. Escape steps county → state → overview.
+- **Finder** (`CountyFinder.tsx`, a WAI-ARIA combobox): "How did your county vote?" at the top of every overview panel,
+  under a state's county map on the Senate and governor views and under a state's district rows on the House view. Every word typed must appear in the county's name or state
   ("marathon wi"); names that begin with the first word rank first; eight matches at most. A pick opens the county on
-  the current tab when its state has that race, else the Senate, else the governor view. Counties come from the atlas,
-  so the list says it is loading until the shapes land; states with neither race are not offered, and the empty state says
-  so. Hidden in print.
+  the current tab when its state has a race there, else the Senate, else the governor, else the House view (Indiana,
+  Missouri, North Dakota, Utah and Washington elect neither a senator nor a governor this year). Counties come from the
+  atlas, so the list says it is loading until the shapes land. The District of Columbia is in the atlas and has no race
+  here, so it is not offered. Hidden in print.
 - **Map**: inside a zoomed state, clicking a county opens its page (the first tap on a phone zooms, the second picks); the
   county is outlined in ink over a paper casing (`.county-outline`) and named first among the county labels, in bold.
 - **Page** (`CountyView.tsx`): the name as the atlas has it ("Marathon, Wisconsin": us-atlas carries no County/Parish/Borough
   suffix), the Census line (people, density, bachelor's share, median income, white non-Hispanic share), the county's
-  2024 presidential vote (`county2024` in `shift.ts`), then a block per statewide race and measure in the state (Senate,
-  governor, measures; each title opens the race): every county column with votes, share and bar, Others when there are any,
+  2024 presidential vote (`county2024` in `shift.ts`), then a block per race in the state that covers the county (Senate,
+  governor, House, measures; each title opens the race): every county column with votes, share and bar, Others when there are any,
   % reporting, votes, the county's votes against its own 2024 presidential vote (`countyTurnoutVs2024`), the shift
   sentence and "Changed sides since 2024". `Back.tsx` is the shared step-back button. A FIPS the atlas does not have shows the
   state's list with a notice, like an unknown measure or district (see "Polish pass").
+
+## A county page in all 50 states (Nov. 9, 2026, night)
+
+"How did your county vote?" had nothing to offer in Indiana, Missouri, North Dakota, Utah and Washington, which elect neither a
+senator nor a governor this year. The civicAPI files already fetched carry every House race by county, so the House joined the
+county pages with no new source.
+
+- **Pipeline**: `build.py` writes `public/data/counties-H.json` (435 races, about 3,760 rows, 42 KB gzipped) in the row shape of the
+  other county files: a district's part of each county it covers. It fails unless every atlas county outside the District of
+  Columbia (`DC_FIPS`; civicAPI's Nov. 3 search has no delegate race) has at least one House row. civicAPI sends Illinois one row
+  named "Chicago" beside Cook County's; `NOT_COUNTIES` skips it and fails the build if it ever carries votes.
+- **Front end**: `CountySets` has `H`, loaded with the other three after the first paint (`loadCounties`). `CountyView` lists a
+  House district when it has a row for the county, so those blocks appear once the county files land. 409 counties sit in more
+  than one district (Los Angeles in 18, Cook in 11, Harris in nine); the page then says "Marion is split among two House
+  districts. Each shows the votes from its part of the county." (`.county-fact--split`) and shows each district's part. House
+  blocks carry no shift, turnout or changed-sides line: a district has no 2024 baseline. Florida does not print unopposed races,
+  so FL-10's block says the candidate ran unopposed and the state reports no votes.
+- Los Angeles County's page lists 18 districts and is long (about 5,400 px at phone width). Deliberate: every district's part is a
+  real result a reader there may want; nothing is folded.
+- **Seen in civicAPI's files and left**: Marathon County, Wisconsin (55073) carries the same figures in WI-07 (race 87489: Alfonso
+  34,468, Clark 26,381, 87.9% reporting) and in the governor's race (87491: Tiffany 34,468, Crowley 26,381, 87.9%). It is the only
+  one of the House county rows that matches a statewide row in its county, so one of the two is a copy. Which one is not known;
+  the page shows both as civicAPI reports them.
+- Gate: `county-house` (Marion, Indiana: a split county in a state with no Senate or governor race) and `house-finder`.
 
 ## Statement pass (Nov. 7, 2026)
 

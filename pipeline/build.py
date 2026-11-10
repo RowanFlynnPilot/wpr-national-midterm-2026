@@ -5,6 +5,7 @@ Writes public/data/results.json      every Senate, House and Governor race
        public/data/counties-S.json   county results for each Senate race
        public/data/counties-G.json   county results for each Governor race
        public/data/counties-B.json   county results for each statewide ballot measure
+       public/data/counties-H.json   county results for each House race (a district's part of each county it covers)
 """
 import json
 import re
@@ -18,6 +19,10 @@ OFFICE_CODE = {"US Senate": "S", "House of Representatives": "H", "Governor": "G
 COUNTY_TYPES = {"County", "Parish", "Borough", "City"}  # Virginia independent cities carry county FIPS
 # Alaska split Valdez-Cordova (02261) in 2019; us-atlas still draws the old census area.
 FIPS_MERGE = {"02063": "02261", "02066": "02261"}
+# Election authorities civicAPI lists beside the counties, by state FIPS and normalized name. Chicago's board runs its own
+# count, but in the 11 Illinois House races that reach the city its votes arrive in Cook County's row and its own row is empty.
+NOT_COUNTIES = {("17", "chicago")}
+DC_FIPS = "11"  # the District of Columbia is in the atlas and elects no voting member of the House
 # Louisiana held open House primaries on Nov. 3; anyone under 50% goes to a Dec. 12 runoff.
 # civicAPI only flags `advanced` once both finalists are settled (LA-06's second place was not).
 MAJORITY_RUNOFF = {("LA", "H")}
@@ -104,6 +109,10 @@ def county_rows(detail: dict, cands: list[dict], ids: set[str], by_name: dict) -
     top = [c["name"] for c in cands if c["party"] != "O"][:COUNTY_CANDS]
     rows = {}
     for r in regions:
+        if not r.get("fips") and (state_prefix, norm_name(r["name"])) in NOT_COUNTIES:
+            if any(c["votes"] for c in r["candidates"]):  # its votes would be missing from the county that holds it
+                raise RuntimeError(f"{detail['election_name']}: {r['name']!r} is listed in NOT_COUNTIES but carries votes")
+            continue
         fips = r.get("fips") or by_name.get((state_prefix, norm_name(r["name"])))
         fips = FIPS_MERGE.get(fips, fips)
         if fips not in ids:
@@ -146,7 +155,7 @@ def main() -> None:
     search = json.loads((RAW / "search.json").read_text())
     baselines = json.loads((ROOT / "pipeline" / "baselines.json").read_text())
     ids, by_name = load_county_index()
-    races, counties = [], {"S": {}, "G": {}, "B": {}}
+    races, counties = [], {"S": {}, "G": {}, "B": {}, "H": {}}
     latest = ""
     stale = (set(EXCLUSIONS) | set(MEASURE_RULES)) - {r["id"] for r in search["races"]}
     if stale:
@@ -212,6 +221,12 @@ def main() -> None:
         })
         if office in counties:
             counties[office][str(r["id"])] = county_rows(detail, cands, ids, by_name)
+
+    # The county finder offers every county in the 50 states, so each needs a row in at least one House district.
+    in_house = {fips for rows in counties["H"].values() for fips in rows}
+    uncovered = sorted(fips for fips in ids - in_house if fips[:2] != DC_FIPS)
+    if uncovered:
+        raise RuntimeError(f"counties with no House row in any district: {uncovered}")
 
     for office, holder_key in (("S", "senate"), ("G", "governor")):
         expected = set(baselines[holder_key]["seat_holder"])

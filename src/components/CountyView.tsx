@@ -1,6 +1,7 @@
+import { Fragment } from "react";
 import { PARTY } from "../lib/colors";
 import { countyColumns, readCounty } from "../lib/data";
-import { pct, reportingText, votes } from "../lib/format";
+import { apNumber, pct, reportingText, votes } from "../lib/format";
 import type { Geo } from "../lib/geo";
 import type { Demographics } from "../lib/patterns";
 import { raceDistrict } from "../lib/route";
@@ -11,7 +12,7 @@ import type { CountySets, Office, Race } from "../lib/types";
 import { Back } from "./Back";
 
 interface Props {
-  office: "S" | "G"; // the view the county sits on
+  office: "S" | "G" | "H"; // the view the county sits on
   state: string;
   fips: string;
   races: Race[];
@@ -22,15 +23,20 @@ interface Props {
   onSelect: (office: Office, state: string | null, district: string | null) => void;
 }
 
-const ORDER: Record<string, number> = { S: 0, G: 1, B: 2 };
+const ORDER: Record<Office, number> = { S: 0, G: 1, H: 2, B: 3 };
 
-/** One county's page: who lives there, how it voted for president in 2024, and its vote in every statewide race and measure this year. */
+/**
+ * One county's page: who lives there, how it voted for president in 2024, and its vote in every statewide race, House race
+ * and measure this year. A House district is listed when it has a row for the county, so those blocks appear once the
+ * county files load; a county in more than one district shows each district's part.
+ */
 export function CountyView({ office, state, fips, races, counties, geo, demographics, baseline, onSelect }: Props) {
   const shape = geo?.counties.find((c) => c.id === fips);
   if (geo && !shape) throw new Error(`unknown county ${fips}`);
   const list = races
-    .filter((r) => r.state === state && r.office !== "H")
-    .sort((a, b) => (ORDER[a.office] as number) - (ORDER[b.office] as number) || Number(a.special) - Number(b.special));
+    .filter((r) => r.state === state && (r.office !== "H" || counties?.H[String(r.id)]?.[fips]))
+    .sort((a, b) => ORDER[a.office] - ORDER[b.office] || Number(a.special) - Number(b.special) || (a.num ?? 0) - (b.num ?? 0));
+  const house = list.filter((r) => r.office === "H");
   const d = demographics?.counties[fips];
   const then = baseline ? county2024(fips, baseline) : null;
   return (
@@ -53,17 +59,23 @@ export function CountyView({ office, state, fips, races, counties, geo, demograp
         </p>
       )}
       {list.map((race) => (
-        <CountyRace
-          key={race.id}
-          race={race}
-          row={counties ? counties[race.office as "S" | "G" | "B"][String(race.id)]?.[fips] : undefined}
-          loading={!counties}
-          fips={fips}
-          baseline={baseline}
-          onOpen={() => onSelect(race.office, race.state, raceDistrict(race))}
-        />
+        <Fragment key={race.id}>
+          {house.length > 1 && race === house[0] && (
+            <p className="county-fact county-fact--split">
+              {shape ? shape.name : "This county"} is split among {apNumber(house.length)} House districts. Each shows the votes from its part of the county.
+            </p>
+          )}
+          <CountyRace
+            race={race}
+            row={counties ? counties[race.office][String(race.id)]?.[fips] : undefined}
+            loading={!counties}
+            fips={fips}
+            baseline={race.office === "H" ? null : baseline} // a district has no 2024 figure for its part of a county
+            onOpen={() => onSelect(race.office, race.state, raceDistrict(race))}
+          />
+        </Fragment>
       ))}
-      {list.length === 0 && <p className="panel__note">No statewide race or ballot measure in {stateName(state)} this year.</p>}
+      {list.length === 0 && <p className="panel__note">{counties ? `No race in ${stateName(state)} is in these results.` : "Loading county results…"}</p>}
     </div>
   );
 }
@@ -71,7 +83,12 @@ export function CountyView({ office, state, fips, races, counties, geo, demograp
 function CountyRace({ race, row, loading, fips, baseline, onOpen }: { race: Race; row: number[] | undefined; loading: boolean; fips: string; baseline: Baseline | null; onOpen: () => void }) {
   const reading = row ? readCounty(row) : null;
   const cols = countyColumns(race);
-  const title = race.office === "B" ? measureShortTitle(race) : `${OFFICE_SINGULAR[race.office]}${race.special ? " special election" : ""}`;
+  const title =
+    race.office === "B"
+      ? measureShortTitle(race)
+      : race.office === "H"
+        ? `House ${race.num === 0 ? "at-large seat" : `District ${race.num}`}`
+        : `${OFFICE_SINGULAR[race.office]}${race.special ? " special election" : ""}`;
   const shift = row && baseline ? countyShift(race, row, fips, baseline) : null;
   const flip = row && baseline ? countyFlip(race, row, fips, baseline) : null;
   const turnout = row && baseline ? countyTurnoutVs2024(row, fips, baseline) : null;
@@ -86,7 +103,7 @@ function CountyRace({ race, row, loading, fips, baseline, onOpen }: { race: Race
       {loading ? (
         <p className="panel__note">Loading county results…</p>
       ) : !reading || !row ? (
-        <p className="panel__note">No votes reported yet</p>
+        <p className="panel__note">{race.unopposed && race.total === 0 ? "This candidate ran unopposed, and the state reports no votes for the race." : "No votes reported yet"}</p>
       ) : (
         <>
           <ul className="county-race__rows">

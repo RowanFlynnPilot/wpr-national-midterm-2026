@@ -12,17 +12,21 @@ interface Entry {
 
 const MAX = 8;
 
+/** The views that have county pages. Every state elects House members, so every county in the 50 states has a page. */
+type CountyOffice = "S" | "G" | "H";
+
 interface Props {
   geo: Geo | null; // the county names come from the atlas; null until it loads
   races: Race[];
   office: Office; // the current tab is preferred when the county's state has that race
-  onSelect: (office: "S" | "G", state: string, fips: string) => void;
+  onSelect: (office: CountyOffice, state: string, fips: string) => void;
 }
 
 /**
- * A search box for any county in a state electing a senator or governor this year. Every word typed must appear in the
- * county's name or its state ("marathon wi", "washington, oregon"); a pick opens the county's own page on the Senate or
- * governor view, whichever the state has (the current tab when it has both).
+ * A search box for any county in the 50 states. Every word typed must appear in the county's name or its state
+ * ("marathon wi", "washington, oregon"); a pick opens the county's own page on the current tab when the state has a race
+ * there, else on the Senate view, else the governor view, else the House view (Indiana, Missouri, North Dakota, Utah and
+ * Washington elect neither a senator nor a governor this year).
  */
 export function CountyFinder({ geo, races, office, onSelect }: Props) {
   const id = useId();
@@ -31,9 +35,9 @@ export function CountyFinder({ geo, races, office, onSelect }: Props) {
   const [active, setActive] = useState(0);
   const [open, setOpen] = useState(false);
 
-  const statewide = useMemo(() => {
-    const m = new Map<string, Set<"S" | "G">>();
-    for (const r of races) if (r.office === "S" || r.office === "G") m.set(r.state, (m.get(r.state) ?? new Set<"S" | "G">()).add(r.office));
+  const offices = useMemo(() => {
+    const m = new Map<string, Set<CountyOffice>>();
+    for (const r of races) if (r.office !== "B") m.set(r.state, (m.get(r.state) ?? new Set<CountyOffice>()).add(r.office));
     return m;
   }, [races]);
 
@@ -42,11 +46,11 @@ export function CountyFinder({ geo, races, office, onSelect }: Props) {
     const out: Entry[] = [];
     for (const c of geo.counties) {
       const code = STATES[c.id.slice(0, 2)]?.code;
-      if (!code || !statewide.has(code)) continue;
+      if (!code || !offices.has(code)) continue; // the District of Columbia is in the atlas and has no race here
       out.push({ fips: c.id, name: c.name, state: code, search: `${c.name} ${stateName(code)} ${code}`.toLowerCase() });
     }
     return out.sort((a, b) => a.name.localeCompare(b.name) || stateName(a.state).localeCompare(stateName(b.state)));
-  }, [geo, statewide]);
+  }, [geo, offices]);
 
   const matches = useMemo(() => {
     const tokens = q.toLowerCase().split(/[\s,]+/).filter(Boolean);
@@ -61,8 +65,8 @@ export function CountyFinder({ geo, races, office, onSelect }: Props) {
   const showList = open && q.trim().length > 0;
 
   const pick = (e: Entry) => {
-    const has = statewide.get(e.state) as Set<"S" | "G">;
-    const o: "S" | "G" = (office === "S" || office === "G") && has.has(office) ? office : has.has("S") ? "S" : "G";
+    const has = offices.get(e.state) as Set<CountyOffice>;
+    const o: CountyOffice = office !== "B" && has.has(office) ? office : has.has("S") ? "S" : has.has("G") ? "G" : "H";
     setQ("");
     setOpen(false);
     setActive(0);
@@ -122,7 +126,7 @@ export function CountyFinder({ geo, races, office, onSelect }: Props) {
             </li>
           ) : matches.length === 0 ? (
             <li className="finder__empty" role="option" aria-selected={false}>
-              No county by that name in a state electing a senator or governor this year
+              No county by that name
             </li>
           ) : (
             matches.map((m, i) => (
