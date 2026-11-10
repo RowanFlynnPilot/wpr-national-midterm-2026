@@ -1,3 +1,4 @@
+import { apNumber } from "./format";
 import { countyColumns } from "./data";
 import type { Party, Race } from "./types";
 
@@ -159,8 +160,25 @@ export function countyFlips(race: Race, rows: Record<string, number[]>, baseline
 export function countyFlipsText(f: CountyFlips): string {
   const n = f.toD + f.toR;
   if (!n) return `None of the ${f.compared} counties with a 2024 figure changed sides`;
-  const ways = [f.toD ? `${f.toD} to Democrats` : "", f.toR ? `${f.toR} to Republicans` : ""].filter(Boolean).join(", ");
-  return `${n} of ${f.compared} counties changed sides since 2024: ${ways}`;
+  return `${n} of ${f.compared} counties changed sides since 2024${flipWays(f)}`;
+}
+
+/** How the counties that changed sides divide, as the end of a sentence: ": 11 to Democrats, 1 to Republicans", ", all to Democrats", ", to Republicans" for one county, nothing when none did. */
+export function flipWays(f: CountyFlips): string {
+  const n = f.toD + f.toR;
+  if (!n) return "";
+  if (f.toD && f.toR) return `: ${f.toD} to Democrats, ${f.toR} to Republicans`;
+  return `, ${n === 1 ? "" : "all "}to ${f.toD ? "Democrats" : "Republicans"}`;
+}
+
+/** A sentence for a race where one party's vote is several candidates' (Alaska's top-four general): the comparison adds them together. */
+export function summedNote(race: Race): string | null {
+  const count = (p: "D" | "R") => race.cands.filter((c) => c.party === p).length;
+  const d = count("D");
+  const r = count("R");
+  if (d < 2 && r < 2) return null;
+  if (d > 1 && r > 1) return "Each party’s candidates are added together for this comparison";
+  return `The ${apNumber(Math.max(d, r))} ${d > 1 ? "Democrats" : "Republicans"}’ votes are added together for this comparison`;
 }
 
 /** Votes counted so far as a percentage of the state's 2024 presidential vote; statewide races and measures only. */

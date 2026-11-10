@@ -8,6 +8,22 @@ export function apNumber(n: number): string {
 export const votes = (n: number) => n.toLocaleString("en-US");
 export const pct = (n: number) => `${n.toFixed(1)}%`;
 
+/** A margin inside a sentence: "less than 0.1" reads where "<0.1" would not. */
+export function marginWords(points: number): string {
+  return points < 0.1 ? "less than 0.1" : points.toFixed(1);
+}
+
+/** A signed margin for a caption: "+2.3", "−0.4"; under a tenth of a point there is no figure to sign. */
+export function signedMargin(points: number): string {
+  if (Math.abs(points) < 0.1) return points < 0 ? "<0.1 behind" : "<0.1";
+  return points < 0 ? `−${(-points).toFixed(1)}` : `+${points.toFixed(1)}`;
+}
+
+/** Capitalize a sentence's first letter ("three not called" → "Three not called"). */
+export function sentenceStart(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 export function marginText(points: number): string {
   return points < 0.1 ? "<0.1" : points.toFixed(1);
 }

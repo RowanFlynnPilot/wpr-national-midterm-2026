@@ -1,4 +1,4 @@
-import { marginText, pct, reportingShare } from "./format";
+import { apNumber, marginWords, pct, reportingShare, sentenceStart } from "./format";
 import { raceDistrict } from "./route";
 import { biggestShifts, marginLabel, officeShift, ticketPairs, type Baseline, type TicketPair } from "./shift";
 import { HOME_STATE, stateName } from "./states";
@@ -30,7 +30,7 @@ export function takeaways(results: Results, chambers: Record<Office, Chamber>, b
     const lead = closest.cands[0] as Race["cands"][number];
     const share = reportingShare(closest.pctIn, closest.total);
     out.push({
-      text: `The closest race still being counted is ${raceTitle(closest)}, where ${lead.name} leads by ${marginText(closest.margin)} points${share ? ` with ${share} in` : ""}.`,
+      text: `The closest ${closest.office === "H" ? "House" : "statewide"} race still being counted is ${raceTitle(closest)}, where ${lead.name} leads by ${marginWords(closest.margin)} points${share ? ` with ${share} in` : ""}.`,
       to: toRace(closest),
     });
   } else {
@@ -45,7 +45,7 @@ export function takeaways(results: Results, chambers: Record<Office, Chamber>, b
     const n = flips.length;
     const noun = office === "S" ? "Senate seat" : "governor's office";
     out.push({
-      text: `${n === 1 ? "One" : n} ${noun}${n === 1 ? "" : "s"} changed parties, the widest in ${stateName(big.state)}, where ${big.cands[0]?.name ?? ""} flipped it by ${marginText(big.margin)} points.`,
+      text: `${sentenceStart(apNumber(n))} ${noun}${n === 1 ? "" : "s"} changed parties, the widest in ${stateName(big.state)}, where ${big.cands[0]?.name ?? ""} flipped it by ${marginWords(big.margin)} points.`,
       to: toRace(big),
     });
     break;
@@ -85,7 +85,7 @@ export function takeaways(results: Results, chambers: Record<Office, Chamber>, b
   if (splits.length) {
     const top = splits[0] as TicketPair;
     out.push({
-      text: `${splits.length} of the ${pairs.length} states electing both a senator and a governor split them between the parties, the widest gap in ${stateName(top.state)} (Senate ${marginLabel(top.senateMargin)}, governor ${marginLabel(top.governorMargin)}).`,
+      text: `${sentenceStart(apNumber(splits.length))} of the ${apNumber(pairs.length)} states electing both a senator and a governor split them between the parties, the widest gap in ${stateName(top.state)} (Senate ${marginLabel(top.senateMargin)}, governor ${marginLabel(top.governorMargin)}).`,
       to: toRace(top.senate),
     });
   }
@@ -98,17 +98,17 @@ export function takeaways(results: Results, chambers: Record<Office, Chamber>, b
   const parts: string[] = [];
   if (statewide) {
     const w = statewide.cands.find((c) => c.winner);
-    if (w) parts.push(`${w.name} won the ${OFFICE_SINGULAR[statewide.office].toLowerCase()}${statewide.office === "G" ? "'s race" : " race"} by ${marginText(statewide.margin)} points`);
+    if (w) parts.push(`${w.name} won the ${OFFICE_SINGULAR[statewide.office].toLowerCase()}${statewide.office === "G" ? "'s race" : " race"} by ${marginWords(statewide.margin)} points`);
   }
   if (house.length) {
     const d = house.filter((r) => r.winner === "D" || r.partyDecided === "D").length;
     const r = house.filter((r) => r.winner === "R" || r.partyDecided === "R").length;
-    parts.push(`the House delegation is ${d} D, ${r} R${house.length - d - r ? ` with ${house.length - d - r} still open` : ""}`);
+    parts.push(`the House delegation is ${d}\u00a0D, ${r}\u00a0R${house.length - d - r ? ` with ${house.length - d - r} still open` : ""}`);
   }
   if (measures.length) {
     const passed = measures.filter((m) => m.winner === "Y").length;
     const failed = measures.filter((m) => m.winner === "N").length;
-    parts.push(`${passed} of ${measures.length} ballot question${measures.length === 1 ? "" : "s"} passed${failed ? ` and ${failed} failed` : ""}`);
+    parts.push(`${apNumber(passed)} of ${apNumber(measures.length)} ballot question${measures.length === 1 ? "" : "s"} passed${failed ? ` and ${apNumber(failed)} failed` : ""}`);
   }
   if (parts.length) {
     out.push({

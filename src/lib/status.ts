@@ -1,5 +1,5 @@
 import { NO_RESULTS, PALE, PARTY, PARTY_LABEL, PARTY_PLURAL } from "./colors";
-import { centralTime, marginText, pct } from "./format";
+import { centralTime, marginWords, pct } from "./format";
 import { stateName } from "./states";
 import type { Race } from "./types";
 
@@ -70,7 +70,7 @@ export function statusText(r: Race): string {
       return `Seat decided: both finalists are ${PARTY_PLURAL[r.partyDecided ?? r.leader]}. Winner not called`;
     case "leading":
       if (r.office === "B") return measureLeadText(r);
-      return `Not called. ${PARTY_LABEL[r.leader]} leads by ${marginText(r.margin)} points${rcvNote(r) ? " in first-choice votes" : ""}`;
+      return `Not called. ${PARTY_LABEL[r.leader]} leads by ${marginWords(r.margin)} points${rcvNote(r) ? " in first-choice votes" : ""}`;
   }
 }
 
@@ -85,7 +85,7 @@ function failedText(r: Race): string {
 
 /** "Not called. Yes leads by 2.2 points", with "but is under the 55% needed" when that lead is not enough to pass. */
 function measureLeadText(r: Race): string {
-  const lead = `Not called. ${PARTY_LABEL[r.leader]} leads by ${marginText(r.margin)} points`;
+  const lead = `Not called. ${PARTY_LABEL[r.leader]} leads by ${marginWords(r.margin)} points`;
   return r.rule && r.leader === "Y" && yesShare(r) < r.rule.needs ? `${lead} but is under the ${r.rule.label} needed` : lead;
 }
 

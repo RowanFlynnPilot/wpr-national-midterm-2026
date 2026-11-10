@@ -13,7 +13,7 @@ describe("takeaways", () => {
     expect(list.length).toBeLessThanOrEqual(6);
     const open = RESULTS.races.filter((r) => (r.office === "S" || r.office === "G") && !r.winner && !r.runoff && r.total > 0).sort((a, b) => a.margin - b.margin)[0];
     expect(open).toBeDefined();
-    expect(list[0]?.text).toContain("closest race still being counted");
+    expect(list[0]?.text).toContain("closest statewide race still being counted");
     expect(list[0]?.to).toEqual({ office: open?.office, state: open?.state, district: null });
     for (const t of list) {
       expect(t.text.length).toBeGreaterThan(20);

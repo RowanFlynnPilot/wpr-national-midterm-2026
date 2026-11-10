@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { PALE, PARTY } from "../lib/colors";
-import { marginText } from "../lib/format";
+import { marginWords } from "../lib/format";
 import { HOME_STATE } from "../lib/states";
 import { noVotesYet } from "../lib/status";
 import { raceTitle } from "../lib/summary";
@@ -60,7 +60,7 @@ export function MarginStrip({ races, onSelect }: Props) {
       className="margin-strip"
       viewBox={`0 0 ${W} ${MAX_H + AXIS}`}
       role="img"
-      aria-label={`House districts by margin. ${bars.map((b) => `${b.n} ${b.party === "D" ? "Democratic" : "Republican"} seats by ${CAP - BIN} points or more`).join(", ")}. ${home.map((d) => `${d.r.district} ${marginText(d.r.margin)} points`).join(", ")}.`}
+      aria-label={`House districts by margin. ${bars.map((b) => `${b.n} ${b.party === "D" ? "Democratic" : "Republican"} seats by ${CAP - BIN} points or more`).join(", ")}. ${home.map((d) => `${d.r.district} ${marginWords(d.r.margin)} points`).join(", ")}.`}
     >
       {bars.map((b) => (
         <g key={b.col} className="margin-strip__bar">
@@ -84,7 +84,7 @@ export function MarginStrip({ races, onSelect }: Props) {
           className={r.state === HOME_STATE ? "margin-strip__dot is-home" : "margin-strip__dot"}
           onClick={() => onSelect(r)}
         >
-          <title>{`${raceTitle(r)}: ${(r.cands[0] as Race["cands"][number]).name} by ${marginText(r.margin)}`}</title>
+          <title>{`${raceTitle(r)}: ${(r.cands[0] as Race["cands"][number]).name} by ${marginWords(r.margin)} points`}</title>
         </circle>
       ))}
     </svg>

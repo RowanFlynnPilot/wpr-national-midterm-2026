@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { PARTY } from "../lib/colors";
-import { apNumber } from "../lib/format";
+import { apNumber, sentenceStart } from "../lib/format";
 import type { History } from "../lib/history";
 import type { Seat } from "../lib/seats";
 import type { Baseline } from "../lib/shift";
@@ -165,7 +165,7 @@ function ChamberTab({ c, active, onClick, onHover, onSelectRace }: TabProps) {
       </button>
       <SeatArc chamber={c} onHover={onHover} onSelect={onSelectRace} />
       <span className="chamber__foot">
-        {uncalled ? `${apNumber(uncalled).replace(/^\w/, (x) => x.toUpperCase())} not called` : measures ? "All measures called" : "All races called"}
+        {uncalled ? `${sentenceStart(apNumber(uncalled))} not called` : measures ? "All measures called" : "All races called"}
         {!measures && (
           <span className="chamber__before">
             Before: {c.before.D} D, {c.before.R} R

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { apNumber, centralTime, marginText, relativeAge, reportingShare, reportingText, timeAgo } from "./format";
+import { apNumber, centralTime, marginText, marginWords, relativeAge, reportingShare, reportingText, sentenceStart, signedMargin, timeAgo } from "./format";
 
 describe("apNumber", () => {
   it("spells out one through nine and formats larger numbers", () => {
@@ -14,6 +14,23 @@ describe("marginText", () => {
   it("shows one decimal and a floor for near-ties", () => {
     expect(marginText(2.26)).toBe("2.3");
     expect(marginText(0.04)).toBe("<0.1");
+  });
+  it("reads as words inside a sentence", () => {
+    expect(marginWords(2.26)).toBe("2.3");
+    expect(marginWords(0.04)).toBe("less than 0.1");
+  });
+  it("signs a caption's margin, and gives no sign to a figure it cannot show", () => {
+    expect(signedMargin(2.26)).toBe("+2.3");
+    expect(signedMargin(-0.44)).toBe("−0.4");
+    expect(signedMargin(0.04)).toBe("<0.1");
+    expect(signedMargin(-0.04)).toBe("<0.1 behind");
+  });
+});
+
+describe("sentenceStart", () => {
+  it("capitalizes the first letter only", () => {
+    expect(sentenceStart("three not called")).toBe("Three not called");
+    expect(sentenceStart("12 not called")).toBe("12 not called");
   });
 });
 

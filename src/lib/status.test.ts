@@ -84,7 +84,7 @@ describe("statusText", () => {
     expect(statusText(race("H", "CA-04"))).toBe("Seat decided: both finalists are Democrats. Winner not called");
     expect(statusText(race("S", "MS"))).toBe("Not called. Democrat leads by 0.2 points");
     expect(statusText(race("S", "AK"))).toBe("Not called. Democrat leads by 0.3 points in first-choice votes");
-    expect(statusText({ ...race("S", "MS"), margin: 0.04 })).toBe("Not called. Democrat leads by <0.1 points");
+    expect(statusText({ ...race("S", "MS"), margin: 0.04 })).toBe("Not called. Democrat leads by less than 0.1 points");
   });
 });
 

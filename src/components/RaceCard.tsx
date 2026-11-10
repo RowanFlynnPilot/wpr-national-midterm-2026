@@ -1,7 +1,7 @@
 import { PARTY } from "../lib/colors";
 import { centralTime, pct, reportingText, votes } from "../lib/format";
 import type { HistoryPoint } from "../lib/history";
-import { countyFlips, countyFlipsText, headToHead, raceShift, shiftText, turnoutVs2024, type Baseline } from "../lib/shift";
+import { countyFlips, countyFlipsText, headToHead, raceShift, shiftText, summedNote, turnoutVs2024, type Baseline } from "../lib/shift";
 import { calledText, rcvNote, statusParts } from "../lib/status";
 import { Sparkline } from "./Sparkline";
 import { raceTitle } from "../lib/summary";
@@ -22,6 +22,7 @@ export function RaceCard({
 }) {
   const H = heading;
   const shift = baseline ? raceShift(race, baseline) : null;
+  const summed = summedNote(race);
   const turnout = baseline ? turnoutVs2024(race, baseline) : null;
   const rows = counties?.[String(race.id)];
   const flips = baseline && rows ? countyFlips(race, rows, baseline) : null;
@@ -84,7 +85,7 @@ export function RaceCard({
           <span>Updated {centralTime(race.updated, false)}</span>
         </footer>
       )}
-      {shift && <p className="race-card__shift">{shiftText(shift)}</p>}
+      {shift && <p className="race-card__shift">{shiftText(shift)}.{summed && ` ${summed}.`}</p>}
       {baseline && !shift && (race.office === "S" || race.office === "G") && !headToHead(race) && (
         <p className="race-card__shift">No comparison with the 2024 presidential vote: an independent finished in the top two.</p>
       )}

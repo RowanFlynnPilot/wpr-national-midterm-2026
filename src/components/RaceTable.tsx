@@ -167,7 +167,7 @@ export function RaceTable({ office, races, history, baseline, now, onSelect }: P
                   <th scope="col" className="phone-hide">Runner-up</th>
                 </>
               )}
-              <SortHeader label="Margin" value="margin" sort={sort} onSort={setSort} num />
+              <SortHeader label="Margin" value="margin" sort={sort} onSort={setSort} num phoneHide={measures} />
               {shifts && <SortHeader label="vs. 2024" value="shift" sort={sort} onSort={setSort} num phoneHide />}
               <SortHeader label="Reporting" value="reporting" sort={sort} onSort={setSort} num tabletHide />
               <SortHeader label="Votes" value="votes" sort={sort} onSort={setSort} num tabletHide />
@@ -225,7 +225,7 @@ export function RaceTable({ office, races, history, baseline, now, onSelect }: P
                       <td className="phone-hide">{b && <Cand name={b.name} party={b.party} value={b.pct} strong={false} />}</td>
                     </>
                   )}
-                  <td className="num">
+                  <td className={measures ? "num phone-hide" : "num"}>
                     {movement && (
                       <span className={`trend trend--${movement}`} role="img" aria-label={TREND_TEXT[movement]}>
                         {TREND_GLYPH[movement]}

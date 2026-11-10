@@ -3,7 +3,8 @@ import { useInView } from "../lib/inView";
 import { PARTY, PARTY_PLURAL } from "../lib/colors";
 import type { Geo } from "../lib/geo";
 import type { Demographics } from "../lib/patterns";
-import { biggestShifts, countyFlips, headToHead, marginLabel, officeShift, officeTurnout, raceShift, shiftText, ticketPairs, type Baseline, type CountyFlips } from "../lib/shift";
+import { apNumber, sentenceStart } from "../lib/format";
+import { biggestShifts, countyFlips, flipWays, headToHead, marginLabel, officeShift, officeTurnout, raceShift, shiftText, summedNote, ticketPairs, type Baseline, type CountyFlips } from "../lib/shift";
 import { shortName } from "../lib/takeaways";
 import { stateName } from "../lib/states";
 import { raceFill } from "../lib/status";
@@ -86,12 +87,13 @@ function AnalysisBand({ office, state, district, races, counties, demographics, 
 /** One statewide race against the 2024 presidential vote in its state. */
 function RaceShift({ race, baseline }: { race: Race; baseline: Baseline }) {
   const s = raceShift(race, baseline);
+  const summed = summedNote(race);
   return (
     <>
       <h3 className="panel__title">Compared with 2024</h3>
       <p className="panel__lede">
         {s
-          ? shiftText(s)
+          ? `${shiftText(s)}.${summed ? ` ${summed}.` : ""}`
           : headToHead(race)
             ? `No 2024 figures for ${stateName(race.state)}.`
             : "No comparison with the 2024 presidential vote: an independent finished in the top two."}
@@ -129,7 +131,7 @@ function ShiftBlock({ office, races, baseline, counties, onSelect }: { office: O
       {turnout !== null && (
         <p className="panel__lede">
           Votes counted so far in those races come to {Math.round(turnout)}% of the 2024 presidential vote in the same states
-          {flips && flips.compared > 0 && `, and ${flips.toD + flips.toR} of their ${flips.compared.toLocaleString("en-US")} counties changed sides: ${flips.toD} to Democrats, ${flips.toR} to Republicans`}.
+          {flips && flips.compared > 0 && `, and ${flips.toD + flips.toR || "none"} of their ${flips.compared.toLocaleString("en-US")} counties changed sides${flipWays(flips)}`}.
         </p>
       )}
       <div className="shift-block__moves">
@@ -171,14 +173,16 @@ function TicketPairs({ races, onSelect }: { races: Race[]; onSelect: (r: Race) =
   const pairs = ticketPairs(races);
   if (!pairs.length) return null;
   const splits = pairs.filter((p) => p.split).length;
+  const summed = pairs.filter((p) => summedNote(p.senate) || summedNote(p.governor)).map((p) => stateName(p.state));
   return (
     <section className="splits" aria-labelledby="splits-title">
       <h3 id="splits-title" className="panel__title">
         Senate and governor on the same ballot
       </h3>
       <p className="panel__lede">
-        {pairs.length} states elected both this year. {splits ? `${splits} split the two between the parties.` : "Every one gave both to the same party."} Margins are the
+        Both offices were on the ballot in {apNumber(pairs.length)} states. {splits ? `${sentenceStart(apNumber(splits))} split them between the parties.` : "Every one gave both to the same party."} Margins are the
         Democratic minus Republican share of every vote, in points; the gap is how far the two differ.
+        {summed.length > 0 && ` Where several candidates from one party ran (${summed.join(", ")}), their votes are added together.`}
       </p>
       <table className="splits__table">
         <thead>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { PALE, PARTY, PARTY_LABEL } from "../lib/colors";
-import { apNumber, centralTime, marginText, pct, reportingShare, timeAgo } from "../lib/format";
+import { apNumber, centralTime, marginText, pct, reportingShare, signedMargin, timeAgo } from "../lib/format";
 import { raceDistrict, raceFor } from "../lib/route";
 import { HOME_STATE, stateName } from "../lib/states";
 import { RUNOFF, noVotesYet, raceFill, raceStatus, yesShare } from "../lib/status";
@@ -85,7 +85,7 @@ export function OverviewLists({ office, chamber, races, now, onSelect }: Pick<Pr
           </ul>
           {now - Date.parse((chamber.latestCalls[0] as Race).calledAt as string) > QUIET_MS && (
             <p className="panel__note panel__note--foot">
-              Nothing here has been called since {centralTime((chamber.latestCalls[0] as Race).calledAt as string)}. The count goes on; the calls are civicAPI’s.
+              The newest call with a time here is from {centralTime((chamber.latestCalls[0] as Race).calledAt as string)}. The count goes on; the calls are civicAPI’s.
             </p>
           )}
         </section>
@@ -180,7 +180,7 @@ function RaceRow({ race, onClick, showOffice = false, when, points }: RowProps) 
         ? ["Runoff", "no majority"]
         : status === "decided"
           ? [`${race.partyDecided} seat`, inText]
-          : [race.margin < 0.1 ? "<0.1" : `+${marginText(race.margin)}`, inText];
+          : [signedMargin(race.margin), inText];
   // "Question 2 - Prohibit Closing..." splits into the label and the subject; a title without a dash stays whole.
   const [measureLabel, measureSubject] = measure ? splitMeasureTitle(measureShortTitle(race)) : [null, null];
   const where = showOffice ? (measureLabel ?? OFFICE_SINGULAR[race.office]) : shortTitle(race);
@@ -328,7 +328,7 @@ function StateView({ office, state, races, counties, geo, history, baseline, onS
   const countyData = counties ? (office === "S" ? counties.S : counties.G) : null;
   return (
     <div className="panel">
-      <Back label={`All ${OFFICE_NAME[office].toLowerCase()} races`} onClick={() => onSelect(office, null, null)} />
+      <Back label={`All ${office === "S" ? "Senate" : "governor"} races`} onClick={() => onSelect(office, null, null)} />
       {race ? (
         <>
           <RaceCard race={race} heading="h2" points={history[String(race.id)]} baseline={baseline} counties={countyData} />

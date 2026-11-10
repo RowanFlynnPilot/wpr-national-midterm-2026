@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { race, RESULTS } from "./fixture";
 import type { Candidate } from "./types";
-import { biggestShifts, county2024, countyFlip, countyFlips, countyFlipsText, countyShift, countyTurnoutVs2024, officeShift, officeTurnout, partyVotes, raceShift, shiftText, ticketPairs, turnoutVs2024, twoPartyMargin, headToHead, type Baseline } from "./shift";
+import { biggestShifts, county2024, countyFlip, countyFlips, countyFlipsText, countyShift, countyTurnoutVs2024, flipWays, officeShift, officeTurnout, partyVotes, raceShift, shiftText, summedNote, ticketPairs, turnoutVs2024, twoPartyMargin, headToHead, type Baseline } from "./shift";
 
 const tx = race("S", "TX");
 const baseline: Baseline = {
@@ -104,7 +104,10 @@ describe("countyFlips", () => {
     expect(countyFlip(tx, rows["48453"], "48453", base)).toBe("D"); // Republican in 2024, Democratic now
     expect(countyFlip(tx, rows["48001"], "48001", base)).toBeNull(); // Republican both times
     expect(countyFlips(tx, rows, base)).toEqual({ toD: 1, toR: 0, compared: 2 });
-    expect(countyFlipsText({ toD: 1, toR: 0, compared: 2 })).toBe("1 of 2 counties changed sides since 2024: 1 to Democrats");
+    expect(countyFlipsText({ toD: 1, toR: 0, compared: 2 })).toBe("1 of 2 counties changed sides since 2024, to Democrats");
+    expect(countyFlipsText({ toD: 0, toR: 3, compared: 9 })).toBe("3 of 9 counties changed sides since 2024, all to Republicans");
+    expect(countyFlipsText({ toD: 11, toR: 1, compared: 72 })).toBe("12 of 72 counties changed sides since 2024: 11 to Democrats, 1 to Republicans");
+    expect(flipWays({ toD: 0, toR: 0, compared: 9 })).toBe("");
     expect(countyFlipsText({ toD: 0, toR: 0, compared: 9 })).toBe("None of the 9 counties with a 2024 figure changed sides");
   });
   it("skips counties without a 2024 figure or without votes, and races a district cannot read", () => {
@@ -152,5 +155,17 @@ describe("ticketPairs", () => {
       expect(p.gap).toBeCloseTo(Math.abs(p.senateMargin - p.governorMargin), 5);
       expect(p.split).toBe(Math.sign(p.senateMargin) !== Math.sign(p.governorMargin));
     }
+  });
+});
+
+describe("summedNote", () => {
+  const cand = (party: Candidate["party"], id: number): Candidate => ({ ...(tx.cands[0] as Candidate), id, party });
+  it("is silent when each party has one candidate", () => {
+    expect(summedNote(tx)).toBeNull();
+  });
+  it("says whose votes are added together when a party has several candidates", () => {
+    expect(summedNote({ ...tx, cands: [cand("D", 1), cand("R", 2), cand("R", 3), cand("R", 4)] })).toBe("The three Republicans’ votes are added together for this comparison");
+    expect(summedNote({ ...tx, cands: [cand("D", 1), cand("D", 2), cand("R", 3)] })).toBe("The two Democrats’ votes are added together for this comparison");
+    expect(summedNote({ ...tx, cands: [cand("D", 1), cand("D", 2), cand("R", 3), cand("R", 4)] })).toBe("Each party’s candidates are added together for this comparison");
   });
 });

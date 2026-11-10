@@ -29,7 +29,7 @@ import { readVisit, writeVisit } from "./lib/visits";
 import { isStale } from "./lib/share";
 import { isFresh, noVotesYet, type LegendKey } from "./lib/status";
 import { HOME_STATE, stateName } from "./lib/states";
-import { chamber, dek, headline, housePopularVote, OFFICE_NAME, raceTitle } from "./lib/summary";
+import { chamber, dek, headline, housePopularVote, OFFICE_NAME, OFFICE_SINGULAR, raceTitle } from "./lib/summary";
 import type { Race, Selection } from "./lib/types";
 
 interface Hover {
@@ -257,7 +257,7 @@ export function App({ data }: { data: Data }) {
       : sel.office === "B"
         ? `Statewide ballot measures in ${measureCounts.size} states; darker means more`
         : mode === "states"
-        ? `${OFFICE_NAME[sel.office]} results by state`
+        ? `${OFFICE_SINGULAR[sel.office]} results by state`
         : mode === "counties"
           ? `County results in the ${raceNoun}`
           : mode === "shift"
@@ -294,7 +294,7 @@ export function App({ data }: { data: Data }) {
       ) : (
         isStale(results.fetched, now) && (
           <p className="stale" role="status">
-            These results may be out of date. They were last fetched {centralTime(results.fetched)} and are normally refreshed every hour.
+            These results may be out of date. They were last fetched {centralTime(results.fetched)}.
           </p>
         )
       )}

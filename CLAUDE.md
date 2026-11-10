@@ -139,7 +139,7 @@ Each district's target = vote-weighted centroid of the counties it covers (from 
 - `src/components/HexMap.tsx`: roving tabindex, arrow keys walk the grid (skipping gaps), Enter/Space selects, focus shows the tooltip (`focusPoint` in `Tooltip.tsx`; the same `HoverHandler` serves pointer and keyboard). `SidePanel.tsx`, `RaceCard.tsx`, `CountyMap.tsx`, `RaceTable.tsx` (table view = accessible twin of the maps).
 - `src/lib/live.ts` (`useLive`) loads the county files after the first paint, then refetches results (and counties, once loaded) every 15 minutes and when the tab becomes visible, but never within 5 minutes of the last refresh (a tab flicking in and out of view was re-downloading everything). The old render stays at reduced opacity while a refresh is in flight; a failed refresh shows a specific notice while keeping the last good data. `document.title` names the selected race.
 - `HOME_STATE` (`src/lib/states.ts`) drives the Wisconsin shortcut: a toolbar chip that selects it on the current tab, a resting teal outline on both maps (replaced by the selected outline once picked), the "Wisconsin at a glance" block (Senate and governor races, then the measures, then the House delegation; `GLANCE_ORDER`) at the top of every overview panel, the outlined dots on the House margin strip and the last "thing to know". It is "WI" unless the page is opened with `?home=<postal code>` (`homeState`), so another newsroom can embed the tool around its own state (see WordPress embed); an unknown code fails the page at load, since it is a setup error. The masthead, the sales copy and the headline stay WPR's.
-- `RaceTable.tsx`: each row expands (chevron, or click the row) into the full `RaceCard` with every candidate, votes, photos, call and update times and the count sparkline, plus an "Open on the map" button; the state cell still opens the panel. Columns: State/District, Leading candidate (sortable by share), Runner-up, Margin (with the trend glyph), Reporting, Votes, Called (relative time; "No time given" for calls civicAPI left unstamped), Status. Filters: All, Not called, Flipped (Senate and governors), Within 5 points. A summary line counts called and not called; "Download CSV" writes the filtered, sorted rows via `src/lib/csv.ts` (one row per race, top two candidates spelled out, status and timing). Reporting, Votes and Called hide under 960px (they are in the expanded row; with them the table scrolled sideways on tablets), Runner-up under 700px.
+- `RaceTable.tsx`: each row expands (chevron, or click the row) into the full `RaceCard` with every candidate, votes, photos, call and update times and the count sparkline, plus an "Open on the map" button; the state cell still opens the panel. Columns: State/District, Leading candidate (sortable by share), Runner-up, Margin (with the trend glyph), Reporting, Votes, Called (relative time; "No time given" for calls civicAPI left unstamped), Status. Filters: All, Not called, Flipped (Senate and governors), Within 5 points. A summary line counts called and not called; "Download CSV" writes the filtered, sorted rows via `src/lib/csv.ts` (one row per race, top two candidates spelled out, status and timing). Reporting, Votes and Called hide under 960px (they are in the expanded row; with them the table scrolled sideways on tablets), Runner-up under 700px, and on the measures table Margin too (`phone-hide`; the Yes and No shares beside it say the same). Under 390px the header labels wrap, the cells tighten and the party dash narrows so the longest names stay whole (see "Review pass (Nov. 9, 2026, evening)").
 - Map pass (Nov. 6): the key (`Legend.tsx`) is a row of toggle buttons on the states and hex views; pressing one spotlights those races (`legendKey`/`inSpotlight` in `status.ts`, `spotlight` state in App, cleared when the office or mode changes; "Seat flipped" and "Called in the last 3 hours" are entries too; the latter appears only while `isFresh` finds one, `FRESH_MS`) and dims everything else to 22% (`.is-out`, `.is-dim`); "Show all" clears it. Fresh calls get a dashed teal ring (`.fresh-outlines`, `.hex--fresh`). Hover is an ink outline drawn on top (`.hover-outline`, `.hex-hover`) rather than a darkened fill, fills cross-fade over 400 ms when a refresh changes a call, both maps fade in once on mount (`map-in`, off under reduced motion) and the state group and hex blob carry one soft drop shadow for elevation. The tooltip leads with the leader's headshot (when the manifest has one), the call time or % reporting, and a share bar per candidate. A zoomed state names its five biggest counties by votes (`.county-labels`, 9px scaled by `zoomScale`, skipping any within `LABEL_GAP` of a bigger one; hidden under 700px where they would be 3px).
 - Replay election night (`src/lib/replay.ts`, `Replay.tsx`): `callOrder` is every timestamped call oldest first; position i of the scrubber shows `resultsAfter(results, i, calls)`, the results with every later call undone (winner, flip, call time and the candidate's winner flag cleared; leads and votes stay as they are today, since the count history starts later). The ~34 calls civicAPI left unstamped are undone at every position but the last. App derives `results` from the live results and the position, so the maps, tabs, headline, panel and table all replay together, and the board's `clock` is the position's call time (so "Called in the last 3 hours" and the latest-calls ages follow the replay); the masthead and the stale notice keep the real time. Play steps one call every 45 ms; the control shows on the states and hex views and the measures map, and leaving the states mode exits the replay. The overview's "still being counted" list shows 12 rows (`COUNTING_LISTED`) and a "Show all N" button that expands it in place (`Overview` is keyed by office so it folds back on a tab change); mid-replay hundreds are uncalled.
 - Since your last visit (`src/lib/visits.ts`, `SinceVisit.tsx`): localStorage keeps the ids of the races this browser had seen called and when (`wpr-midterm-2026-last-visit`, written on every results load, read once at mount before the first write); the strip under the tabs lists the races called since, newest first, five shown plus a count, dismissable, hidden during replay. Storage failures (private windows) leave the page as it was. Nothing leaves the browser.
@@ -417,7 +417,8 @@ whole); it is for the newsroom and does not print. `parseHash`/`toHash` moved to
   tooltip) and `senate-arc-enter` (Enter opens the pop-up); the gate's clip target is scrolled into view after the focus and key steps,
   since those may be what creates it.
 - **A quiet count says so.** When an office's newest timestamped call is more than a day old (`QUIET_MS`), the Latest calls list ends
-  with "Nothing here has been called since Nov. 7, 3:12 p.m. CST. The count goes on; the calls are civicAPI's." civicAPI made no call
+  with "The newest call with a time here is from Nov. 7, 3:12 p.m. CST. The count goes on; the calls are civicAPI's." (reworded that evening:
+  civicAPI calls some races without a timestamp, so "nothing has been called since" claimed more than the list knows). civicAPI made no call
   between Kansas governor on Nov. 7 and at least Nov. 9, and the list's ages had read as the page being stuck. During a replay the
   clock is the position's call time, so the line does not appear.
 - **The still-counting list shows 8 rows** (`COUNTING_LISTED`, was 12). Measured at 1280 against the map column's content: the Senate
@@ -432,6 +433,37 @@ whole); it is for the newsroom and does not print. `parseHash`/`toHash` moved to
   LCP 0.9 or 3.1–3.4 s by the simulation's bimodality, CLS 0, accessibility and best practices 100. Today's code moved nothing; the
   "under 90 ms" blocking time recorded on Nov. 7 does not reproduce on the baseline either, so it was the Lighthouse version or the
   machine. Run Lighthouse alone: runs that overlapped the screenshot gate read 20–100 ms worse.
+
+## Review pass (Nov. 9, 2026, evening)
+
+A fresh walk of every view at 360 to 1600 px against the live data. Wording and phone-table fixes only; no number changed its meaning.
+
+- **One rule for a margin in words and one for a signed margin** (`format.ts`). `marginWords` gives "less than 0.1" under a tenth of a
+  point and one decimal otherwise (the status lines and takeaways had printed "leads by 0.0 points"); `signedMargin` gives "+2.3",
+  "−0.4", "<0.1" or "<0.1 behind" for the panel rows, the sparkline and the margin strip. `sentenceStart` capitalizes a sentence's
+  first letter, so a count that opens a sentence is spelled out and capitalized ("Two not called" on the chamber cards, the takeaways).
+- **County flips say which way** (`flipWays` in `shift.ts`): ": 11 to Democrats, 1 to Republicans", ", all to Democrats", or nothing when
+  none changed. `countyFlipsText` and the "Compared with 2024" block both end with it.
+- **Where one party ran several candidates, the comparison says its votes are added** (`summedNote` in `shift.ts`: "The three
+  Republicans’ votes are added together for this comparison"). Alaska's ranked-choice races are the live case: the shift line and the
+  ticket table read the Republicans' summed first choices, so the card shows a Democrat leading beside a shift computed from a
+  Republican total. The note follows the shift line on the race card, the race's analysis lede, and the ticket table's lede names Alaska.
+- **Takeaway one names its scope** ("The closest House race still being counted is …"), and the delegation tally keeps its figures on
+  one line with non-breaking spaces.
+- **The stale notice** reads "These results may be out of date. They were last fetched {time}." **Back labels** are "All Senate races" /
+  "All governor races" (lowercasing the office name had produced "All senate races"). The map's title is "{Senate} results by state".
+- **Phone tables.** The measures table's `.measure-cell` floor of 11rem is gone and its Margin column hides under 700px. Under 390px
+  (`@media (max-width: 389px)` near the end of `styles.css`) the header labels wrap, cell padding is 0.25rem, the candidate cell's
+  party dash is 8px with a 0.25rem gap and a 5.9rem floor ("Hickenlooper" needs 82px to stay whole at 13px), the expander column is
+  24px and the state link is 0.75rem ("Massachusetts" and "New Hampshire" set that column's floor). Measured at 360, 375 and 390 on
+  all four tables: no sideways overflow, no word broken mid-word. A scratch script did the measuring; the gate does not cover 360.
+- **The refresh is not hourly in practice.** The workflow's cron is hourly, but GitHub ran it 14 times between Nov. 6 09:21 UTC and
+  Nov. 9 17:28 UTC, with gaps of 4 to 11 hours (scheduled workflows on free runners are delayed and dropped under load; every run that
+  started succeeded). The footer ("refreshed hourly"), the sponsor line ("every race, every hour") and `partners.tsx` still say hourly.
+  Left for Rowan to decide: an outside trigger for `workflow_dispatch`, or copy that says "several times a day". The stale notice
+  (three hours) is what a reader sees meanwhile.
+- Seen and left: the ticket table's Alaska row reads "R +2.0" beside a pale blue map (explained by the lede now); NC-05's reporting
+  share fell from 100% to 87% in civicAPI's own figures; the filter labels wrap to two lines at 360.
 
 ## Polish pass, third round (Nov. 8, 2026, evening)
 
@@ -499,7 +531,7 @@ TBT under 90 ms. The mono font is not preloaded (tables only, below the fold). `
 auto-heights can be checked locally (`/embed-test.html` on Pages).
 `.github/workflows/update-results.yml` checks out the branch tip (`ref: main`, not the pushed commit: runs are serialized by the
 `pages` concurrency group, and a queued push-triggered run must see the snapshot the run before it committed, or its own snapshot
-commit conflicts in `pipeline/history.json`; that failed once on Nov. 7), fetches, tests, builds (including share.png via a cached Playwright Chromium) and deploys to Pages hourly (each run makes ~500 civicAPI requests; keep it gentle on a free API). Enable Pages → Source: "GitHub Actions" in repo settings, and run the workflow once by hand to publish. If a fetch or build fails, nothing deploys and the last good version stays up. Stop the cron once states certify (late November into December).
+commit conflicts in `pipeline/history.json`; that failed once on Nov. 7), fetches, tests, builds (including share.png via a cached Playwright Chromium) and deploys to Pages on an hourly cron (GitHub runs it far less often: see "Review pass (Nov. 9, 2026, evening)"; each run makes ~500 civicAPI requests; keep it gentle on a free API). Enable Pages → Source: "GitHub Actions" in repo settings, and run the workflow once by hand to publish. If a fetch or build fails, nothing deploys and the last good version stays up. Stop the cron once states certify (late November into December).
 
 ## AP cross-check (Nov. 5, 2026)
 

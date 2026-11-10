@@ -3281,9 +3281,6 @@ table.races {
   .splits__name {
     display: none; /* on a phone the pair cells keep the swatch and the margin */
   }
-  .measure-cell {
-    min-width: 11rem;
-  }
   .search input {
     width: 100%;
   }
@@ -3329,6 +3326,39 @@ table.races {
   }
   .pill::before {
     flex: none;
+  }
+}
+
+/* The narrowest phones (360, 375): the Senate and governor tables ran 8 to 12px past the page with every cell at its floor. */
+@media (max-width: 389px) {
+  .races thead th,
+  .races thead .sort {
+    white-space: normal; /* "Leading candidate" on two lines; unbroken it held its column 16px wider than the names need */
+  }
+
+  .races th,
+  .races td {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem; /* the first and last cells keep their zero outer padding (more specific rules above) */
+  }
+
+  /* "Hickenlooper" needs 82px to stay whole at 13px: the party dash and its gap give up 6px to the name. */
+  .cand-cell {
+    grid-template-columns: 8px minmax(0, 1fr);
+    gap: 0.25rem;
+    min-width: 5.9rem;
+  }
+
+  .cand-cell .key {
+    width: 8px;
+  }
+
+  .expander-col {
+    width: 24px; /* the chevron button's own width */
+  }
+
+  .races th[scope="row"] .row-link {
+    font-size: 0.75rem; /* "Massachusetts" and "New Hampshire" set the state column's floor */
   }
 }
 
