@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { NO_RESULTS, PALE, PARTY } from "./colors";
 import { RESULTS, race } from "./fixture";
 import { callOrder, resultsAfter } from "./replay";
-import { RUNOFF, calledText, raceFill, raceStatus, rcvNote, statusParts, statusText, whyNotCalled } from "./status";
+import { RUNOFF, calledText, raceFill, raceStatus, awaitingCall, rcvNote, statusParts, statusText, whyNotCalled } from "./status";
 
 describe("statusParts", () => {
   it("a timed call reads as the time alone, not 'Winner called' and the time", () => {
@@ -93,7 +93,7 @@ describe("ballot measures", () => {
   it("pass or fail on the call, lead by Yes or No before it, and never carry a ranked-choice note", () => {
     expect(statusText(race("B", "WI-179849"))).toBe("Passed");
     expect(statusText(race("B", "MO-87243"))).toBe("Failed");
-    expect(statusText(race("B", "CA-150571"))).toBe("Not called. No leads by 2.7 points");
+    expect(statusText({ ...race("B", "CA-150571"), pctIn: 93 })).toBe("Not called. No leads by 2.7 points");
     expect(statusText(race("B", "VA-140000"))).toBe("No votes reported yet");
     expect(raceFill(race("B", "WI-179849"))).toBe(PARTY.Y);
     expect(raceFill(race("B", "CA-150571"))).toBe(PALE.N);
@@ -106,7 +106,7 @@ describe("ballot measures", () => {
       { ...y!, party: "Y" as const, name: "Yes", pct: yes, winner: winner === "Y" },
       { ...n!, party: "N" as const, name: "No", pct: 100 - yes, winner: winner === "N" },
     ];
-    const short = { ...race("B", "CA-150571"), rule, leader: "Y" as const, margin: 16.4, cands: yesNo(58.2, null) };
+    const short = { ...race("B", "CA-150571"), pctIn: 93, rule, leader: "Y" as const, margin: 16.4, cands: yesNo(58.2, null) };
     expect(statusText(short)).toBe("Not called. Yes leads by 16.4 points but is under the 60% needed");
     expect(statusText({ ...short, rule: null })).toBe("Not called. Yes leads by 16.4 points");
     expect(statusText({ ...short, cands: yesNo(61, null) })).toBe("Not called. Yes leads by 16.4 points");
@@ -134,6 +134,27 @@ describe("rcvNote", () => {
   });
 });
 
+describe("a measure that waits only on the call", () => {
+  const counted = race("B", "CA-150571"); // 99.9% reporting, no call
+
+  it("is one civicAPI shows at least 99% reporting and has not called", () => {
+    expect(awaitingCall(counted)).toBe(true);
+    expect(awaitingCall({ ...counted, pctIn: 98.9 })).toBe(false);
+    expect(awaitingCall({ ...counted, pctIn: 0 })).toBe(false); // Alaska: votes with no share given
+    expect(awaitingCall({ ...counted, undone: true })).toBe(false);
+    expect(awaitingCall(race("B", "WI-179849"))).toBe(false);
+    expect(awaitingCall({ ...race("S", "MS"), pctIn: 100 })).toBe(false);
+  });
+
+  it("says so in its status and on its card", () => {
+    expect(statusText(counted)).toBe("Not called with 100% reporting. No leads by 2.7 points");
+    expect(statusText({ ...counted, pctIn: 99 })).toBe("Not called with 99% reporting. No leads by 2.7 points");
+    expect(whyNotCalled(counted)).toBe(
+      "civicAPI, which makes the calls on this page, shows 100% reporting and has not called this measure. It has been slow to call ballot measures.",
+    );
+  });
+});
+
 describe("whyNotCalled", () => {
   it("gives the share still out and a lead under a point", () => {
     expect(whyNotCalled(race("S", "MS"))).toMatch(/^Not all of the vote is in: civicAPI shows \d+% reporting\. The lead is [\d,]+ votes, or 0\.\d points\.$/);
@@ -158,7 +179,7 @@ describe("whyNotCalled", () => {
   it("says nothing with no reason in hand, for a called race, a measure, or a call a replay has undone", () => {
     expect(whyNotCalled(race("H", "CA-40"))).toBeNull();
     expect(whyNotCalled(race("S", "TX"))).toBeNull();
-    expect(whyNotCalled(race("B", "CA-150571"))).toBeNull();
+    expect(whyNotCalled({ ...race("B", "CA-150571"), pctIn: 93 })).toBeNull();
     const before = resultsAfter(RESULTS, 0, callOrder(RESULTS));
     const undone = before.races.filter((r) => r.undone);
     expect(undone.length).toBeGreaterThan(2);

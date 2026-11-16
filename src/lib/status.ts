@@ -74,6 +74,12 @@ export function statusText(r: Race): string {
   }
 }
 
+/**
+ * A measure civicAPI shows at least 99% reporting and has not called: what it waits for is the call, not the count.
+ * Not a race whose call a replay has undone (its numbers are today's), nor one with no share given (Alaska's carry 0).
+ */
+export const awaitingCall = (r: Race) => r.office === "B" && !r.winner && !r.undone && r.pctIn >= 99;
+
 /** A measure's Yes share. */
 export const yesShare = (r: Race) => r.cands.find((c) => c.party === "Y")?.pct ?? 0;
 
@@ -83,9 +89,13 @@ function failedText(r: Race): string {
   return r.rule && yes > 50 ? `Failed: Yes ${pct(yes)} fell short of the ${r.rule.label} required` : "Failed";
 }
 
-/** "Not called. Yes leads by 2.2 points", with "but is under the 55% needed" when that lead is not enough to pass. */
+/**
+ * "Not called. Yes leads by 2.2 points", with "but is under the 55% needed" when that lead is not enough to pass, and
+ * "Not called with 100% reporting. …" for a measure that waits only on the call (`awaitingCall`).
+ */
 function measureLeadText(r: Race): string {
-  const lead = `Not called. ${PARTY_LABEL[r.leader]} leads by ${marginWords(r.margin)} points`;
+  const counted = awaitingCall(r) ? ` with ${reportingShare(r.pctIn, r.total)} reporting` : "";
+  const lead = `Not called${counted}. ${PARTY_LABEL[r.leader]} leads by ${marginWords(r.margin)} points`;
   return r.rule && r.leader === "Y" && yesShare(r) < r.rule.needs ? `${lead} but is under the ${r.rule.label} needed` : lead;
 }
 
@@ -118,11 +128,17 @@ export function rcvNote(r: Race): string | null {
 
 /**
  * Why a race has no winner yet, from the data in hand: a runoff, ranked choice, votes still out, or a lead under a point
- * (followed by the state's recount rule when pipeline/key-dates.json has one). Null when none of those applies, for
- * measures, and for a race whose call a replay has undone, since its numbers are today's.
+ * (followed by the state's recount rule when pipeline/key-dates.json has one). A measure gets one
+ * sentence, and only when it waits on the call alone (`awaitingCall`). Null when none of those applies and for a race whose
+ * call a replay has undone, since its numbers are today's.
  */
 export function whyNotCalled(r: Race): string | null {
-  if (r.winner || r.undone || r.office === "B" || noVotesYet(r)) return null;
+  if (r.winner || r.undone || noVotesYet(r)) return null;
+  if (r.office === "B") {
+    return awaitingCall(r)
+      ? `civicAPI, which makes the calls on this page, shows ${reportingShare(r.pctIn, r.total)} reporting and has not called this measure. It has been slow to call ballot measures.`
+      : null;
+  }
   if (raceStatus(r) === "runoff") {
     const when = RUNOFF_DATE[r.state];
     return `No candidate won the majority ${stateName(r.state)} requires, so the top two finishers meet in a runoff${when ? ` on ${when}` : ""}.`;

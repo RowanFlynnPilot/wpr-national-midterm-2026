@@ -4,7 +4,7 @@ import { apNumber, centralTime, marginText, pct, reportingShare, signedMargin, t
 import { upcoming } from "../lib/next";
 import { raceDistrict, raceFor } from "../lib/route";
 import { HOME_STATE, stateName } from "../lib/states";
-import { RUNOFF, noVotesYet, raceFill, raceStatus, yesShare } from "../lib/status";
+import { RUNOFF, awaitingCall, noVotesYet, raceFill, raceStatus, yesShare } from "../lib/status";
 import type { Geo } from "../lib/geo";
 import { side, trend, type History } from "../lib/history";
 import { measureShortTitle, OFFICE_NAME, OFFICE_SINGULAR, type Chamber, type PopularVote } from "../lib/summary";
@@ -77,11 +77,13 @@ export function OverviewLists({
   const pick = (r: Race) => onSelect(office, r.state, raceDistrict(r));
   const flips = office === "S" || office === "G";
   const failed = office === "B" ? races.filter((r) => r.office === "B" && r.winner === "N") : [];
+  const awaiting = chamber.uncalled.filter(awaitingCall);
   const next = upcoming(dates, races, office, now);
-  if (!next.length && !chamber.latestCalls.length && !chamber.runoffs.length && !flips && !failed.length) return null;
+  if (!next.length && !awaiting.length && !chamber.latestCalls.length && !chamber.runoffs.length && !flips && !failed.length) return null;
   return (
     <div className="board__under">
       {next.length > 0 && <KeyDates key={office} dates={next} />}
+      {awaiting.length > 0 && <AwaitingCall races={awaiting} onPick={pick} />}
       {chamber.latestCalls.length > 0 && (
         <section className="board__list" aria-labelledby="calls-title">
           <h2 id="calls-title" className="panel__title">
@@ -221,6 +223,34 @@ function RaceRow({ race, onClick, showOffice = false, when, points }: RowProps) 
   );
 }
 
+/** Measures civicAPI shows at least 99% reporting and has not called, apart from the ones still being counted. */
+function AwaitingCall({ races, onPick }: { races: Race[]; onPick: (r: Race) => void }) {
+  const [showAll, setShowAll] = useState(false);
+  const listed = showAll ? races : races.slice(0, COUNTING_LISTED);
+  const one = races.length === 1;
+  return (
+    <section className="board__list" aria-labelledby="awaiting-title">
+      <h2 id="awaiting-title" className="panel__title">
+        Counted, awaiting a call
+      </h2>
+      <p className="panel__note">
+        civicAPI shows at least 99% of the vote reporting on {one ? "this measure" : `these ${races.length} measures`} and has not called {one ? "it" : "them"}.
+        Closest first.
+      </p>
+      <ul className="race-rows">
+        {listed.map((r) => (
+          <RaceRow key={r.id} race={r} onClick={() => onPick(r)} />
+        ))}
+      </ul>
+      {races.length > listed.length && (
+        <button type="button" className="show-all" onClick={() => setShowAll(true)}>
+          Show all {races.length} measures
+        </button>
+      )}
+    </section>
+  );
+}
+
 /** A day without a call: the latest-calls list then says the count is slow rather than the page stuck. */
 const QUIET_MS = 24 * 3600e3;
 
@@ -228,12 +258,16 @@ const COUNTING_LISTED = 8; // the House and measures panels run past their maps 
 
 function Overview({ office, chamber, popularVote, races, history, geo, onSelect }: Props) {
   const [showAll, setShowAll] = useState(false);
-  const counting = chamber.uncalled.filter((r) => !r.runoff);
+  const open = chamber.uncalled.filter((r) => !r.runoff);
+  const counting = open.filter((r) => !awaitingCall(r)); // those wait on the call alone and are listed under the map
+  const awaiting = open.length - counting.length;
+  const awaitingNote =
+    awaiting === 1
+      ? "Another one is at least 99% counted and awaits civicAPI’s call; see “Counted, awaiting a call.”"
+      : `Another ${apNumber(awaiting)} are at least 99% counted and await civicAPI’s call; see “Counted, awaiting a call.”`;
   const listed = showAll ? counting : counting.slice(0, COUNTING_LISTED);
   const pick = (r: Race) => onSelect(office, r.state, raceDistrict(r));
   const measures = office === "B";
-  // civicAPI is slow to call measures: on Nov. 8, 40 of the 68 it had not called stood at 99.9% reporting.
-  const counted = measures ? counting.filter((r) => r.pctIn >= 99).length : 0;
   const homeSeats = races.filter((r) => r.office === "H" && r.state === HOME_STATE).length;
   return (
     <div className="panel">
@@ -252,12 +286,12 @@ function Overview({ office, chamber, popularVote, races, history, geo, onSelect 
         </section>
       )}
       <HomeGlance races={races} onSelect={onSelect} />
-      <h2 className="panel__title">{measures ? "Measures not yet called" : `${OFFICE_NAME[office] === "Governors" ? "Governor" : OFFICE_NAME[office]} races still being counted`}</h2>
+      <h2 className="panel__title">{measures ? "Measures still being counted" : `${OFFICE_NAME[office] === "Governors" ? "Governor" : OFFICE_NAME[office]} races still being counted`}</h2>
       {counting.length ? (
         <>
           <p className="panel__note">
             Closest first. Leads are in percentage points.
-            {counted > 0 && ` civicAPI is slow to call measures: ${counted} of these ${counting.length} are at least 99% counted.`}
+            {awaiting > 0 && ` ${awaitingNote}`}
           </p>
           <ul className="race-rows">
             {listed.map((r) => (
@@ -271,7 +305,11 @@ function Overview({ office, chamber, popularVote, races, history, geo, onSelect 
           )}
         </>
       ) : (
-        <p className="panel__note">Every {measures ? "measure" : `${OFFICE_SINGULAR[office].toLowerCase()} race`} has been called.</p>
+        <p className="panel__note">
+          {awaiting > 0
+            ? `No measure is still being counted. ${awaitingNote}`
+            : `Every ${measures ? "measure" : `${OFFICE_SINGULAR[office].toLowerCase()} race`} has been called.`}
+        </p>
       )}
     </div>
   );

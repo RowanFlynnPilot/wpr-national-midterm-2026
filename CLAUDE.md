@@ -122,7 +122,7 @@ before any data arrives.
 - Ranked-choice note (Alaska, Maine federal races) appears only when no one has a majority of first choices; Alaska's adds that the tabulation runs on Nov. 18. `RUNOFF_DATE` puts "Dec. 12" on Louisiana runoff text. Same-party finals read "Seat decided: both finalists are Democrats. Winner not called".
 - Each race carries civicAPI's `last_updated` as `updated`; the race card footer shows it, so a race civicAPI stops updating is visible as such.
 - **Why a race is not called** (`whyNotCalled` in `status.ts`, a `race-card__note` led by "Why isn’t this called?"): null for a called
-  race, a measure, a race with no votes and a race whose call a replay has undone (`undone`). A runoff gets one sentence and nothing
+  race, a measure still being counted (one that waits only on the call gets a sentence: see "Upkeep pass"), a race with no votes and a race whose call a replay has undone (`undone`). A runoff gets one sentence and nothing
   else ("No candidate won the majority Louisiana requires, so the top two finishers meet in a runoff on Dec. 12."). Otherwise the
   reasons that apply, in this order: ranked choice with no first-choice majority; civicAPI's reporting share under 100% (rounded,
   and only when `reportingShare` gives one); a lead under one point, in votes and points ("first-choice lead" in a ranked-choice
@@ -138,8 +138,8 @@ before any data arrives.
   the one rule for printing it (card, share card, table, rows, tooltips, county page, sparkline, takeaway): a zero beside a count is a
   missing figure and reads "Share reporting not given" (or a dash in the table and a blank `pct_reporting` in the CSV), never 0%.
 - civicAPI is slow to call measures: on Nov. 8 it had called 62 of 130, and 40 of the 68 uncalled stood at 99.9% reporting with leads up
-  to 63 points. The panel's list is headed "Measures not yet called" and its note counts how many are at least 99% counted; the calls stay
-  civicAPI's.
+  to 63 points. The calls stay civicAPI's; since Nov. 15 the page lists the measures that wait only
+  on a call apart from the ones still being counted (see "Upkeep pass").
 - `calledAt` is missing on ~34 races civicAPI called without a timestamp; the card shows "Winner called" for those. With a
   timestamp the time takes the words' place ("Called Nov. 3, 10:32 p.m. CST"): `statusParts` in `status.ts` is the one rule,
   for the race card and the share card.
@@ -549,6 +549,17 @@ with six races open (AK-AL, LA-05, LA-06, MN-01, NC-05, TN-04), and 67 of 129 me
   Louisiana, Minnesota, North Carolina) and four recount sentences (Alaska, Minnesota, North Carolina, Tennessee).
 - **The stale notice waits 12 hours** (`STALE_AFTER_MS`; Rowan's decision). At three hours it showed for most of every day, since
   GitHub starts the workflow every four to eight hours. It now means a run was missed.
+- **Measures that wait only on a call say so** (`awaitingCall` in `status.ts`: a measure with no winner that civicAPI shows at
+  least 99% reporting; not a call a replay has undone, and not Alaska's two, which carry no share). civicAPI had called 62 of
+  129 measures and none since Nov. 8; 40 of the 67 open ones met the rule, 31 of them with leads of 10 points or more, and they
+  read like races still being counted. Now the status reads "Not called with 100% reporting. Yes leads by 29.5 points" (the share
+  is `reportingShare`'s, so 99.9% prints as 100%, as on the card's own line), the card carries "Why isn’t this called? civicAPI,
+  which makes the calls on this page, shows 100% reporting and has not called this measure. It has been slow to call ballot
+  measures.", and the lists are split: the panel's is "Measures still being counted" (the rest, with a sentence counting the
+  ones that await a call) and "Counted, awaiting a call" (`AwaitingCall` in `SidePanel.tsx`, eight rows and a "Show all" button)
+  leads the lists under the map. The calls, the leader, the shading and the tab's tallies stay civicAPI's; only the words and
+  the grouping changed. Gate: `measure-awaiting` (New Hampshire Question 1, which is also short of its two-thirds),
+  `measures-panel` and `measures-lists`.
 - Still open: Louisiana's Dec. 12 runoffs are not in civicAPI's Nov. 3 search, so LA-05 and LA-06 will read "runoff" until the
   pipeline reads the runoff races; and the page has no final state for when the cron stops. Both were offered and not yet chosen.
 
