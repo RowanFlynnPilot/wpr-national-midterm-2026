@@ -31,7 +31,7 @@ describe("raceShareUrl", () => {
 
 describe("isStale", () => {
   const fetched = "2026-11-06T02:07:35Z";
-  it("flags results fetched more than three hours ago", () => {
+  it("flags results fetched more than 12 hours ago", () => {
     expect(isStale(fetched, Date.parse(fetched) + STALE_AFTER_MS - 1)).toBe(false);
     expect(isStale(fetched, Date.parse(fetched) + STALE_AFTER_MS + 1)).toBe(true);
   });

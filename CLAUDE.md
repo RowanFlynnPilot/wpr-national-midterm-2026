@@ -439,7 +439,7 @@ whole); it is for the newsroom and does not print. `parseHash`/`toHash` moved to
   (`navigator.share`; the iframe needs `allow="web-share"`), else copies the stub link (`raceShareUrl`: `s/<hash>.html`,
   with `?to=<article>` when embedded), and "Save image" downloads the card. The toolbar's Copy link is unchanged: it copies
   the view itself (the article hash when embedded), and the stub exists for the preview.
-- `.stale` notice appears when `results.fetched` is more than three hours old (`isStale`, re-checked every minute).
+- `.stale` notice appears when `results.fetched` is more than 12 hours old (`isStale`, re-checked every minute; three hours until Nov. 15, see "Upkeep pass").
 
 ## Polish pass (Nov. 8, 2026)
 
@@ -534,10 +534,23 @@ A fresh walk of every view at 360 to 1600 px against the live data. Wording and 
   started succeeded). Rowan chose softer copy over an outside trigger for `workflow_dispatch` (Nov. 9, night): the footer, the
   partner page, the meta and Open Graph descriptions and the race stubs' descriptions say "several times a day", and the open
   sponsor slot's line is "Reach Wisconsin readers following every race in the country." (it was "every race, every hour"). Do not
-  write "hourly" in reader-facing copy again. The cron stays hourly, since that is the request GitHub is given. The stale notice is
-  still three hours (`STALE_AFTER_MS`), so with these gaps it shows for much of the day; raising it is Rowan's call.
+  write "hourly" in reader-facing copy again. The cron stays hourly, since that is the request GitHub is given. The stale notice was
+  three hours then and showed for much of the day; Rowan raised it to 12 on Nov. 15 (see "Upkeep pass").
 - Seen and left: the ticket table's Alaska row reads "R +2.0" beside a pale blue map (explained by the lede now); NC-05's reporting
   share fell from 100% to 87% in civicAPI's own figures; the filter labels wrap to two lines at 360.
+
+## Upkeep pass (Nov. 15, 2026)
+
+Twelve days after the election: every Senate and governor race is called, the House stands at 257 Democrats and 172 Republicans
+with six races open (AK-AL, LA-05, LA-06, MN-01, NC-05, TN-04), and 67 of 129 measures have no call from civicAPI.
+
+- **Dates file pruned.** `pipeline/key-dates.json` lost the eight dates that had passed and every entry for California, Florida,
+  Maine, Mississippi and Washington, whose last open race was called; their recount sentences went too. Nine dates remain (Alaska,
+  Louisiana, Minnesota, North Carolina) and four recount sentences (Alaska, Minnesota, North Carolina, Tennessee).
+- **The stale notice waits 12 hours** (`STALE_AFTER_MS`; Rowan's decision). At three hours it showed for most of every day, since
+  GitHub starts the workflow every four to eight hours. It now means a run was missed.
+- Still open: Louisiana's Dec. 12 runoffs are not in civicAPI's Nov. 3 search, so LA-05 and LA-06 will read "runoff" until the
+  pipeline reads the runoff races; and the page has no final state for when the cron stops. Both were offered and not yet chosen.
 
 ## Polish pass, third round (Nov. 8, 2026, evening)
 

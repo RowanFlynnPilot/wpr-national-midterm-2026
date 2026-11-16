@@ -36,8 +36,8 @@ export function raceShareUrl(search: string, hash: string, href: string): string
   return url.toString();
 }
 
-/** Three hours. The results workflow asks for an hourly run, but GitHub starts it every 4 to 11 hours, so between runs the page says when it was last fetched. */
-export const STALE_AFTER_MS = 3 * 60 * 60 * 1000;
+/** Twelve hours. The results workflow asks for an hourly run and GitHub starts it every 4 to 11 hours, so the notice means a run was missed, not that the page is between runs. */
+export const STALE_AFTER_MS = 12 * 60 * 60 * 1000;
 
 export function isStale(fetchedIso: string, now: number): boolean {
   return now - Date.parse(fetchedIso) > STALE_AFTER_MS;
