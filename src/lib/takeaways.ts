@@ -1,7 +1,8 @@
 import { apNumber, marginWords, pct, reportingShare, sentenceStart } from "./format";
 import { raceDistrict } from "./route";
 import { biggestShifts, marginLabel, officeShift, ticketPairs, type Baseline, type TicketPair } from "./shift";
-import { HOME_STATE, stateName } from "./states";
+import { HOME_STATE } from "./newsroom";
+import { stateName } from "./states";
 import { housePopularVote, OFFICE_SINGULAR, raceTitle, secured, type Chamber } from "./summary";
 import type { Office, Race, Results, Selection } from "./types";
 

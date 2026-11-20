@@ -1,7 +1,5 @@
 // Sponsorship inventory, the WPR tracker model: a slot is a sponsor or null, and null renders an
-// upsell rather than an empty hole. Flip a slot from open to sold by editing this file only.
-// Sales: Chris Weber. One address, no variants.
-export const SALES_EMAIL = "chris.weber@wausaupilotandreview.com";
+// upsell rather than an empty hole. Each newsroom's slots and sales address are in src/newsrooms.ts; this file holds what they share.
 export const CAMPAIGN = "midterm-2026";
 
 export interface Sponsor {
@@ -14,9 +12,6 @@ export interface Sponsor {
 
 export type Slot = "title";
 
-export const SPONSORS: Record<Slot, Sponsor | null> = {
-  title: null, // the placement under the headline, above the balance of power
-};
 
 export const SLOT_LABEL: Record<Slot, string> = {
   title: "Title sponsor, 2026 midterm results",

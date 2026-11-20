@@ -17,6 +17,20 @@ describe("shareUrl", () => {
   });
 });
 
+describe("a partner's links", () => {
+  it("standalone: the page and the stub keep the newsroom", () => {
+    expect(shareUrl("?partner=demo", "#senate", page)).toBe(page + "?partner=demo#senate");
+    expect(shareUrl("?partner=demo&home=MN", "#senate", page + "?partner=demo&home=MN#house")).toBe(page + "?partner=demo&home=MN#senate");
+    expect(raceShareUrl("?partner=demo", "senate-tx", page)).toBe(page + "s/senate-tx.html?partner=demo");
+  });
+  it("embedded: only that newsroom's own site is accepted as the host", () => {
+    const host = encodeURIComponent("https://wausaupilotandreview.com/2026-results/");
+    expect(shareUrl(`?partner=demo&host=${host}`, "#senate", page)).toBe("https://wausaupilotandreview.com/2026-results/#senate");
+    expect(() => shareUrl(`?partner=demo&host=${encodeURIComponent("https://evil.example/")}`, "#senate", page)).toThrow(/Refusing/);
+    expect(() => shareUrl("?partner=nobody", "#senate", page)).toThrow("unknown partner nobody");
+  });
+});
+
 describe("raceShareUrl", () => {
   it("standalone: the race's stub page beside the app", () => {
     expect(raceShareUrl("", "house-wi-03", page + "#house-wi-03")).toBe(page + "s/house-wi-03.html");

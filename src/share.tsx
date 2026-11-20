@@ -7,7 +7,7 @@ import { RaceShare } from "./components/RaceShare";
 import { ShareCard } from "./components/ShareCard";
 import { loadBaseline, loadResults } from "./lib/data";
 import { parseHash, raceDistrict, raceFor, toHash } from "./lib/route";
-import { PUBLISHER } from "./lib/share";
+import { sitesPattern } from "./lib/newsroom";
 import type { Baseline } from "./lib/shift";
 import type { Results } from "./lib/types";
 import "./styles.css";
@@ -31,7 +31,7 @@ function ShareApp({ results, baseline }: { results: Results; baseline: Baseline 
     <>
       <ShareCard results={results} baseline={baseline} />
       <script id="card-index" type="application/json">
-        {JSON.stringify({ hashes, publisher: PUBLISHER.source })}
+        {JSON.stringify({ hashes, publisher: sitesPattern() })}
       </script>
     </>
   );

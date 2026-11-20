@@ -1,7 +1,7 @@
 import { memo, useMemo, useRef, useState } from "react";
 import { inkOn } from "../lib/colors";
 import { inSpotlight, isFresh, raceFill, statusText, type LegendKey } from "../lib/status";
-import { HOME_STATE } from "../lib/states";
+import { HOME_STATE } from "../lib/newsroom";
 import { raceTitle } from "../lib/summary";
 import type { HexCell, Race } from "../lib/types";
 import { focusPoint, type HoverHandler } from "./Tooltip";

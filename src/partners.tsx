@@ -6,12 +6,12 @@ import { createRoot } from "react-dom/client";
 import { FooterSeal, Masthead } from "./components/Masthead";
 import { compactEmbedSnippet, EMBED_ID, pageEmbedSnippet } from "./lib/embed";
 import { STATE_NAME } from "./lib/states";
-import { SALES_EMAIL } from "./sponsors";
+import { WPR } from "./newsrooms";
 import "./styles.css";
 import "./partners.css";
 
 /** Who hears from a newsroom that wants to run the page. The one address WPR gives out. */
-const PARTNER_EMAIL = SALES_EMAIL;
+const PARTNER_EMAIL = WPR.salesEmail;
 const PHONE = "715-301-5539";
 
 const STATES = Object.entries(STATE_NAME)

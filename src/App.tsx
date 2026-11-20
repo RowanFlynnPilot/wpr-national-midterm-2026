@@ -5,7 +5,6 @@ import { CopyLink } from "./components/CopyLink";
 import { HexMap } from "./components/HexMap";
 import { FooterSeal, Masthead } from "./components/Masthead";
 import { DemoRibbon, TitleSlot } from "./components/Sponsor";
-import { SALES_EMAIL } from "./sponsors";
 import { Legend } from "./components/Legend";
 import { NationalMap, type MapMode, type ShiftStyle } from "./components/NationalMap";
 import { Takeaways } from "./components/Takeaways";
@@ -28,7 +27,8 @@ import { parseHash, raceDistrict, toHash } from "./lib/route";
 import { readVisit, writeVisit } from "./lib/visits";
 import { isStale } from "./lib/share";
 import { isFresh, noVotesYet, type LegendKey } from "./lib/status";
-import { HOME_STATE, stateName } from "./lib/states";
+import { HOME_STATE, NEWSROOM } from "./lib/newsroom";
+import { stateName } from "./lib/states";
 import { chamber, dek, headline, housePopularVote, OFFICE_NAME, OFFICE_SINGULAR, raceTitle } from "./lib/summary";
 import type { Race, Selection } from "./lib/types";
 
@@ -498,7 +498,7 @@ export function App({ data }: { data: Data }) {
         </p>
         <p className="sources__paper">
           <a href="https://wausaupilotandreview.com/">Wausau Pilot &amp; Review</a> · 715-301-5539 ·{" "}
-          <a href={`mailto:${SALES_EMAIL}?subject=${encodeURIComponent("Sponsorship: 2026 midterm results")}`}>Advertise on this page</a> ·{" "}
+          <a href={`mailto:${NEWSROOM.salesEmail}?subject=${encodeURIComponent("Sponsorship: 2026 midterm results")}`}>Advertise on this page</a> ·{" "}
           <a href="./partners.html">Newsrooms: embed these results</a>
         </p>
         </div>

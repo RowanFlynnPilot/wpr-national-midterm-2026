@@ -1,16 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import { CAMPAIGN, DEMO_SPONSOR, SALES_EMAIL, SLOT_LABEL, SPONSORS, type Slot, type Sponsor } from "../sponsors";
+import { NEWSROOM } from "../lib/newsroom";
+import { CAMPAIGN, DEMO_SPONSOR, SLOT_LABEL, type Slot, type Sponsor } from "../sponsors";
 
 export const isDemo = () => new URLSearchParams(window.location.search).has("demo");
 
 /** The sponsor to show in a slot: the sold one, the demo placeholder under ?demo, else null (an open slot). */
 export function sponsorFor(slot: Slot): Sponsor | null {
-  return SPONSORS[slot] ?? (isDemo() ? DEMO_SPONSOR : null);
+  return NEWSROOM.sponsors[slot] ?? (isDemo() ? DEMO_SPONSOR : null);
 }
 
 const outbound = (url: string, slot: Slot) => {
   const u = new URL(url);
-  u.searchParams.set("utm_source", "wausaupilotandreview");
+  u.searchParams.set("utm_source", NEWSROOM.utmSource);
   u.searchParams.set("utm_medium", "widget");
   u.searchParams.set("utm_campaign", CAMPAIGN);
   u.searchParams.set("utm_content", slot);
@@ -71,7 +72,7 @@ export function OpenSlot({ slot }: { slot: Slot }) {
   const subject = encodeURIComponent(`Sponsorship: ${SLOT_LABEL[slot]}`);
   const copy = () => {
     // A desktop with no mail handler does nothing on a mailto: click; the copy confirms something happened.
-    navigator.clipboard?.writeText(SALES_EMAIL).then(() => {
+    navigator.clipboard?.writeText(NEWSROOM.salesEmail).then(() => {
       setCopied(true);
       timer.current = window.setTimeout(() => setCopied(false), 2500);
     }, () => undefined);
@@ -82,11 +83,11 @@ export function OpenSlot({ slot }: { slot: Slot }) {
         Sponsorship available
       </span>
       <p className="sponsor__pitch">Reach Wisconsin readers following every race in the country.</p>
-      <a className="sponsor__book" href={`mailto:${SALES_EMAIL}?subject=${subject}`} onClick={copy}>
+      <a className="sponsor__book" href={`mailto:${NEWSROOM.salesEmail}?subject=${subject}`} onClick={copy}>
         Book this placement →
       </a>
       <span className="sponsor__email" aria-live="polite">
-        {copied ? "✓ Address copied" : SALES_EMAIL}
+        {copied ? "✓ Address copied" : NEWSROOM.salesEmail}
       </span>
     </aside>
   );
@@ -104,7 +105,7 @@ export function DemoRibbon() {
   return (
     <p className="demo-ribbon" role="status">
       Sales preview: open placements show a placeholder.{" "}
-      <a href={`mailto:${SALES_EMAIL}?subject=${encodeURIComponent("Sponsorship: 2026 midterm results")}`}>Ask about sponsoring this page</a>
+      <a href={`mailto:${NEWSROOM.salesEmail}?subject=${encodeURIComponent("Sponsorship: 2026 midterm results")}`}>Ask about sponsoring this page</a>
     </p>
   );
 }

@@ -4,7 +4,8 @@ import { countyFlip, countyShift, type Baseline } from "../lib/shift";
 import { countyColumns, readCounty } from "../lib/data";
 import { LABEL_NUDGE, VIEW, type Geo, type Shape, type StateShape } from "../lib/geo";
 
-import { HOME_STATE, SMALL_STATES, STATES } from "../lib/states";
+import { HOME_STATE } from "../lib/newsroom";
+import { SMALL_STATES, STATES } from "../lib/states";
 import { inSpotlight, isFresh, raceFill, statusText, type LegendKey } from "../lib/status";
 import { raceTitle } from "../lib/summary";
 import type { CountyResults, Race } from "../lib/types";

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { PALE, PARTY } from "../lib/colors";
 import { marginWords } from "../lib/format";
-import { HOME_STATE } from "../lib/states";
+import { HOME_STATE } from "../lib/newsroom";
 import { noVotesYet } from "../lib/status";
 import { raceTitle } from "../lib/summary";
 import type { Race } from "../lib/types";
