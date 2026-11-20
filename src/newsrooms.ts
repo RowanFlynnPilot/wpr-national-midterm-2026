@@ -10,6 +10,7 @@ export interface Newsroom {
   site: string; // its home page, https
   domain: string; // the only place a share link may send a reader: this host and its subdomains
   home: string; // postal code of its state; ?home= moves it
+  place: string; // where its readers are, as a sponsor's line gives it: "Wausau, WI"
   salesEmail: string; // where "Book this placement" and "Advertise on this page" go
   utmSource: string; // utm_source on its sponsors' links
   sponsors: Record<Slot, Sponsor | null>; // null renders the open-slot upsell rather than an empty hole
@@ -22,6 +23,7 @@ export const WPR: Newsroom = {
   site: "https://wausaupilotandreview.com/",
   domain: "wausaupilotandreview.com",
   home: "WI",
+  place: "Wausau, WI",
   salesEmail: "chris.weber@wausaupilotandreview.com", // Chris Weber. One address, no variants.
   utmSource: "wausaupilotandreview",
   sponsors: {
@@ -36,5 +38,6 @@ export const NEWSROOMS: Record<string, Newsroom> = {
   demo: {
     ...WPR,
     name: "Your Newsroom",
+    place: "Your city",
   },
 };

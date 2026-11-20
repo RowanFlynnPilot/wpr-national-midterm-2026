@@ -39,18 +39,23 @@ const listener = (origin: string, id: string, frame = "f") => [
 ];
 
 /**
- * The snippet that embeds the whole page: for WPR's own article the host passes ?host= (CLAUDE.md), for another newsroom
- * the page comes with ?home=<its state> and no host. The article's hash is forwarded so a shared link opens the right view.
+ * The snippet that embeds the whole page. A registered partner's (src/newsrooms.ts) names it with ?partner=<slug> and
+ * passes the article as ?host=, so its share links lead back to the article; that host is checked against the partner's
+ * own domain, which is why any other newsroom gets ?home=<its state> and no host. The article's hash is forwarded so a
+ * shared link opens the right view.
  */
-export function pageEmbedSnippet(appUrl: string, home: string | null): string {
+export function pageEmbedSnippet(appUrl: string, partner: string | null, home: string | null): string {
   const origin = new URL(appUrl).origin;
-  const src = home ? `${appUrl}?home=${home}` : appUrl;
+  const query = [partner && `partner=${partner}`, home && `home=${home}`].filter(Boolean).join("&");
+  const src = partner
+    ? `'${js(`${appUrl}?${query}&host=`)}' + encodeURIComponent(location.origin + location.pathname)`
+    : `'${js(query ? `${appUrl}?${query}` : appUrl)}'`;
   return [
     `<div id="${EMBED_ID}"></div>`,
     "<script>",
     "(function () {",
     "  var f = document.createElement('iframe');",
-    `  f.src = '${js(src)}' + location.hash;`,
+    `  f.src = ${src} + location.hash;`,
     "  f.style.cssText = 'width:100%;border:0;min-height:900px';",
     "  f.allow = 'clipboard-write; web-share';",
     "  f.title = '2026 midterm election results';",
@@ -61,16 +66,20 @@ export function pageEmbedSnippet(appUrl: string, home: string | null): string {
   ].join("\n");
 }
 
-/** The snippet for the compact module (compact.html): the balance of power for a homepage or a sidebar. */
-export function compactEmbedSnippet(compactUrl: string): string {
+/**
+ * The snippet for the compact module (compact.html): the balance of power for a homepage or a sidebar. A partner's
+ * carries its slug, so the module's links open that newsroom's page.
+ */
+export function compactEmbedSnippet(compactUrl: string, partner: string | null): string {
   const id = `${EMBED_ID}-compact`;
   const origin = new URL(compactUrl).origin;
+  const src = partner ? `${compactUrl}?partner=${partner}` : compactUrl;
   return [
     `<div id="${id}"></div>`,
     "<script>",
     "(function () {",
     "  var f = document.createElement('iframe');",
-    `  f.src = '${js(compactUrl)}';`,
+    `  f.src = '${js(src)}';`,
     "  f.style.cssText = 'width:100%;border:0;min-height:420px';",
     "  f.title = '2026 midterm results: balance of power';",
     ...listener(origin, id),
@@ -83,16 +92,18 @@ export function compactEmbedSnippet(compactUrl: string): string {
 /**
  * The WordPress snippet for one race (race.html at a view hash): its own container and height-message id, so several
  * races can share an article, the article URL passed as ?host= for the link out, and the publisher origin checked.
+ * A partner's carries its slug, since the host is checked against that newsroom's domain.
  */
-export function raceEmbedSnippet(slug: string, title: string, raceHtml: string): string {
+export function raceEmbedSnippet(slug: string, title: string, raceHtml: string, partner: string | null): string {
   const id = `${EMBED_ID}-race-${slug}`;
   const origin = new URL(raceHtml).origin;
+  const query = partner ? `partner=${partner}&host=` : "host=";
   return [
     `<div id="${id}"></div>`,
     "<script>",
     "(function () {",
     "  var f = document.createElement('iframe');",
-    `  f.src = '${js(raceHtml)}?host=' + encodeURIComponent(location.origin + location.pathname) + '#${js(slug)}';`,
+    `  f.src = '${js(`${raceHtml}?${query}`)}' + encodeURIComponent(location.origin + location.pathname) + '#${js(slug)}';`,
     "  f.style.cssText = 'width:100%;border:0;min-height:520px';",
     "  f.allow = 'clipboard-write; web-share';",
     `  f.title = '${js(attr(title))}: 2026 result';`,

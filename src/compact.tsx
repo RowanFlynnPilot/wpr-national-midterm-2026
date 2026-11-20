@@ -11,6 +11,7 @@ import type { Baseline } from "./lib/shift";
 import { takeaways } from "./lib/takeaways";
 import { EMBED_ID, initEmbedHeight } from "./lib/embed";
 import { apNumber, centralTime, relativeAge, timeAgo } from "./lib/format";
+import { PartnerCredit } from "./components/PartnerCredit";
 import { shareUrl } from "./lib/share";
 import { chamber, OFFICE_NAME, OFFICE_SLUG, raceTitle, secured, type Chamber } from "./lib/summary";
 import type { Office, Race, Results } from "./lib/types";
@@ -87,6 +88,7 @@ function Compact({ initial }: { initial: Results }) {
           {ago && <span className="kicker__ago"> · {ago}</span>}
         </span>
       </header>
+      <PartnerCredit />
       <div className="compact__cards">
         {chambers.map((c) => (
           <Card key={c.office} c={c} />

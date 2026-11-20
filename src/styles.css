@@ -388,6 +388,26 @@ a {
   font-weight: 600;
 }
 
+/* A partner's page: whose readers it is for and who made it, under the flag (src/newsrooms.ts). */
+.partner-credit {
+  margin: 0.6rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  text-align: center;
+  color: var(--muted);
+}
+
+.partner-credit a {
+  color: var(--slate);
+  font-weight: 600;
+}
+
+.compact .partner-credit,
+.race-embed .partner-credit {
+  margin: 0.35rem 0 0.6rem;
+  text-align: left;
+}
+
 /* ---------- the vote in depth (band under the board) ---------- */
 
 .analysis-slot {

@@ -7,10 +7,15 @@ import { newsroom, onSite } from "./newsroom";
 
 export function shareUrl(search: string, hash: string, href: string): string {
   const room = newsroom(search);
-  const host = new URLSearchParams(search).get("host");
+  const params = new URLSearchParams(search);
+  const host = params.get("host");
   if (host === null) {
     const url = new URL(href);
-    if (room.slug !== OWNER) url.searchParams.set("partner", room.slug); // a link built from a bare page URL keeps the newsroom
+    // A link built from a bare page URL (the module's and the race embed's links to the full page) keeps the newsroom and its state.
+    for (const key of ["partner", "home"]) {
+      const value = params.get(key);
+      if (value !== null) url.searchParams.set(key, value);
+    }
     url.hash = hash;
     return url.toString();
   }

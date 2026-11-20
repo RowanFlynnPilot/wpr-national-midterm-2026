@@ -28,6 +28,7 @@ const VIEWS = {
   "measure-card": { hash: "#measures-wi-179849" },
   "measures-hover": { hash: "#measures", hover: 'path.state.has-race[aria-label^="California"]', clip: "map" },
   "senate-demo": { hash: "?demo#senate" },
+  "partner-demo": { hash: "?partner=demo&home=MN&demo#senate" }, // a partner's page (src/newsrooms.ts): the credit line, its sponsor slot, its home state
   "senate-home-mn": { hash: "?home=mn#senate", clip: "panel" }, // another newsroom's embed: the home state from the URL
   "county-wi": { hash: "#governors-wi-55073" }, // Marathon County's page: the zoomed map with the county outlined, the panel with every race there
   "county-panel": { hash: "#governors-wi-55073", clip: "panel" },

@@ -12,6 +12,7 @@ import { centralTime, relativeAge } from "./lib/format";
 import type { Geo } from "./lib/geo";
 import type { History } from "./lib/history";
 import { parseHash, raceFor, toHash } from "./lib/route";
+import { PartnerCredit } from "./components/PartnerCredit";
 import { shareUrl } from "./lib/share";
 import type { Baseline } from "./lib/shift";
 import { raceTitle } from "./lib/summary";
@@ -65,6 +66,7 @@ function RaceEmbed({ initial, sel }: { initial: Results; sel: Selection }) {
           {ago && <span className="kicker__ago"> · {ago}</span>}
         </span>
       </header>
+      <PartnerCredit />
       <RaceCard race={race} heading="h1" points={history[String(race.id)]} baseline={baseline} counties={counties} />
       {countyOffice && counties && geo && <CountyMap race={race} counties={counties} geo={geo} />}
       <div className="race-actions">

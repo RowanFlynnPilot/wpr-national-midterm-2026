@@ -21,6 +21,7 @@ describe("a partner's links", () => {
   it("standalone: the page and the stub keep the newsroom", () => {
     expect(shareUrl("?partner=demo", "#senate", page)).toBe(page + "?partner=demo#senate");
     expect(shareUrl("?partner=demo&home=MN", "#senate", page + "?partner=demo&home=MN#house")).toBe(page + "?partner=demo&home=MN#senate");
+    expect(shareUrl("?home=MN", "#senate", page)).toBe(page + "?home=MN#senate");
     expect(raceShareUrl("?partner=demo", "senate-tx", page)).toBe(page + "s/senate-tx.html?partner=demo");
   });
   it("embedded: only that newsroom's own site is accepted as the host", () => {

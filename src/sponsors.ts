@@ -17,11 +17,14 @@ export const SLOT_LABEL: Record<Slot, string> = {
   title: "Title sponsor, 2026 midterm results",
 };
 
-/** What `?demo` shows in every open slot so sales can show a prospect their name on the live page. Never overrides a sold slot. */
-export const DEMO_SPONSOR: Sponsor = {
+/**
+ * What `?demo` shows in every open slot so sales can show a prospect their name on the live page, for the newsroom whose
+ * page it is (its site and its place). Never overrides a sold slot.
+ */
+export const demoSponsor = (url: string, place: string): Sponsor => ({
   name: "Your Brand Here",
   logo: null,
-  url: "https://wausaupilotandreview.com/",
-  tagline: "Your message in front of every reader following the results — Wausau, WI",
+  url,
+  tagline: `Your message in front of every reader following the results — ${place}`,
   address: null,
-};
+});

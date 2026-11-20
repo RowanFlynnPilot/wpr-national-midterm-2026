@@ -27,6 +27,7 @@ import { parseHash, raceDistrict, toHash } from "./lib/route";
 import { readVisit, writeVisit } from "./lib/visits";
 import { isStale } from "./lib/share";
 import { isFresh, noVotesYet, type LegendKey } from "./lib/status";
+import { PartnerCredit } from "./components/PartnerCredit";
 import { HOME_STATE, NEWSROOM } from "./lib/newsroom";
 import { stateName } from "./lib/states";
 import { chamber, dek, headline, housePopularVote, OFFICE_NAME, OFFICE_SINGULAR, raceTitle } from "./lib/summary";
@@ -287,6 +288,7 @@ export function App({ data }: { data: Data }) {
       </a>
       <DemoRibbon />
       <Masthead now={now} />
+      <PartnerCredit />
 
       {error ? (
         <p className="stale stale--error" role="alert">

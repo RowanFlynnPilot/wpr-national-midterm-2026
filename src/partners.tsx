@@ -5,6 +5,7 @@ import { StrictMode, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { FooterSeal, Masthead } from "./components/Masthead";
 import { compactEmbedSnippet, EMBED_ID, pageEmbedSnippet } from "./lib/embed";
+import { IS_PARTNER, NEWSROOM } from "./lib/newsroom";
 import { STATE_NAME } from "./lib/states";
 import { WPR } from "./newsrooms";
 import "./styles.css";
@@ -64,9 +65,11 @@ function Preview({ src }: { src: string }) {
 function Partners() {
   const [home, setHome] = useState("");
   const appUrl = new URL("./", window.location.href).href;
-  const snippet = pageEmbedSnippet(appUrl, home || null);
-  const compact = compactEmbedSnippet(new URL("./compact.html", window.location.href).href);
-  const homeName = home ? STATE_NAME[home] : "Wisconsin";
+  const partner = IS_PARTNER ? NEWSROOM.slug : null; // opened with ?partner=<slug>, the page builds that newsroom's own snippets
+  const query = [partner && `partner=${partner}`, home && `home=${home}`].filter(Boolean).join("&");
+  const snippet = pageEmbedSnippet(appUrl, partner, home || null);
+  const compact = compactEmbedSnippet(new URL("./compact.html", window.location.href).href, partner);
+  const homeName = STATE_NAME[home || NEWSROOM.home];
   return (
     <div className="app partners">
       <Masthead now={Date.now()} />
@@ -105,14 +108,33 @@ function Partners() {
           </section>
         </div>
 
+        <section className="partners__also" aria-labelledby="ways-title">
+          <h2 id="ways-title" className="partners__title">
+            Two ways to run it
+          </h2>
+          <p className="partners__note">
+            <strong>Any newsroom, today.</strong> Use the snippet below. The page opens on your state and carries Wausau Pilot &amp;
+            Review’s sponsor placement.
+          </p>
+          <p className="partners__note">
+            <strong>As a partner.</strong> The page names your newsroom, the sponsor placement and its sales contact are yours, and
+            shared links lead back to your article. Write to us and we will set it up; you get a snippet of your own.
+          </p>
+        </section>
+
         <section className="partners__builder" aria-labelledby="builder-title">
           <h2 id="builder-title" className="partners__title">
             Build your snippet
           </h2>
+          {partner && (
+            <p className="partners__note">
+              This snippet is set up for <strong>{NEWSROOM.name}</strong>: the sponsor placement and the shared links are yours.
+            </p>
+          )}
           <label className="partners__pick">
             <span>Your state</span>
             <select value={home} onChange={(e) => setHome(e.target.value)}>
-              <option value="">Wisconsin (the default)</option>
+              <option value="">{STATE_NAME[NEWSROOM.home]} (the default)</option>
               {STATES.map(([code, name]) => (
                 <option key={code} value={code}>
                   {name}
@@ -126,7 +148,7 @@ function Partners() {
           </p>
           <Snippet code={snippet} what="snippet" />
           <h3 className="partners__subtitle">Preview</h3>
-          <Preview src={home ? `${appUrl}?home=${home}` : appUrl} />
+          <Preview src={query ? `${appUrl}?${query}` : appUrl} />
         </section>
 
         <section className="partners__also" aria-labelledby="also-title">

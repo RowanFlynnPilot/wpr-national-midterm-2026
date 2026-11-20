@@ -83,8 +83,11 @@ function stub({ hash, title, description, alt }, publisherPattern) {
 <noscript><meta http-equiv="refresh" content="0; url=${attr(app)}"></noscript>
 <script>
 (function () {
-  var to = new URLSearchParams(location.search).get('to');
+  var q = new URLSearchParams(location.search);
+  var to = q.get('to');
+  var partner = q.get('partner');
   var url = ${JSON.stringify(app)};
+  if (partner && /^[a-z0-9-]+$/.test(partner)) url = ${JSON.stringify(pagesUrl)} + '?partner=' + partner + ${JSON.stringify(`#${hash}`)};
   if (to) {
     try {
       var u = new URL(to);

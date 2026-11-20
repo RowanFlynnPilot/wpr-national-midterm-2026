@@ -156,7 +156,7 @@ Each district's target = vote-weighted centroid of the counties it covers (from 
 - `src/components/NationalMap.tsx` has a `measures` mode (states shaded by how many statewide measures they have, `measureCountColor`; the tooltip gives passed/failed/not called); the measures tab has no counties toggle, each measure's card carries its own county map. For the other offices it has three modes: states, counties (margin bins) and "Still counting" (`remaining`: share of each county's vote still out, teal ramp from `remainingColor`; the legend names civicAPI's % reporting as the source). Both county modes zoom to the selected state (CSS transform on `.map-zoom`, non-scaling strokes, "All states" button to return; no animation under `prefers-reduced-motion`).
 - `src/components/HexMap.tsx`: roving tabindex, arrow keys walk the grid (skipping gaps), Enter/Space selects, focus shows the tooltip (`focusPoint` in `Tooltip.tsx`; the same `HoverHandler` serves pointer and keyboard). `SidePanel.tsx`, `RaceCard.tsx`, `CountyMap.tsx`, `RaceTable.tsx` (table view = accessible twin of the maps).
 - `src/lib/live.ts` (`useLive`) loads the county files after the first paint, then refetches results (and counties, once loaded) every 15 minutes and when the tab becomes visible, but never within 5 minutes of the last refresh (a tab flicking in and out of view was re-downloading everything). The old render stays at reduced opacity while a refresh is in flight; a failed refresh shows a specific notice while keeping the last good data. `document.title` names the selected race.
-- `HOME_STATE` (`src/lib/states.ts`) drives the Wisconsin shortcut: a toolbar chip that selects it on the current tab, a resting teal outline on both maps (replaced by the selected outline once picked), the "Wisconsin at a glance" block (Senate and governor races, then the measures, then the House delegation; `GLANCE_ORDER`) at the top of every overview panel, the outlined dots on the House margin strip and the last "thing to know". It is "WI" unless the page is opened with `?home=<postal code>` (`homeState`), so another newsroom can embed the tool around its own state (see WordPress embed); an unknown code fails the page at load, since it is a setup error. The masthead, the sales copy and the headline stay WPR's.
+- `HOME_STATE` (`src/lib/newsroom.ts`: the selected newsroom's state, see "Partner newsrooms") drives the Wisconsin shortcut: a toolbar chip that selects it on the current tab, a resting teal outline on both maps (replaced by the selected outline once picked), the "Wisconsin at a glance" block (Senate and governor races, then the measures, then the House delegation; `GLANCE_ORDER`) at the top of every overview panel, the outlined dots on the House margin strip and the last "thing to know". It is "WI" unless the page is opened with `?home=<postal code>` (`newsroom` in `src/lib/newsroom.ts`), so another newsroom can embed the tool around its own state (see WordPress embed); an unknown code fails the page at load, since it is a setup error. The masthead, the sales copy and the headline stay WPR's.
 - `RaceTable.tsx`: each row expands (chevron, or click the row) into the full `RaceCard` with every candidate, votes, photos, call and update times and the count sparkline, plus an "Open on the map" button; the state cell still opens the panel. Columns: State/District, Leading candidate (sortable by share), Runner-up, Margin (with the trend glyph), Reporting, Votes, Called (relative time; "No time given" for calls civicAPI left unstamped), Status. Filters: All, Not called, Flipped (Senate and governors), Within 5 points. A summary line counts called and not called; "Download CSV" writes the filtered, sorted rows via `src/lib/csv.ts` (one row per race, top two candidates spelled out, status and timing). Reporting, Votes and Called hide under 960px (they are in the expanded row; with them the table scrolled sideways on tablets), Runner-up under 700px, and on the measures table Margin too (`phone-hide`; the Yes and No shares beside it say the same). Under 390px the header labels wrap, the cells tighten and the party dash narrows so the longest names stay whole (see "Review pass (Nov. 9, 2026, evening)").
 - Map pass (Nov. 6): the key (`Legend.tsx`) is a row of toggle buttons on the states and hex views; pressing one spotlights those races (`legendKey`/`inSpotlight` in `status.ts`, `spotlight` state in App, cleared when the office or mode changes; "Seat flipped" and "Called in the last 3 hours" are entries too; the latter appears only while `isFresh` finds one, `FRESH_MS`) and dims everything else to 22% (`.is-out`, `.is-dim`); "Show all" clears it. Fresh calls get a dashed teal ring (`.fresh-outlines`, `.hex--fresh`). Hover is an ink outline drawn on top (`.hover-outline`, `.hex-hover`) rather than a darkened fill, fills cross-fade over 400 ms when a refresh changes a call, both maps fade in once on mount (`map-in`, off under reduced motion) and the state group and hex blob carry one soft drop shadow for elevation. The tooltip leads with the leader's headshot (when the manifest has one), the call time or % reporting, and a share bar per candidate. A zoomed state names its five biggest counties by votes (`.county-labels`, 9px scaled by `zoomScale`, skipping any within `LABEL_GAP` of a bigger one; hidden under 700px where they would be 3px).
 - Replay election night (`src/lib/replay.ts`, `Replay.tsx`): `callOrder` is every timestamped call oldest first; position i of the scrubber shows `resultsAfter(results, i, calls)`, the results with every later call undone (winner, flip, call time and the candidate's winner flag cleared, and `undone` set on the race so the card gives no reason it is uncalled; leads and votes stay as they are today, since the count history starts later). The ~34 calls civicAPI left unstamped are undone at every position but the last. App derives `results` from the live results and the position, so the maps, tabs, headline, panel and table all replay together, and the board's `clock` is the position's call time (so "Called in the last 3 hours" and the latest-calls ages follow the replay); the masthead and the stale notice keep the real time. Play steps one call every 45 ms; the control shows on the states and hex views and the measures map, and leaving the states mode exits the replay. The overview's "still being counted" list shows 12 rows (`COUNTING_LISTED`) and a "Show all N" button that expands it in place (`Overview` is keyed by office so it folds back on a tab change); mid-replay hundreds are uncalled.
@@ -338,7 +338,7 @@ Two additions for the days after the election, when the page's readers ask what 
 `src/lib/embed.ts` posts `{type: "wpr-embed-height", id: "wpr-national-midterm-2026", height}` to the parent whenever
 `document.body` resizes (standard WPR shape, same as wpr-auto-loan and wpr-tip-desk). The snippet forwards the article's
 hash into the iframe so a shared link opens on the right view, and passes the article URL as `?host=` so "Copy link"
-(`src/lib/share.ts`) produces an article link, not the Pages URL. Only `https://*.wausaupilotandreview.com` is accepted as a host.
+(`src/lib/share.ts`) produces an article link, not the Pages URL. Only the selected newsroom's own domain is accepted as a host (for WPR, `https://*.wausaupilotandreview.com`).
 `allow="clipboard-write; web-share"` is what lets the copy buttons and the share sheet work inside the frame.
 
 Another newsroom embeds the same page with `?home=<its state>` and without `?host=` (Copy link then gives the Pages URL, since only
@@ -369,18 +369,56 @@ functions produce with WPR's `?host=`.
 </script>
 ```
 
+## Partner newsrooms (Nov. 19, 2026)
+
+The first step toward offering the page to other newsrooms. Rowan's decisions: co-brand (WPR's masthead stays and one line
+names the partner), the partner sells and keeps its own sponsor slot, and the free `?home=` embed stays open to anyone.
+
+- **Registry**: `src/newsrooms.ts` holds every newsroom the page runs for: `{name, site, domain, home, place, salesEmail,
+  utmSource, sponsors}`. `WPR` is the owner and the default; `demo` is the sales preview ("Your Newsroom" over WPR's own
+  contacts, so a prospect who clicks through reaches WPR). A sponsor, a sales address or a share domain may not ride in a URL,
+  where anyone could forge one, so a newsroom gets them only by being in this file.
+- **Selection** (`newsroom` in `src/lib/newsroom.ts`): `?partner=<slug>` picks an entry, no parameter means WPR, and `?home=`
+  moves the home state of whichever is picked. An unknown slug or state throws at load: a setup error, like an unknown home
+  state before. `NEWSROOM`, `HOME_STATE` and `IS_PARTNER` are the selected values; the home state, the sponsor slot
+  (`Sponsor.tsx`), the sales address (the open slot, the demo ribbon, the footer's "Advertise on this page") and the share
+  domain (`onSite`, used by `shareUrl` and `raceShareUrl`) all read from them. The open slot's line names the home state
+  ("Reach Minnesota readers…"), and `demoSponsor` in `sponsors.ts` takes the newsroom's site and place.
+- **What a partner's readers see**: `PartnerCredit.tsx`, a line under the flag on the page, the compact module and the race
+  embed: "Results for readers of {name}, from Wausau Pilot & Review". Nothing on WPR's own page. The masthead, the footer, the
+  headline and the share images stay WPR's (635 cards are drawn once a build; a set per partner would multiply that).
+- **Embeds and sharing**: `pageEmbedSnippet(appUrl, partner, home)` gives a partner `?partner=<slug>&host=<its article>`, so
+  Copy link and the race links lead back to its article; the host is checked against that newsroom's own domain, which is why
+  an unregistered newsroom still gets `?home=` and no host. `compactEmbedSnippet` and `raceEmbedSnippet` carry the slug.
+  `shareUrl` keeps `partner` and `home` on a link built from a bare page URL (the module's and the race embed's links to the
+  full page; before, the module dropped `?home=`). A race stub accepts an article on any registered domain (`sitesPattern`)
+  and passes a slug-shaped `?partner=` on to the app.
+- **Partner page**: `partners.html` explains the two ways to run it; opened with `?partner=<slug>` it builds that newsroom's
+  own snippets and preview.
+- **To add a partner**: add an entry (slug in lowercase letters, digits and hyphens; `domain` without a scheme), put its
+  sponsor's logo in `public/sponsors/` if it has one, run `npm test` (`newsroom.test.ts` checks every entry: a real state, an
+  https site on its own domain, a sales address, logos on disk), commit, and send the newsroom `partners.html?partner=<slug>`.
+  **To remove one**, tell the newsroom first: with its entry gone its embed fails at load and shows a blank frame in its article.
+- Limits: the registry ships in the bundle (fine for dozens of newsrooms; hundreds would want a file per partner); no reader
+  counts per partner; hosting and the refresh schedule are unchanged. Seen and left: an unregistered newsroom that uses
+  "Embed this race in an article" gets a snippet with `?host=<its article>`, which the race page refuses, since only a
+  registered domain is accepted as a host.
+- Gate: `partner-demo` (`?partner=demo&home=MN&demo#senate`). WPR's page was proved unchanged by the registry: 26 of 32 before
+  and after captures identical to the byte, the rest differing only in the local port printed in the partner page's snippet and
+  two lazily decoded photos.
+
 ## Sponsorship
 
-The WPR tracker model (wpr-brand skill, `references/sponsorship.md`). Inventory lives in `src/sponsors.ts` and nowhere else:
-`SPONSORS.title` is a `Sponsor` or `null`. Sold: `SponsorLockup` under the hero dek, a white card marked on top in teal with
+The WPR tracker model (wpr-brand skill, `references/sponsorship.md`). Inventory lives in `src/newsrooms.ts`, one set of slots per newsroom, and nowhere else (see "Partner newsrooms"); for WPR
+`WPR.sponsors.title` is a `Sponsor` or `null`. Sold: `SponsorLockup` under the hero dek, a white card marked on top in teal with
 "Presented by", the logo (`public/sponsors/<file>`, drawn for white, ~50px) or the name in Fraunces, the tagline split at the
 em dash into a bold offer and a muted place, a Directions chip when there is an address (Apple Maps on Apple hardware, Google
 Maps elsewhere; a button-role span, since the card is already a link), UTM tags on the way out and
 `rel="noopener noreferrer sponsored"`. Open: `OpenSlot`, a dashed card leading with "Sponsorship available", one line of
-value, a "Book this placement →" mailto to `SALES_EMAIL` (chris.weber@wausaupilotandreview.com, the one address) with the
+value, a "Book this placement →" mailto to the newsroom's `salesEmail` (WPR's is chris.weber@wausaupilotandreview.com, the one address) with the
 placement in the subject, which also copies the address and confirms inline. `?demo` fills every open slot with "Your Brand
 Here" under a ribbon that names itself a sales preview; sold slots are never overridden. The footer carries "Advertise on this
-page". To sell the slot: fill in `SPONSORS.title`, drop the logo in `public/sponsors/`, commit.
+page". To sell the slot: fill in `sponsors.title` on the newsroom's entry in `src/newsrooms.ts`, drop the logo in `public/sponsors/`, commit.
 
 ## Compact embed
 
@@ -433,7 +471,7 @@ whole); it is for the newsroom and does not print. `parseHash`/`toHash` moved to
   grammar stays in TypeScript), screenshots each to `dist/share/<hash>.jpg` (JPEG: 639 cards are 37 MB, about 40 s a build)
   and writes `dist/s/<hash>.html`, a stub page whose meta tags carry that card (`cardMeta` in `RaceShare.tsx`, copied from the
   page's `#card-meta`) and whose script sends a reader on to the app at the race's hash, or to the article named by `?to=`
-  when it is on WPR's domain (the publisher pattern is `PUBLISHER` in `share.ts`, read from the page). A hash fragment
+  when it is on WPR's domain (or any registered newsroom's: the pattern is `sitesPattern` in `src/lib/newsroom.ts`, read from the page). A hash fragment
   never reaches a crawler, so this is the only way a shared race link gets its own preview. Stubs are `noindex`.
 - `ShareRace.tsx`, on every race view in the panel and on `race.html`: "Share this race" opens the device's share sheet
   (`navigator.share`; the iframe needs `allow="web-share"`), else copies the stub link (`raceShareUrl`: `s/<hash>.html`,

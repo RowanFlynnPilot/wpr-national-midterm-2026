@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { NEWSROOM } from "../lib/newsroom";
-import { CAMPAIGN, DEMO_SPONSOR, SLOT_LABEL, type Slot, type Sponsor } from "../sponsors";
+import { HOME_STATE, NEWSROOM } from "../lib/newsroom";
+import { stateName } from "../lib/states";
+import { CAMPAIGN, SLOT_LABEL, demoSponsor, type Slot, type Sponsor } from "../sponsors";
 
 export const isDemo = () => new URLSearchParams(window.location.search).has("demo");
 
 /** The sponsor to show in a slot: the sold one, the demo placeholder under ?demo, else null (an open slot). */
 export function sponsorFor(slot: Slot): Sponsor | null {
-  return NEWSROOM.sponsors[slot] ?? (isDemo() ? DEMO_SPONSOR : null);
+  return NEWSROOM.sponsors[slot] ?? (isDemo() ? demoSponsor(NEWSROOM.site, NEWSROOM.place) : null);
 }
 
 const outbound = (url: string, slot: Slot) => {
@@ -82,7 +83,7 @@ export function OpenSlot({ slot }: { slot: Slot }) {
       <span className="sponsor__eyebrow" id={`slot-${slot}`}>
         Sponsorship available
       </span>
-      <p className="sponsor__pitch">Reach Wisconsin readers following every race in the country.</p>
+      <p className="sponsor__pitch">Reach {stateName(HOME_STATE)} readers following every race in the country.</p>
       <a className="sponsor__book" href={`mailto:${NEWSROOM.salesEmail}?subject=${subject}`} onClick={copy}>
         Book this placement →
       </a>
